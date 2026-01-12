@@ -1,0 +1,3092 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "elements": [
+    {
+      "id": "EgUOCDjitWxg7sj7zBqMF",
+      "type": "text",
+      "x": 968.7236844533918,
+      "y": -3121.590243503396,
+      "width": 1689.2332763671875,
+      "height": 5250,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a0",
+      "roundness": null,
+      "seed": 1261754206,
+      "version": 25755,
+      "versionNonce": 716637789,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767315523559,
+      "link": null,
+      "locked": false,
+      "text": "Payment System \n\nFunctional Requirements -\n    1. Merchants should be able to initiate payment requests (charge a customer for a specific amount)\n    2. Users should be able to pay for products with credit/debit cards\n    3. Merchants/Customers should be able to view status updates for payments (e.g., pending, success, failed)\n\nOut of Scope -\n    1. Showing history of transactions for merchant and customer.\n\nNon-Functional Requirements - \n    1. Initiating a payment request should be near real time (< 100ms)\n    2. Executing payment and receiving the notification needs to be instant (500ms - 1s)\n    3. Notification delay between merchants and customers should be minimal (< 100ms)\n    4. 10K TPS to the system. (provided)\n    5. The system should be strongly consistent and should not lose any data.\n    6. The system should not have any single point of failure.\n    7. The system should be able to authenticate merchant and customer of each other transaction to guarantee security.\n    8. The system should be idempotent and should not charge the customer double amount for the same transaction.\n    9. While showing history is out of scope, the system should maintain a complete set of logs for audit purposes.\n\nAssumptions - \n   1. There will be external payment processor APIs  (bank APIs) available for processing the actual card transactions.\n   2. The bank APIs can handle 10K TPS.\n   3. The system does not need to validate the card information.\n\nAPI Contracts -\n\n1. Merchant initiating a request -\n\nPOST /payments/\n{\n   transactionID\n   merchantId\n   customerId\n   PaymentAmount\n   Timestamp\n   ExpiredBy\n   Reason\n}\n\nReturns --> confirmationId and status (INITIATED) and status code 200\n\n2. Customer paying for the merchant's request\n\nPATCH /charge/<transactionId>\n\n{\n     customerId\n     merchantId\n     cardNumber\n     status: Accepted|Rejected\n     Notes\n     timestamp\n}\n\nReturns confirmationId and status code 200\n\n3. Merchant/customer seeing notification (2 different notifications)\n\nPOST /notify/\n\n{\n    transactionId\n    notify: <CustomerId>/<MerchantId> \n    status: Executed|Denied|Error\n    bankNotes\n    timestamp\n}\n\nReturns acknowledgement and status code 200\n\nHigh Level Design\n\n1. Merchants should be able to initiate payment requests\n     a. Merchant (some user) initiate a request to charge amount to Customer (another user) to the Payment microservice.\n     b. The microservice makes a Database call and persist the information to the Payment Table by generating a unique UUID\n        of the payment and status (INITATED)\n    c. The microservice returns the merchant a transactionID and status as INITIATED.\n    d. Post that, the microservice checks if the user is a member of the payment app. IF yes, it fetches the deviceIpAddress\n        and sent a device push notification with merchant name, payment requested, expiry timestamp and Reason.\n    e. Once the notification is sent, the microservice updates the DB with status REQUESTED.\n    g. If the merchant is already connected to the microservice, it sends a bi-directional message with transactionID\n        and status REQUESTED.\n   h. NOTE: Since Merchant is connected with the microservice, the system will use bi-directional communication with Websockets\n       to exchange message between App and microservice. On the other hand, Customer's App might or might not be connected to \n       the Payment microservice. In this scenario, we will send a device push notification.\n\n\n2. Users should be able to pay for products with credit/debit cards\n     a. Once the customer is notified, the customer clicks on the app which creates a connection with the Payment microservice.\n     b. The customer added their payment information and the app created a PATCH request to the microservice which contains\n         the userId (customerId), merchantId, card details, payment amount and transaction Id\n    c. The microservice retrieves the exising copy of the transaction ID from the database and validates the following - \n          a. MerchantId is same as the one sent by the customer's app.\n          b. CustomerId is same as the one sent by the customer's app\n          c. Is PaymentAmount same ?\n         d. Is LastStatus REQUESTED ?\n    d. Once all the verifications are done, it updates the DB with status ACCEPTED/REJECTED based on customer's response.\n    e. If the status is ACCEPTED, it will make a blocking call to the External Bank API and will wait till the bank processes the transaction.\n    f. Once processed, it will update the DB with EXECUTED|DENIED status and notify both the merchant and customer together.\n\n3. How will merchants be able to view status updates for payments?\n     a. If the merchant is connected to the payment microservice, we can send them notification via websocket communication.\n     b. However, if we assume that merchant is not always on the payment add, the microservice can always initiate a device push notification\n        containing transactionId, paymentAmount, paymentStatus, customerId, reason as soon as the microservice updates the DB.\n    c. Similarly, when a bank processed the payment synchronously, the microservice can sent a device push notification to the customer about\n        their payment status.\n    d. However, if merchants are anxious and they want to check the status of payments periodically, the app can send a fixed polling request to\n        the 'Payment' microservice whose responsibility is to query the DB call and return the status update of that transaction.\n   e. The app should sent a GET request containing transactionId, merchantID, customerID for validation and security.\n\n4. How would you ensure secure authentication for merchants using the payment system?\n    a. To secure authentication, we will use the principle of signing the request so that the microservice knows if the sender is actually the owner of the request.\n    a. When a merchant first onboards as a merchant to the app, app connects it to Registration microservice whose responsibility are - \n          a. Merchant's app generate a private key and public key and shares the sender's public key with the microservice\n          b. The microservice perist the publick key as 'signSecretKey' in USER table.\n    c. When merchant initiates a request, the app hashes the request using SHA_1/SHA_256 and sign the hash request using app's private key\n        and adds a signature field to the request and forwards it to Payment microservice. This is called asymmetric encyption.\n    d. The microservice hashes the request without the signature field using SHA_1/SHA_256 and then retrieves the  'signSecretKey' from USER table\n        via sender_id and verify the signture to output the hash calculated by the sender.\n    e. If the hash calculated by microservice and sender are equal, the signature is valid and the microservice processes the request.\n    f. In case an impersonator modifies the request, the hash calculated by the microservice will not be equal to hash send by the sender via signature.\n    g. If the impersonator does not modify the request but keeps on triggering the same request until the expiry timestamp is valid, the microservice\n       should take the responsibility of idempotency and the app should take the responsibility of sending a unique transactionId for every request.\n\n5. How would you secure customer credit card information while in transit?\n     a. For security, the app needs to encrypt the payload after signing the request to follow the principle of Sign-then-encrypt.\n     b. Whenever a merchant/customer onboards to the app, the Registration microservice and the app shares keys - \n           a. For signing, Sender generates private and public key and shares the public key to the microservice.\n           b. For encryption, the Receiver generates private and public key and shares the public key to the app.\n    c. When a payment needs to be executed, the app signs and encrypt the request using the app's session key. This is called symmetric encryption (AES)\n        because the payload is bigger and asymmetric encryption is usually slow for larger payload. Encrypted Payload = Encrypt(app's session key, request)\n    d. Now, the app also needs to send the session key it generated. So, Encrypted Key = Encrypt (app's session key, receiver's public key).\n    e. When the microservice receives the request via HTTPS, it first tries to retrieve the app's session key using its own private key\n         app's session key = Decrypt(Encrypted Key, Receiver's private key) and once the app's session key is retrieved, it uses that to decrypt the payload\n         Payload = Decrypt(Encrypted Payload, app's session key)\n    f. Once the payload is retrieved, the microservice proceeds with the validating the signature to confirm the authentication.\n   g. Once validated the signature, the microservice does idempotency check and validates if the LAST STATUS is REQUESTED and checks if the timestamp\n       is still within the expired window and the request to pay is to the merchant_id which generated the request initially.\n   h. Once we know the request is valid, the microservice updates the DB with LAST STATUS as Accepted. However, it also needs to persist the Credit Card\n       Information in the DB. However, this is sensitive data to be stored in DB which can be breached.\n   i. In such scenarios, the microservice talks to Token Service Provider and retrieves the token values based on Credit Card Information. These token \n      values are no way related to Credit Card numbers and are randomly generated by Token Service Provider.\n   j. As a result, the microservice persist the token in card data column and proceeds to make the request to the Bank using tokens. The Bank talks to \n     the credit card authorizer which itself validate if the token is related to the credit card and then charge the credit card.\n  k. Once the Bank processes the payment and sends the output to the microservice, the microservice updates the DB with LastStatus as Executed\n      and process to notify the merchant and customer using Device Push notification.\n  j. For security, where do microservice stores the app's public key for signing and its own private key ? For the reasons why we don't store credit card\n    in Database as these are sensitive, these keys are also sensitive. Hence, they need to be stored in a secluded data storage which does not interfere\n    with app's business data.\n\n6. How would you handle key rotation for the signSecretKey and encryptSecretKey without disrupting active payment transactions, \n    and what would be your strategy if one of these keys becomes compromised?\n      a. The app/sender should own the responsibility for generating own private key and public key for signing.\n      b. The microservice/receiver should own the responsibility for generating own private key and public key for encryption.\n      c. To handle key rotations, we need to have KeyVersion Id. For example if the app feels the need to generate new keys for signing\n          as the old ones are near expiry, they can use the registration microservice to send the newly generated public key.\n      d. Now, the app and microservice needs to gain confidence on the new key. The app signs a request using new key and use the keyVersionId\n          as 2.0 and sends the payload with those information.\n      e. The microservice retrieves the new key from the user's table and validates the signature. If they keep on doing the same thing with the \n          new key and have a success %, they can make the new key as the primary one and delete the old key.\n      f. However, if the success % is not up to threshold (say 50%) and one of the request failed, the microservice treats it as compromised data and will let the app\n         know. If the app understands the request was incorrectly marked as compromised, it immediately switches to old key and signs and send the request again. \n      g. If the request is now validated, the app logs the metric for failed request using new key. If the failed request % hits a threshold (say 10%), \n          it should delete the new key and create a new key as the old ones are expiring closely.\n      h. For in-flight transactions, the app uses a key version id which will have old key id. So, even though the handshake of new keys are complete, the microservice\n          will use the old key as per the version id mentioned in the request to validate the signature.\n      i. If any of the keys becomes compromised, it needs to decomissioned immediately and we cannot proceed with the above logic of gaining confidence.\n      j. In such scenarios, the owner who is responsible for generating the keys should take the highest priority of generating new keys and using handshake\n         in Registration microservice exchange the keys and start signing the request via the new Keys and use the appropriate version Id\n      k. During handshake, the owner should let know the other party if the new keys will have a fallback or not. For the keys which have no fallback, the existing\n        ones should be deleted immediately.\n          \n7. How would you ensure that no transaction data is ever lost and maintain complete auditability for compliance?\n     a. To maintain data for audits, we don't need to persist them in the database as the database will keep on growing larger but the data is no use to the system.\n     b. So, we need to copy the data from the database and purge them when they are expired. \n     c. Since we need audit trail for every transaction, lets have a trigger on the database for INSERT, UPDATE and DELETE which will act as a Capture Data Change\n        and push the new copy of the row to the SQS and it can be consumed by Lambda and get persisted in S3.\n     d. This will capture the creation of new transaction and its update from INITIATED -> REQUESTED --> ACCEPTED/REJECTED --> EXECUTION/DENIED\n     e. Once a transaction is over, we can use  expiredTimestamp in the PAYMENTS table as a TTL for deletion in database. This will trigger another CDC change to SQS\n         which will reduce the size of the database and maintain the audit of that transaction in S3.\n\n8. How would you ensure transaction safety and financial integrity despite the inherently asynchronous nature of external payment networks?\n     a. Changing the assumption that bank would synchronously execute the payment to asynchronous behavior, there needs to be a change in the architecture.\n     b. Once the customer proceeds to pay, the microservice updates the DB with LAST STATUS as ACCEPTED before making a call to the bank.\n     c. Now, the microservice makes a API call to the bank and the bank returns success as an acknowledgement to the request and not as a payment processed.\n     d. In such scenario, the microservice will update the LAST STATUS as PROCESSING.\n     e. Additionally, we need a pub/sub mechanism where the bank acts as a publisher and a queue acts as a subscriber. \n     f. So, once a bank processes the payment, it can publish its result to any topic. The pub/sub can be sharded based SHA_256(paymentId) % (Number of Topics)\n     g. Once published, the SQS can act as a listener and queue up the transactions to be processed by the microservice. We need a SQS because bank can process\n         multiple payments at once and if the microservice overloads, it can start dropping requests. As a result, SQS helps to preserve those notifications and \n         any instance of the microservice can proceed to execute the notification from the bank.\n     h. If the request is timed out, the microservice can let the app know that if the payment is being charged, it will be refunded and updates the DB as 'TIMED_OUT'.\n     i. In the background, the microservice when sees the request in SQS, it will request the bank to refund the amount and update the DB with REFUND PROCESSING. \n     j. Once the refund is processed and the microservice processes the notification, it updates the DB with LAST STATUS REFUNDED and update the customer\n        via Device Push Notification.\n     k. However, for scenarios, where we never received the notification, we can have a CRON job which would scan the database to find the transactions which are marked as \"TIMED_OUT\"\n         and query the status of the transaction from the Bank. If the status is DENIED, update the DB and notify the customer and merchant\n     l. However, if the status is EXECUTED, we will follow Step i and j to refund the customer and notify them.\n\n9. How would you scale the payment system to handle 10,000+ transactions per second?\n     a. All of these transactions are critical data and the ratio of writes > reads.\n     b. For every transaction, merchant and customer communicates with the Payment microservice. So, firstly, we have to make the microservice stateless so that it can horizontally\n         scale. Since we have DB to maintain the state of the transaction and SQS to read the notification from the Banks, we can horizontally shard the microservice based on transactionID\n     c. Now,  the database can handle a max load of 10K TPS but it will soon become a bottleneck. In such scenarios, we should shard the DB with transactionId\n     d. We can also batch all write requests by adding a SQS and Lambda infront of the DB but since we are sharding the DB, it can effectively handle 10K TPS.\n     e. SQS +Lambda for audit trailing can also be sharded based on transaction_id.\n     f. Additionally, the PubSub + SQS for asynchonous notification can also be shared based on transaction_id.\n     g. CRON job can scale dynamically as per the load.",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Payment System \n\nFunctional Requirements -\n    1. Merchants should be able to initiate payment requests (charge a customer for a specific amount)\n    2. Users should be able to pay for products with credit/debit cards\n    3. Merchants/Customers should be able to view status updates for payments (e.g., pending, success, failed)\n\nOut of Scope -\n    1. Showing history of transactions for merchant and customer.\n\nNon-Functional Requirements - \n    1. Initiating a payment request should be near real time (< 100ms)\n    2. Executing payment and receiving the notification needs to be instant (500ms - 1s)\n    3. Notification delay between merchants and customers should be minimal (< 100ms)\n    4. 10K TPS to the system. (provided)\n    5. The system should be strongly consistent and should not lose any data.\n    6. The system should not have any single point of failure.\n    7. The system should be able to authenticate merchant and customer of each other transaction to guarantee security.\n    8. The system should be idempotent and should not charge the customer double amount for the same transaction.\n    9. While showing history is out of scope, the system should maintain a complete set of logs for audit purposes.\n\nAssumptions - \n   1. There will be external payment processor APIs  (bank APIs) available for processing the actual card transactions.\n   2. The bank APIs can handle 10K TPS.\n   3. The system does not need to validate the card information.\n\nAPI Contracts -\n\n1. Merchant initiating a request -\n\nPOST /payments/\n{\n   transactionID\n   merchantId\n   customerId\n   PaymentAmount\n   Timestamp\n   ExpiredBy\n   Reason\n}\n\nReturns --> confirmationId and status (INITIATED) and status code 200\n\n2. Customer paying for the merchant's request\n\nPATCH /charge/<transactionId>\n\n{\n     customerId\n     merchantId\n     cardNumber\n     status: Accepted|Rejected\n     Notes\n     timestamp\n}\n\nReturns confirmationId and status code 200\n\n3. Merchant/customer seeing notification (2 different notifications)\n\nPOST /notify/\n\n{\n    transactionId\n    notify: <CustomerId>/<MerchantId> \n    status: Executed|Denied|Error\n    bankNotes\n    timestamp\n}\n\nReturns acknowledgement and status code 200\n\nHigh Level Design\n\n1. Merchants should be able to initiate payment requests\n     a. Merchant (some user) initiate a request to charge amount to Customer (another user) to the Payment microservice.\n     b. The microservice makes a Database call and persist the information to the Payment Table by generating a unique UUID\n        of the payment and status (INITATED)\n    c. The microservice returns the merchant a transactionID and status as INITIATED.\n    d. Post that, the microservice checks if the user is a member of the payment app. IF yes, it fetches the deviceIpAddress\n        and sent a device push notification with merchant name, payment requested, expiry timestamp and Reason.\n    e. Once the notification is sent, the microservice updates the DB with status REQUESTED.\n    g. If the merchant is already connected to the microservice, it sends a bi-directional message with transactionID\n        and status REQUESTED.\n   h. NOTE: Since Merchant is connected with the microservice, the system will use bi-directional communication with Websockets\n       to exchange message between App and microservice. On the other hand, Customer's App might or might not be connected to \n       the Payment microservice. In this scenario, we will send a device push notification.\n\n\n2. Users should be able to pay for products with credit/debit cards\n     a. Once the customer is notified, the customer clicks on the app which creates a connection with the Payment microservice.\n     b. The customer added their payment information and the app created a PATCH request to the microservice which contains\n         the userId (customerId), merchantId, card details, payment amount and transaction Id\n    c. The microservice retrieves the exising copy of the transaction ID from the database and validates the following - \n          a. MerchantId is same as the one sent by the customer's app.\n          b. CustomerId is same as the one sent by the customer's app\n          c. Is PaymentAmount same ?\n         d. Is LastStatus REQUESTED ?\n    d. Once all the verifications are done, it updates the DB with status ACCEPTED/REJECTED based on customer's response.\n    e. If the status is ACCEPTED, it will make a blocking call to the External Bank API and will wait till the bank processes the transaction.\n    f. Once processed, it will update the DB with EXECUTED|DENIED status and notify both the merchant and customer together.\n\n3. How will merchants be able to view status updates for payments?\n     a. If the merchant is connected to the payment microservice, we can send them notification via websocket communication.\n     b. However, if we assume that merchant is not always on the payment add, the microservice can always initiate a device push notification\n        containing transactionId, paymentAmount, paymentStatus, customerId, reason as soon as the microservice updates the DB.\n    c. Similarly, when a bank processed the payment synchronously, the microservice can sent a device push notification to the customer about\n        their payment status.\n    d. However, if merchants are anxious and they want to check the status of payments periodically, the app can send a fixed polling request to\n        the 'Payment' microservice whose responsibility is to query the DB call and return the status update of that transaction.\n   e. The app should sent a GET request containing transactionId, merchantID, customerID for validation and security.\n\n4. How would you ensure secure authentication for merchants using the payment system?\n    a. To secure authentication, we will use the principle of signing the request so that the microservice knows if the sender is actually the owner of the request.\n    a. When a merchant first onboards as a merchant to the app, app connects it to Registration microservice whose responsibility are - \n          a. Merchant's app generate a private key and public key and shares the sender's public key with the microservice\n          b. The microservice perist the publick key as 'signSecretKey' in USER table.\n    c. When merchant initiates a request, the app hashes the request using SHA_1/SHA_256 and sign the hash request using app's private key\n        and adds a signature field to the request and forwards it to Payment microservice. This is called asymmetric encyption.\n    d. The microservice hashes the request without the signature field using SHA_1/SHA_256 and then retrieves the  'signSecretKey' from USER table\n        via sender_id and verify the signture to output the hash calculated by the sender.\n    e. If the hash calculated by microservice and sender are equal, the signature is valid and the microservice processes the request.\n    f. In case an impersonator modifies the request, the hash calculated by the microservice will not be equal to hash send by the sender via signature.\n    g. If the impersonator does not modify the request but keeps on triggering the same request until the expiry timestamp is valid, the microservice\n       should take the responsibility of idempotency and the app should take the responsibility of sending a unique transactionId for every request.\n\n5. How would you secure customer credit card information while in transit?\n     a. For security, the app needs to encrypt the payload after signing the request to follow the principle of Sign-then-encrypt.\n     b. Whenever a merchant/customer onboards to the app, the Registration microservice and the app shares keys - \n           a. For signing, Sender generates private and public key and shares the public key to the microservice.\n           b. For encryption, the Receiver generates private and public key and shares the public key to the app.\n    c. When a payment needs to be executed, the app signs and encrypt the request using the app's session key. This is called symmetric encryption (AES)\n        because the payload is bigger and asymmetric encryption is usually slow for larger payload. Encrypted Payload = Encrypt(app's session key, request)\n    d. Now, the app also needs to send the session key it generated. So, Encrypted Key = Encrypt (app's session key, receiver's public key).\n    e. When the microservice receives the request via HTTPS, it first tries to retrieve the app's session key using its own private key\n         app's session key = Decrypt(Encrypted Key, Receiver's private key) and once the app's session key is retrieved, it uses that to decrypt the payload\n         Payload = Decrypt(Encrypted Payload, app's session key)\n    f. Once the payload is retrieved, the microservice proceeds with the validating the signature to confirm the authentication.\n   g. Once validated the signature, the microservice does idempotency check and validates if the LAST STATUS is REQUESTED and checks if the timestamp\n       is still within the expired window and the request to pay is to the merchant_id which generated the request initially.\n   h. Once we know the request is valid, the microservice updates the DB with LAST STATUS as Accepted. However, it also needs to persist the Credit Card\n       Information in the DB. However, this is sensitive data to be stored in DB which can be breached.\n   i. In such scenarios, the microservice talks to Token Service Provider and retrieves the token values based on Credit Card Information. These token \n      values are no way related to Credit Card numbers and are randomly generated by Token Service Provider.\n   j. As a result, the microservice persist the token in card data column and proceeds to make the request to the Bank using tokens. The Bank talks to \n     the credit card authorizer which itself validate if the token is related to the credit card and then charge the credit card.\n  k. Once the Bank processes the payment and sends the output to the microservice, the microservice updates the DB with LastStatus as Executed\n      and process to notify the merchant and customer using Device Push notification.\n  j. For security, where do microservice stores the app's public key for signing and its own private key ? For the reasons why we don't store credit card\n    in Database as these are sensitive, these keys are also sensitive. Hence, they need to be stored in a secluded data storage which does not interfere\n    with app's business data.\n\n6. How would you handle key rotation for the signSecretKey and encryptSecretKey without disrupting active payment transactions, \n    and what would be your strategy if one of these keys becomes compromised?\n      a. The app/sender should own the responsibility for generating own private key and public key for signing.\n      b. The microservice/receiver should own the responsibility for generating own private key and public key for encryption.\n      c. To handle key rotations, we need to have KeyVersion Id. For example if the app feels the need to generate new keys for signing\n          as the old ones are near expiry, they can use the registration microservice to send the newly generated public key.\n      d. Now, the app and microservice needs to gain confidence on the new key. The app signs a request using new key and use the keyVersionId\n          as 2.0 and sends the payload with those information.\n      e. The microservice retrieves the new key from the user's table and validates the signature. If they keep on doing the same thing with the \n          new key and have a success %, they can make the new key as the primary one and delete the old key.\n      f. However, if the success % is not up to threshold (say 50%) and one of the request failed, the microservice treats it as compromised data and will let the app\n         know. If the app understands the request was incorrectly marked as compromised, it immediately switches to old key and signs and send the request again. \n      g. If the request is now validated, the app logs the metric for failed request using new key. If the failed request % hits a threshold (say 10%), \n          it should delete the new key and create a new key as the old ones are expiring closely.\n      h. For in-flight transactions, the app uses a key version id which will have old key id. So, even though the handshake of new keys are complete, the microservice\n          will use the old key as per the version id mentioned in the request to validate the signature.\n      i. If any of the keys becomes compromised, it needs to decomissioned immediately and we cannot proceed with the above logic of gaining confidence.\n      j. In such scenarios, the owner who is responsible for generating the keys should take the highest priority of generating new keys and using handshake\n         in Registration microservice exchange the keys and start signing the request via the new Keys and use the appropriate version Id\n      k. During handshake, the owner should let know the other party if the new keys will have a fallback or not. For the keys which have no fallback, the existing\n        ones should be deleted immediately.\n          \n7. How would you ensure that no transaction data is ever lost and maintain complete auditability for compliance?\n     a. To maintain data for audits, we don't need to persist them in the database as the database will keep on growing larger but the data is no use to the system.\n     b. So, we need to copy the data from the database and purge them when they are expired. \n     c. Since we need audit trail for every transaction, lets have a trigger on the database for INSERT, UPDATE and DELETE which will act as a Capture Data Change\n        and push the new copy of the row to the SQS and it can be consumed by Lambda and get persisted in S3.\n     d. This will capture the creation of new transaction and its update from INITIATED -> REQUESTED --> ACCEPTED/REJECTED --> EXECUTION/DENIED\n     e. Once a transaction is over, we can use  expiredTimestamp in the PAYMENTS table as a TTL for deletion in database. This will trigger another CDC change to SQS\n         which will reduce the size of the database and maintain the audit of that transaction in S3.\n\n8. How would you ensure transaction safety and financial integrity despite the inherently asynchronous nature of external payment networks?\n     a. Changing the assumption that bank would synchronously execute the payment to asynchronous behavior, there needs to be a change in the architecture.\n     b. Once the customer proceeds to pay, the microservice updates the DB with LAST STATUS as ACCEPTED before making a call to the bank.\n     c. Now, the microservice makes a API call to the bank and the bank returns success as an acknowledgement to the request and not as a payment processed.\n     d. In such scenario, the microservice will update the LAST STATUS as PROCESSING.\n     e. Additionally, we need a pub/sub mechanism where the bank acts as a publisher and a queue acts as a subscriber. \n     f. So, once a bank processes the payment, it can publish its result to any topic. The pub/sub can be sharded based SHA_256(paymentId) % (Number of Topics)\n     g. Once published, the SQS can act as a listener and queue up the transactions to be processed by the microservice. We need a SQS because bank can process\n         multiple payments at once and if the microservice overloads, it can start dropping requests. As a result, SQS helps to preserve those notifications and \n         any instance of the microservice can proceed to execute the notification from the bank.\n     h. If the request is timed out, the microservice can let the app know that if the payment is being charged, it will be refunded and updates the DB as 'TIMED_OUT'.\n     i. In the background, the microservice when sees the request in SQS, it will request the bank to refund the amount and update the DB with REFUND PROCESSING. \n     j. Once the refund is processed and the microservice processes the notification, it updates the DB with LAST STATUS REFUNDED and update the customer\n        via Device Push Notification.\n     k. However, for scenarios, where we never received the notification, we can have a CRON job which would scan the database to find the transactions which are marked as \"TIMED_OUT\"\n         and query the status of the transaction from the Bank. If the status is DENIED, update the DB and notify the customer and merchant\n     l. However, if the status is EXECUTED, we will follow Step i and j to refund the customer and notify them.\n\n9. How would you scale the payment system to handle 10,000+ transactions per second?\n     a. All of these transactions are critical data and the ratio of writes > reads.\n     b. For every transaction, merchant and customer communicates with the Payment microservice. So, firstly, we have to make the microservice stateless so that it can horizontally\n         scale. Since we have DB to maintain the state of the transaction and SQS to read the notification from the Banks, we can horizontally shard the microservice based on transactionID\n     c. Now,  the database can handle a max load of 10K TPS but it will soon become a bottleneck. In such scenarios, we should shard the DB with transactionId\n     d. We can also batch all write requests by adding a SQS and Lambda infront of the DB but since we are sharding the DB, it can effectively handle 10K TPS.\n     e. SQS +Lambda for audit trailing can also be sharded based on transaction_id.\n     f. Additionally, the PubSub + SQS for asynchonous notification can also be shared based on transaction_id.\n     g. CRON job can scale dynamically as per the load.",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "akJtBNO-lYXeNYaFsFQji",
+      "type": "ellipse",
+      "x": 999.7720994846024,
+      "y": 2976.039411098122,
+      "width": 145.00563015687447,
+      "height": 119.9429286482791,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a1",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 503689246,
+      "version": 261,
+      "versionNonce": 99765662,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "lmzM55c8rYUEzEULAfyhd"
+        },
+        {
+          "id": "Mzh37HrKRrkRGfCJY_CfD",
+          "type": "arrow"
+        },
+        {
+          "id": "LMQXOuQONTinDbJUC3RMv",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767117489045,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "lmzM55c8rYUEzEULAfyhd",
+      "type": "text",
+      "x": 1028.7076831289019,
+      "y": 3023.6046463209755,
+      "width": 87.5999984741211,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a2",
+      "roundness": null,
+      "seed": 816685122,
+      "version": 192,
+      "versionNonce": 1376549314,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767116310848,
+      "link": null,
+      "locked": false,
+      "text": "Customer",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "akJtBNO-lYXeNYaFsFQji",
+      "originalText": "Customer",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "xL4u5kZh0FQuEUVg9r1Ww",
+      "type": "ellipse",
+      "x": 999.7720994846026,
+      "y": 2419.28939901432,
+      "width": 145.00563015687447,
+      "height": 119.9429286482791,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a3",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 949145758,
+      "version": 312,
+      "versionNonce": 1368128094,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "EHjWmaU0Z6WPhh897qS57"
+        },
+        {
+          "id": "Sn0a82jtqQd1cFSzJ86S3",
+          "type": "arrow"
+        },
+        {
+          "id": "zcjrEjCcNFWw2GJofA2fZ",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767117927458,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "EHjWmaU0Z6WPhh897qS57",
+      "type": "text",
+      "x": 1030.0076823659626,
+      "y": 2466.8546342371737,
+      "width": 85,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a4",
+      "roundness": null,
+      "seed": 1969949918,
+      "version": 254,
+      "versionNonce": 1002646018,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767116308815,
+      "link": null,
+      "locked": false,
+      "text": "Merchant",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "xL4u5kZh0FQuEUVg9r1Ww",
+      "originalText": "Merchant",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "6j7hH3SZL-mXH9vdKsfR7",
+      "type": "rectangle",
+      "x": 1233.3922814040116,
+      "y": 2400.4923728828735,
+      "width": 113.67725327113021,
+      "height": 716.0771859598744,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a5",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1893664094,
+      "version": 93,
+      "versionNonce": 879955166,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "vCkrL8it7ReALJhAALp6h"
+        },
+        {
+          "id": "jqfaDklGDzBINfusLKxe9",
+          "type": "arrow"
+        },
+        {
+          "id": "Sn0a82jtqQd1cFSzJ86S3",
+          "type": "arrow"
+        },
+        {
+          "id": "LMQXOuQONTinDbJUC3RMv",
+          "type": "arrow"
+        },
+        {
+          "id": "_p_WNpUwh6SgmIeqayc2H",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767118208625,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "vCkrL8it7ReALJhAALp6h",
+      "type": "text",
+      "x": 1250.0309072766372,
+      "y": 2733.5309658628107,
+      "width": 80.4000015258789,
+      "height": 50,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a5V",
+      "roundness": null,
+      "seed": 439173058,
+      "version": 14,
+      "versionNonce": 1640178754,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767116295416,
+      "link": null,
+      "locked": false,
+      "text": "API\nGateway",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "6j7hH3SZL-mXH9vdKsfR7",
+      "originalText": "API Gateway",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "rMbKVg-w0Ag3NqgszxAdz",
+      "type": "rectangle",
+      "x": 1843.2182558311724,
+      "y": 2459.568740724563,
+      "width": 293.59164624354867,
+      "height": 117.25763920092959,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a7",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 561471390,
+      "version": 215,
+      "versionNonce": 1441033299,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "aYHuN0Qp1HprSfbvs4jxq"
+        },
+        {
+          "id": "jqfaDklGDzBINfusLKxe9",
+          "type": "arrow"
+        },
+        {
+          "id": "rrId04OX6x5rqQvvow9Xe",
+          "type": "arrow"
+        },
+        {
+          "id": "48yIukMZcN9iZUExpApyd",
+          "type": "arrow"
+        },
+        {
+          "id": "F25Q8QL6R9E8nqWo34pg_",
+          "type": "arrow"
+        },
+        {
+          "id": "PNdmGBdyWS_h0jpoLdD14",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767313788946,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "aYHuN0Qp1HprSfbvs4jxq",
+      "type": "text",
+      "x": 1950.1807468911793,
+      "y": 2505.697560325028,
+      "width": 79.66666412353516,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a8",
+      "roundness": null,
+      "seed": 983975902,
+      "version": 120,
+      "versionNonce": 640392285,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767313528896,
+      "link": null,
+      "locked": false,
+      "text": "Payment",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "rMbKVg-w0Ag3NqgszxAdz",
+      "originalText": "Payment",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "bEhH5-XTp23mk3PXmGvAB",
+      "type": "ellipse",
+      "x": 2426.376692556957,
+      "y": 2441.1151583556593,
+      "width": 167.38304221812018,
+      "height": 150.37620905157382,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a9",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1798835650,
+      "version": 374,
+      "versionNonce": 215164733,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "XZIUMBGTJONv40jIbuhIK"
+        },
+        {
+          "id": "rrId04OX6x5rqQvvow9Xe",
+          "type": "arrow"
+        },
+        {
+          "id": "sTwcB3zOCPrgyXcAhUq2P",
+          "type": "arrow"
+        },
+        {
+          "id": "xZ85q6KPfcEqVkcvjBi7h",
+          "type": "arrow"
+        },
+        {
+          "id": "S9FuM0-pgnBiYsBjQuP7l",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767314849223,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "XZIUMBGTJONv40jIbuhIK",
+      "type": "text",
+      "x": 2495.6393715619843,
+      "y": 2503.6372443066994,
+      "width": 28.5,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "a9V",
+      "roundness": null,
+      "seed": 23941598,
+      "version": 173,
+      "versionNonce": 1534445597,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767313519630,
+      "link": null,
+      "locked": false,
+      "text": "DB",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "bEhH5-XTp23mk3PXmGvAB",
+      "originalText": "DB",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "7uPJS0e89G1PoCt7pYK-s",
+      "type": "text",
+      "x": 2645.955746437515,
+      "y": 2446.8667383188404,
+      "width": 237.03334045410156,
+      "height": 225,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aB",
+      "roundness": null,
+      "seed": 1639388126,
+      "version": 283,
+      "versionNonce": 1580171581,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767313519630,
+      "link": null,
+      "locked": false,
+      "text": "User\n    id\n    name\n    deviceIpAddress\n    signSecretKey\n    signSecretKeyExpiry\n    encyptSecretKey\n    encryptSecretKeyExpiry\n    ....metadata",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "User\n    id\n    name\n    deviceIpAddress\n    signSecretKey\n    signSecretKeyExpiry\n    encyptSecretKey\n    encryptSecretKeyExpiry\n    ....metadata",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "soYGwzy-NaSUDvAHb6bcv",
+      "type": "text",
+      "x": 2678.804026162172,
+      "y": 2690.8654555922244,
+      "width": 656.2000122070312,
+      "height": 300,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aC",
+      "roundness": null,
+      "seed": 981875934,
+      "version": 654,
+      "versionNonce": 1671351187,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767314514693,
+      "link": null,
+      "locked": false,
+      "text": "Payment\n        transactionId\n        merchantId\n        customerId\n        amount\n        lastStatus INITIATED|REQUESTED|ACCEPTED|REJECTED\n                           |PROCESSING|EXECUTED|DENIED|TIMED_OUT\n                           |REFUND_PROCESSING|REFUNDED|INTERNAL_ERROR\n        timestamp\n        expiredTimestamp\n        Reason\n         cardData",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Payment\n        transactionId\n        merchantId\n        customerId\n        amount\n        lastStatus INITIATED|REQUESTED|ACCEPTED|REJECTED\n                           |PROCESSING|EXECUTED|DENIED|TIMED_OUT\n                           |REFUND_PROCESSING|REFUNDED|INTERNAL_ERROR\n        timestamp\n        expiredTimestamp\n        Reason\n         cardData",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "jqfaDklGDzBINfusLKxe9",
+      "type": "arrow",
+      "x": 1339.777504971068,
+      "y": 2512.2376832473824,
+      "width": 507.1460871674233,
+      "height": 2.211313077705654,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aF",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1785863326,
+      "version": 242,
+      "versionNonce": 525905885,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767313524641,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          507.1460871674233,
+          -2.211313077705654
+        ]
+      ],
+      "startBinding": {
+        "elementId": "6j7hH3SZL-mXH9vdKsfR7",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9358532204619551,
+          0.1560520465607608
+        ]
+      },
+      "endBinding": {
+        "elementId": "rMbKVg-w0Ag3NqgszxAdz",
+        "mode": "inside",
+        "fixedPoint": [
+          0.012620714365439309,
+          0.43031421909024337
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "rrId04OX6x5rqQvvow9Xe",
+      "type": "arrow",
+      "x": 2136.6056053179173,
+      "y": 2507.815057091971,
+      "width": 293.0827872092027,
+      "height": 1.923364994689564,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aG",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 712567134,
+      "version": 318,
+      "versionNonce": 332442685,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767313524641,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          293.0827872092027,
+          1.923364994689564
+        ]
+      ],
+      "startBinding": {
+        "elementId": "rMbKVg-w0Ag3NqgszxAdz",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9993041465606471,
+          0.41145563475599456
+        ]
+      },
+      "endBinding": {
+        "elementId": "bEhH5-XTp23mk3PXmGvAB",
+        "mode": "inside",
+        "fixedPoint": [
+          0.019785158199283538,
+          0.45634388686754246
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "OeTItN6tZ4l4CaXrHXQbA",
+      "type": "rectangle",
+      "x": 1193.0547288445969,
+      "y": 3171.063786726786,
+      "width": 195.9752137456439,
+      "height": 60,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aH",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 2017649374,
+      "version": 415,
+      "versionNonce": 1118160706,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "9r4VRxTmsXkSyKYE4JvPA"
+        },
+        {
+          "id": "Mzh37HrKRrkRGfCJY_CfD",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767117922921,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "9r4VRxTmsXkSyKYE4JvPA",
+      "type": "text",
+      "x": 1235.7590028927118,
+      "y": 3176.063786726786,
+      "width": 110.56666564941406,
+      "height": 50,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aI",
+      "roundness": null,
+      "seed": 1641994014,
+      "version": 330,
+      "versionNonce": 1722781442,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767117922921,
+      "link": null,
+      "locked": false,
+      "text": "Device Push\nNotification",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "OeTItN6tZ4l4CaXrHXQbA",
+      "originalText": "Device Push Notification",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "Mzh37HrKRrkRGfCJY_CfD",
+      "type": "arrow",
+      "x": 1188.388592386104,
+      "y": 3167.701391910143,
+      "width": 76.37633441870707,
+      "height": 85.68203897396324,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aK",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 417608158,
+      "version": 169,
+      "versionNonce": 1034575554,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767117922922,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -76.37633441870707,
+          -85.68203897396324
+        ]
+      ],
+      "startBinding": {
+        "elementId": "OeTItN6tZ4l4CaXrHXQbA",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.20770483096836528,
+          0.7922951690316362
+        ]
+      },
+      "endBinding": {
+        "elementId": "akJtBNO-lYXeNYaFsFQji",
+        "mode": "inside",
+        "fixedPoint": [
+          0.7740400035596362,
+          0.8835864109074191
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "Sn0a82jtqQd1cFSzJ86S3",
+      "type": "arrow",
+      "x": 1140.7593279775688,
+      "y": 2490.8616568295647,
+      "width": 98.03487977827899,
+      "height": 0.737104359235218,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aL",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 2096990558,
+      "version": 43,
+      "versionNonce": 114955230,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767116943824,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          98.03487977827899,
+          -0.737104359235218
+        ]
+      ],
+      "startBinding": {
+        "elementId": "xL4u5kZh0FQuEUVg9r1Ww",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9722879610980556,
+          0.5967192782587719
+        ]
+      },
+      "endBinding": {
+        "elementId": "6j7hH3SZL-mXH9vdKsfR7",
+        "mode": "inside",
+        "fixedPoint": [
+          0.04751985288518664,
+          0.12517111471343337
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "O2ECD_2c4GbDBet7JMlGU",
+      "type": "rectangle",
+      "x": 1753.7496017023884,
+      "y": 2684.2559939302982,
+      "width": 216.70678428144709,
+      "height": 56.502468559548596,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aM",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1210250818,
+      "version": 528,
+      "versionNonce": 2060376307,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "8XIrGXe7v5NfYh_kvYPVo"
+        },
+        {
+          "id": "48yIukMZcN9iZUExpApyd",
+          "type": "arrow"
+        },
+        {
+          "id": "Nx7n_-VH-HY_l08sl_XzS",
+          "type": "arrow"
+        },
+        {
+          "id": "_jiDAz7wH_eNa7zYHmNXO",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767314840058,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "8XIrGXe7v5NfYh_kvYPVo",
+      "type": "text",
+      "x": 1779.886326667819,
+      "y": 2700.0072282100728,
+      "width": 164.43333435058594,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aN",
+      "roundness": null,
+      "seed": 1118756354,
+      "version": 443,
+      "versionNonce": 1832085821,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767313534564,
+      "link": null,
+      "locked": false,
+      "text": "External Bank API",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "O2ECD_2c4GbDBet7JMlGU",
+      "originalText": "External Bank API",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "48yIukMZcN9iZUExpApyd",
+      "type": "arrow",
+      "x": 1981.3633657350492,
+      "y": 2574.8001345703533,
+      "width": 128.00810707146252,
+      "height": 110.03192429666251,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aO",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 639092866,
+      "version": 404,
+      "versionNonce": 1020082589,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767313534564,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -128.00810707146252,
+          110.03192429666251
+        ]
+      ],
+      "startBinding": {
+        "elementId": "rMbKVg-w0Ag3NqgszxAdz",
+        "mode": "inside",
+        "fixedPoint": [
+          0.4705348795560711,
+          0.9827197155857165
+        ]
+      },
+      "endBinding": {
+        "elementId": "O2ECD_2c4GbDBet7JMlGU",
+        "mode": "inside",
+        "fixedPoint": [
+          0.4596333118571675,
+          0.01019539413770067
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "LMQXOuQONTinDbJUC3RMv",
+      "type": "arrow",
+      "x": 1144.3656864127784,
+      "y": 3031.531868035935,
+      "width": 92.07565884236283,
+      "height": 0.9116401865580883,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aP",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1742031070,
+      "version": 67,
+      "versionNonce": 1899837790,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767117491242,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          92.07565884236283,
+          0.9116401865580883
+        ]
+      ],
+      "startBinding": {
+        "elementId": "akJtBNO-lYXeNYaFsFQji",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9971584328949655,
+          0.4626571784030664
+        ]
+      },
+      "endBinding": {
+        "elementId": "6j7hH3SZL-mXH9vdKsfR7",
+        "mode": "inside",
+        "fixedPoint": [
+          0.026822110522474945,
+          0.8825181806239407
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "qlm5U287mavGA8apMxy3J",
+      "type": "rectangle",
+      "x": 1190.9352853420899,
+      "y": 2293.7327282395318,
+      "width": 212.57664784392682,
+      "height": 60,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aQ",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1666127262,
+      "version": 465,
+      "versionNonce": 1409566558,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "wvKt9OJo6zr27zDzpP1lo"
+        },
+        {
+          "id": "zcjrEjCcNFWw2GJofA2fZ",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767117925673,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "wvKt9OJo6zr27zDzpP1lo",
+      "type": "text",
+      "x": 1241.9402764393462,
+      "y": 2298.7327282395318,
+      "width": 110.56666564941406,
+      "height": 50,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aR",
+      "roundness": null,
+      "seed": 1784066526,
+      "version": 414,
+      "versionNonce": 1869653662,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767117918640,
+      "link": null,
+      "locked": false,
+      "text": "Device Push\nNotification",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "qlm5U287mavGA8apMxy3J",
+      "originalText": "Device Push Notification",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "zcjrEjCcNFWw2GJofA2fZ",
+      "type": "arrow",
+      "x": 1194.2947178546979,
+      "y": 2342.4006873810263,
+      "width": 93.63208831431689,
+      "height": 84.99934258320991,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aS",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 499182238,
+      "version": 79,
+      "versionNonce": 1973644830,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767117927458,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -93.63208831431689,
+          84.99934258320991
+        ]
+      ],
+      "startBinding": {
+        "elementId": "qlm5U287mavGA8apMxy3J",
+        "mode": "inside",
+        "fixedPoint": [
+          0.015803393960161116,
+          0.8111326523582421
+        ]
+      },
+      "endBinding": {
+        "elementId": "xL4u5kZh0FQuEUVg9r1Ww",
+        "mode": "inside",
+        "fixedPoint": [
+          0.695769743192936,
+          0.06762075131331492
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "Ii5JGNDUs5_kzBhe0_XTm",
+      "type": "rectangle",
+      "x": 1823.3855380136865,
+      "y": 2950.452085667521,
+      "width": 293.59164624354867,
+      "height": 117.25763920092959,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aT",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 219715266,
+      "version": 394,
+      "versionNonce": 2079935229,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "uujSOB1jglW-9cOFDNWtJ"
+        },
+        {
+          "id": "_p_WNpUwh6SgmIeqayc2H",
+          "type": "arrow"
+        },
+        {
+          "id": "S9FuM0-pgnBiYsBjQuP7l",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767314846660,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "uujSOB1jglW-9cOFDNWtJ",
+      "type": "text",
+      "x": 1915.3146962489861,
+      "y": 2996.5809052679856,
+      "width": 109.73332977294922,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aU",
+      "roundness": null,
+      "seed": 152858242,
+      "version": 357,
+      "versionNonce": 1105878717,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767313537991,
+      "link": null,
+      "locked": false,
+      "text": "Registration",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "Ii5JGNDUs5_kzBhe0_XTm",
+      "originalText": "Registration",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "gWGTvToz69LUECTkFVacj",
+      "type": "arrow",
+      "x": 2033.4214499880932,
+      "y": 3442.3012318841284,
+      "width": 301.6415576120653,
+      "height": 492.0768477527563,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aV",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1241474690,
+      "version": 462,
+      "versionNonce": 1492623613,
+      "isDeleted": true,
+      "boundElements": [],
+      "updated": 1767314814597,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          301.6415576120653,
+          -492.0768477527563
+        ]
+      ],
+      "startBinding": null,
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "_p_WNpUwh6SgmIeqayc2H",
+      "type": "arrow",
+      "x": 1358.0695346751418,
+      "y": 3014.2262568819997,
+      "width": 468.01339252601997,
+      "height": 1.2243057926752954,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aW",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1259454494,
+      "version": 298,
+      "versionNonce": 1982174077,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767313537991,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          468.01339252601997,
+          -1.2243057926752954
+        ]
+      ],
+      "startBinding": {
+        "elementId": "6j7hH3SZL-mXH9vdKsfR7",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.8571771057430971,
+          0.8571771057430952
+        ]
+      },
+      "endBinding": {
+        "elementId": "Ii5JGNDUs5_kzBhe0_XTm",
+        "mode": "inside",
+        "fixedPoint": [
+          0.009187554284966246,
+          0.5334395767138019
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "AiUBrzjmves3B7tvVzMdy",
+      "type": "rectangle",
+      "x": 1982.1083614750594,
+      "y": 2712.908106086177,
+      "width": 293.59164624354867,
+      "height": 117.25763920092959,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aX",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 54211219,
+      "version": 338,
+      "versionNonce": 688360019,
+      "isDeleted": true,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "PVDXZZhlfO9J08jXCrSlj"
+        }
+      ],
+      "updated": 1767311131029,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "PVDXZZhlfO9J08jXCrSlj",
+      "type": "text",
+      "x": 2046.6875174215406,
+      "y": 2759.036925686642,
+      "width": 164.43333435058594,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aY",
+      "roundness": null,
+      "seed": 1493002291,
+      "version": 267,
+      "versionNonce": 1959475293,
+      "isDeleted": true,
+      "boundElements": [],
+      "updated": 1767311131029,
+      "link": null,
+      "locked": false,
+      "text": "External Bank API",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "AiUBrzjmves3B7tvVzMdy",
+      "originalText": "External Bank API",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "gx4kuSrRwhPY9iUpr0B1J",
+      "type": "rectangle",
+      "x": 1994.2274202484477,
+      "y": 2682.876884726057,
+      "width": 216.70678428144709,
+      "height": 56.502468559548596,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aZ",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1547847891,
+      "version": 568,
+      "versionNonce": 764280317,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "JLLP2P39TLwi6X359-r_s"
+        },
+        {
+          "id": "F25Q8QL6R9E8nqWo34pg_",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767313534564,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "JLLP2P39TLwi6X359-r_s",
+      "type": "text",
+      "x": 1999.7641467397573,
+      "y": 2698.6281190058316,
+      "width": 205.63333129882812,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aa",
+      "roundness": null,
+      "seed": 625456755,
+      "version": 507,
+      "versionNonce": 1719088733,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767313534564,
+      "link": null,
+      "locked": false,
+      "text": "Token Service Provider",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "gx4kuSrRwhPY9iUpr0B1J",
+      "originalText": "Token Service Provider",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "F25Q8QL6R9E8nqWo34pg_",
+      "type": "arrow",
+      "x": 1980.0238522142133,
+      "y": 2575.830004328572,
+      "width": 108.0402379863092,
+      "height": 110.02826494146393,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "ab",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1632388509,
+      "version": 207,
+      "versionNonce": 844784317,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1767313534564,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          108.0402379863092,
+          110.02826494146393
+        ]
+      ],
+      "startBinding": {
+        "elementId": "rMbKVg-w0Ag3NqgszxAdz",
+        "mode": "inside",
+        "fixedPoint": [
+          0.4659723739876234,
+          0.9915026807318431
+        ]
+      },
+      "endBinding": {
+        "elementId": "gx4kuSrRwhPY9iUpr0B1J",
+        "mode": "inside",
+        "fixedPoint": [
+          0.4330121470964415,
+          0.05276556263797275
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "tcXP6cZIR9mN-X-CHGZ-9",
+      "type": "ellipse",
+      "x": 2466.2739744753935,
+      "y": 2924.972905901684,
+      "width": 150.69318866787216,
+      "height": 147.86769138035015,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "ac",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1661449501,
+      "version": 201,
+      "versionNonce": 1885607421,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "ruzXhGTxbGdyrhyxOZgjP"
+        },
+        {
+          "id": "z72FLHJClm8ALjn2l7Z_m",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767313519630,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "ruzXhGTxbGdyrhyxOZgjP",
+      "type": "text",
+      "x": 2529.65914761958,
+      "y": 2986.6276279451367,
+      "width": 24.366666793823242,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "ad",
+      "roundness": null,
+      "seed": 2042113555,
+      "version": 128,
+      "versionNonce": 382357085,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1767313519630,
+      "link": null,
+      "locked": false,
+      "text": "S3",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "tcXP6cZIR9mN-X-CHGZ-9",
+      "originalText": "S3",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "JHIz7m-dywhi4ulaLA-GU",
+      "type": "rectangle",
+      "x": 2417.298688158335,
+      "y": 2673.5036473121722,
+      "width": 201.55213984327906,
+      "height": 66.87010247136823,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "ae",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1847522109,
+      "version": 196,
+      "versionNonce": 411728573,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "eUvZcPZ8_bDBfo6jeo46R"
+        },
+        {
+          "id": "sTwcB3zOCPrgyXcAhUq2P",
+          "type": "arrow"
+        },
+        {
+          "id": "euW1Q2Vw40zin9RS-NTTf",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767313519630,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "eUvZcPZ8_bDBfo6jeo46R",
+      "type": "text",
+      "x": 2497.991424110858,
+      "y": 2694.4386985478563,
+      "width": 40.16666793823242,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aeG",
+      "roundness": null,
+      "seed": 386052563,
+      "version": 174,
+      "versionNonce": 1581652765,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1767313519630,
+      "link": null,
+      "locked": false,
+      "text": "SQS",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "JHIz7m-dywhi4ulaLA-GU",
+      "originalText": "SQS",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "l-sOHcT8ViXCUA486Ol6l",
+      "type": "text",
+      "x": 2135.8288537434983,
+      "y": 2689.8534521066863,
+      "width": 5.233333110809326,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aeV",
+      "roundness": null,
+      "seed": 1690890813,
+      "version": 3,
+      "versionNonce": 950532755,
+      "isDeleted": true,
+      "boundElements": null,
+      "updated": 1767312410683,
+      "link": null,
+      "locked": false,
+      "text": "",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "JHIz7m-dywhi4ulaLA-GU",
+      "originalText": "",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "t5991iFk5KISyVvFcNQwx",
+      "type": "text",
+      "x": 2080.9937421192767,
+      "y": 2701.8825358920994,
+      "width": 5.233333110809326,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "af",
+      "roundness": null,
+      "seed": 834094621,
+      "version": 9,
+      "versionNonce": 1328403251,
+      "isDeleted": true,
+      "boundElements": null,
+      "updated": 1767312409498,
+      "link": null,
+      "locked": false,
+      "text": "",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "Uzhdz876H04EUSFzPh8M9",
+      "type": "rectangle",
+      "x": 2416.356855729161,
+      "y": 2788.878119886013,
+      "width": 201.55213984327906,
+      "height": 66.87010247136823,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "ag",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1957896061,
+      "version": 229,
+      "versionNonce": 1080995709,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "B2SEbDNtU3Grxu3TjoV57"
+        },
+        {
+          "id": "euW1Q2Vw40zin9RS-NTTf",
+          "type": "arrow"
+        },
+        {
+          "id": "z72FLHJClm8ALjn2l7Z_m",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767313519630,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "B2SEbDNtU3Grxu3TjoV57",
+      "type": "text",
+      "x": 2480.6329256508006,
+      "y": 2809.813171121697,
+      "width": 73,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "ah",
+      "roundness": null,
+      "seed": 528230365,
+      "version": 183,
+      "versionNonce": 222672861,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767313519630,
+      "link": null,
+      "locked": false,
+      "text": "Lambda",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "Uzhdz876H04EUSFzPh8M9",
+      "originalText": "Lambda",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "sTwcB3zOCPrgyXcAhUq2P",
+      "type": "arrow",
+      "x": 2514.3074283632777,
+      "y": 2590.6223935448425,
+      "width": 1.883664858348311,
+      "height": 86.64858348402686,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "ai",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 556953363,
+      "version": 161,
+      "versionNonce": 1323086909,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1767313519630,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1.883664858348311,
+          86.64858348402686
+        ]
+      ],
+      "startBinding": {
+        "elementId": "bEhH5-XTp23mk3PXmGvAB",
+        "mode": "inside",
+        "fixedPoint": [
+          0.5253264287772732,
+          0.9942213341600288
+        ]
+      },
+      "endBinding": {
+        "elementId": "JHIz7m-dywhi4ulaLA-GU",
+        "mode": "inside",
+        "fixedPoint": [
+          0.4906542056074765,
+          0.0563380281690182
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "euW1Q2Vw40zin9RS-NTTf",
+      "type": "arrow",
+      "x": 2526.551249942542,
+      "y": 2739.4319173543663,
+      "width": 0.9418324291741555,
+      "height": 54.62628089210375,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aj",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1671700125,
+      "version": 141,
+      "versionNonce": 1360340125,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1767313519630,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0.9418324291741555,
+          54.62628089210375
+        ]
+      ],
+      "startBinding": {
+        "elementId": "JHIz7m-dywhi4ulaLA-GU",
+        "mode": "inside",
+        "fixedPoint": [
+          0.5420560747663548,
+          0.9859154929577472
+        ]
+      },
+      "endBinding": {
+        "elementId": "Uzhdz876H04EUSFzPh8M9",
+        "mode": "inside",
+        "fixedPoint": [
+          0.5514018691588777,
+          0.07746478873238048
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "z72FLHJClm8ALjn2l7Z_m",
+      "type": "arrow",
+      "x": 2539.435242473708,
+      "y": 2866.7482223573816,
+      "width": 1.2434939064473838,
+      "height": 71.41033755274111,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "ak",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 14822963,
+      "version": 147,
+      "versionNonce": 1738574077,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1767313519630,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1.2434939064473838,
+          71.41033755274111
+        ]
+      ],
+      "startBinding": {
+        "elementId": "Uzhdz876H04EUSFzPh8M9",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.6074766355140196,
+          0.6074766355140147
+        ]
+      },
+      "endBinding": {
+        "elementId": "tcXP6cZIR9mN-X-CHGZ-9",
+        "mode": "inside",
+        "fixedPoint": [
+          0.4937500000000033,
+          0.0891719745222914
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "-AvR3XuVLLSXBFlvovWKL",
+      "type": "rectangle",
+      "x": 2009.4144775020372,
+      "y": 2297.8364237763676,
+      "width": 195.9011452682339,
+      "height": 69.6955997588907,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "al",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 831086685,
+      "version": 65,
+      "versionNonce": 100148157,
+      "isDeleted": true,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "DGy1i-zMQrBuVvmAr0O15"
+        },
+        {
+          "id": "fqN9fiMoUkEYwQflOyFqd",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767312574500,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "DGy1i-zMQrBuVvmAr0O15",
+      "type": "text",
+      "x": 2078.7983825793917,
+      "y": 2320.184223655813,
+      "width": 57.13333511352539,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "am",
+      "roundness": null,
+      "seed": 1982484947,
+      "version": 7,
+      "versionNonce": 265994899,
+      "isDeleted": true,
+      "boundElements": null,
+      "updated": 1767312574500,
+      "link": null,
+      "locked": false,
+      "text": "CRON",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "-AvR3XuVLLSXBFlvovWKL",
+      "originalText": "CRON",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "fqN9fiMoUkEYwQflOyFqd",
+      "type": "arrow",
+      "x": 2101.1216120104823,
+      "y": 2378.5320235352583,
+      "width": 0.59244355062674,
+      "height": 73.76491862567855,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "an",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 254611155,
+      "version": 38,
+      "versionNonce": 1176730067,
+      "isDeleted": true,
+      "boundElements": null,
+      "updated": 1767312575782,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0.59244355062674,
+          73.76491862567855
+        ]
+      ],
+      "startBinding": null,
+      "endBinding": {
+        "elementId": "bEhH5-XTp23mk3PXmGvAB",
+        "mode": "inside",
+        "fixedPoint": [
+          0.4352974827915128,
+          0.06727151678583142
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "XpWC_WjWXGOwS1UegSkza",
+      "type": "rectangle",
+      "x": 1475.3555238223585,
+      "y": 2693.7157817890447,
+      "width": 176.20835519419654,
+      "height": 45.84498722079847,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "ao",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 33135539,
+      "version": 738,
+      "versionNonce": 1791935891,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "6GaJYeaBJkU9r84ZYpfAh"
+        },
+        {
+          "id": "Z9D06pIsqYF_I-zpoRFbc",
+          "type": "arrow"
+        },
+        {
+          "id": "PNdmGBdyWS_h0jpoLdD14",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767313787726,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "6GaJYeaBJkU9r84ZYpfAh",
+      "type": "text",
+      "x": 1543.3763674503405,
+      "y": 2704.138275399444,
+      "width": 40.16666793823242,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "ap",
+      "roundness": null,
+      "seed": 38907219,
+      "version": 652,
+      "versionNonce": 326017373,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767313554458,
+      "link": null,
+      "locked": false,
+      "text": "SQS",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "XpWC_WjWXGOwS1UegSkza",
+      "originalText": "SQS",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "kJxbNd61AwKyvzfNgMcg3",
+      "type": "rectangle",
+      "x": 1475.3555238223587,
+      "y": 2597.798449740293,
+      "width": 176.20835519419654,
+      "height": 45.84498722079847,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aq",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 191881853,
+      "version": 800,
+      "versionNonce": 366395731,
+      "isDeleted": true,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "6hvnxxXbvXQNBvMYW2bAP"
+        },
+        {
+          "id": "uInJul0AvmzSLg9zdjMxy",
+          "type": "arrow"
+        },
+        {
+          "id": "rxkr_dAeU6lbYKZWnCXcV",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767313781380,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "6hvnxxXbvXQNBvMYW2bAP",
+      "type": "text",
+      "x": 1526.959701419457,
+      "y": 2608.2209433506923,
+      "width": 73,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "ar",
+      "roundness": null,
+      "seed": 1739098845,
+      "version": 726,
+      "versionNonce": 1760489821,
+      "isDeleted": true,
+      "boundElements": [],
+      "updated": 1767313781380,
+      "link": null,
+      "locked": false,
+      "text": "Lambda",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "kJxbNd61AwKyvzfNgMcg3",
+      "originalText": "Lambda",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "bc5EampIjDYTpG71gLeeD",
+      "type": "rectangle",
+      "x": 1610.705536824486,
+      "y": 2775.778388097421,
+      "width": 176.20835519419654,
+      "height": 45.84498722079847,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "as",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1419960979,
+      "version": 776,
+      "versionNonce": 403536797,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "yCqCuBverdlIyllMaxxcy"
+        },
+        {
+          "id": "Nx7n_-VH-HY_l08sl_XzS",
+          "type": "arrow"
+        },
+        {
+          "id": "Z9D06pIsqYF_I-zpoRFbc",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767313590727,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "yCqCuBverdlIyllMaxxcy",
+      "type": "text",
+      "x": 1660.3930464833518,
+      "y": 2786.2008817078204,
+      "width": 76.83333587646484,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "at",
+      "roundness": null,
+      "seed": 32446515,
+      "version": 700,
+      "versionNonce": 1435091347,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767313569482,
+      "link": null,
+      "locked": false,
+      "text": "Pub/Sub",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "bc5EampIjDYTpG71gLeeD",
+      "originalText": "Pub/Sub",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "Nx7n_-VH-HY_l08sl_XzS",
+      "type": "arrow",
+      "x": 1779.8065725960855,
+      "y": 2739.018986210819,
+      "width": 40.49842908725077,
+      "height": 41.56417722112565,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "au",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1133799805,
+      "version": 40,
+      "versionNonce": 1693890067,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1767313584717,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -40.49842908725077,
+          41.56417722112565
+        ]
+      ],
+      "startBinding": {
+        "elementId": "O2ECD_2c4GbDBet7JMlGU",
+        "mode": "inside",
+        "fixedPoint": [
+          0.1202406790359443,
+          0.9692141542949668
+        ]
+      },
+      "endBinding": {
+        "elementId": "bc5EampIjDYTpG71gLeeD",
+        "mode": "inside",
+        "fixedPoint": [
+          0.7298326265097803,
+          0.10480481347683315
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "8E2dplLa7YQV6JLwjHDmI",
+      "type": "arrow",
+      "x": 1655.4771280167429,
+      "y": 2764.7783880974207,
+      "width": 18.48080535990971,
+      "height": 27.890898154351362,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "av",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1093619987,
+      "version": 67,
+      "versionNonce": 538259901,
+      "isDeleted": true,
+      "boundElements": null,
+      "updated": 1767313587541,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -18.48080535990971,
+          -27.890898154351362
+        ]
+      ],
+      "startBinding": {
+        "elementId": "bc5EampIjDYTpG71gLeeD",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.3569907308356609,
+          0.35699073083566
+        ]
+      },
+      "endBinding": {
+        "elementId": "XpWC_WjWXGOwS1UegSkza",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9173276639256569,
+          0.9416887378788256
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "Z9D06pIsqYF_I-zpoRFbc",
+      "type": "arrow",
+      "x": 1629.5360857197081,
+      "y": 2778.451667164195,
+      "width": 11.723229472625235,
+      "height": 43.695673488875855,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "aw",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 267888253,
+      "version": 26,
+      "versionNonce": 544704477,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1767313591848,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -11.723229472625235,
+          -43.695673488875855
+        ]
+      ],
+      "startBinding": {
+        "elementId": "bc5EampIjDYTpG71gLeeD",
+        "mode": "inside",
+        "fixedPoint": [
+          0.1068652441280056,
+          0.05831126212117352
+        ]
+      },
+      "endBinding": {
+        "elementId": "XpWC_WjWXGOwS1UegSkza",
+        "mode": "inside",
+        "fixedPoint": [
+          0.8084595776841818,
+          0.895195186523156
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "uInJul0AvmzSLg9zdjMxy",
+      "type": "arrow",
+      "x": 1579.445923427582,
+      "y": 2695.3233127219437,
+      "width": 1.065748133875104,
+      "height": 53.28740669375111,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "ax",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 935997789,
+      "version": 35,
+      "versionNonce": 1723561789,
+      "isDeleted": true,
+      "boundElements": null,
+      "updated": 1767313784913,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1.065748133875104,
+          -53.28740669375111
+        ]
+      ],
+      "startBinding": {
+        "elementId": "XpWC_WjWXGOwS1UegSkza",
+        "mode": "inside",
+        "fixedPoint": [
+          0.5907234052012301,
+          0.0350644864433437
+        ]
+      },
+      "endBinding": null,
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "rxkr_dAeU6lbYKZWnCXcV",
+      "type": "arrow",
+      "x": 1599.964899257466,
+      "y": 2586.798449740293,
+      "width": 244.85230950499567,
+      "height": 79.04680858035272,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "ay",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 615540445,
+      "version": 139,
+      "versionNonce": 1058157181,
+      "isDeleted": true,
+      "boundElements": null,
+      "updated": 1767313783474,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          244.85230950499567,
+          -79.04680858035272
+        ]
+      ],
+      "startBinding": null,
+      "endBinding": {
+        "elementId": "rMbKVg-w0Ag3NqgszxAdz",
+        "mode": "inside",
+        "fixedPoint": [
+          0.005446179929665965,
+          0.41091480916490425
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "PNdmGBdyWS_h0jpoLdD14",
+      "type": "arrow",
+      "x": 1579.4700057434625,
+      "y": 2682.715781789045,
+      "width": 266.507465782865,
+      "height": 171.50520697692036,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "az",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1701842099,
+      "version": 49,
+      "versionNonce": 1220033203,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1767313788946,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          266.507465782865,
+          -171.50520697692036
+        ]
+      ],
+      "startBinding": {
+        "elementId": "XpWC_WjWXGOwS1UegSkza",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.3516742984811393,
+          0.35167429848112647
+        ]
+      },
+      "endBinding": {
+        "elementId": "rMbKVg-w0Ag3NqgszxAdz",
+        "mode": "inside",
+        "fixedPoint": [
+          0.009398141024987238,
+          0.44041338747294356
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "F0-baFu3fvYs-ZAZhAR1F",
+      "type": "rectangle",
+      "x": 1966.1635115695938,
+      "y": 2805.9243233208335,
+      "width": 216.70678428144709,
+      "height": 56.502468559548596,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b00",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1165440563,
+      "version": 601,
+      "versionNonce": 1547996115,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "3B1SLiGBsOSNv3RFFyGYh"
+        },
+        {
+          "id": "xZ85q6KPfcEqVkcvjBi7h",
+          "type": "arrow"
+        },
+        {
+          "id": "_jiDAz7wH_eNa7zYHmNXO",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1767314834793,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "3B1SLiGBsOSNv3RFFyGYh",
+      "type": "text",
+      "x": 2028.5502365350244,
+      "y": 2821.675557600608,
+      "width": 91.93333435058594,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b01",
+      "roundness": null,
+      "seed": 1748498387,
+      "version": 524,
+      "versionNonce": 1561001683,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1767314823534,
+      "link": null,
+      "locked": false,
+      "text": "CRON Job",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "F0-baFu3fvYs-ZAZhAR1F",
+      "originalText": "CRON Job",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "xZ85q6KPfcEqVkcvjBi7h",
+      "type": "arrow",
+      "x": 2182.7198573585115,
+      "y": 2827.351947911082,
+      "width": 246.6247502071451,
+      "height": 318.76005263927436,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b02",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 546031677,
+      "version": 151,
+      "versionNonce": 1159732509,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1767314843442,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          246.6247502071451,
+          -318.76005263927436
+        ]
+      ],
+      "startBinding": {
+        "elementId": "F0-baFu3fvYs-ZAZhAR1F",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9993057970334054,
+          0.3792334235391065
+        ]
+      },
+      "endBinding": {
+        "elementId": "bEhH5-XTp23mk3PXmGvAB",
+        "mode": "inside",
+        "fixedPoint": [
+          0.017731276534166125,
+          0.4487194971978979
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "_jiDAz7wH_eNa7zYHmNXO",
+      "type": "arrow",
+      "x": 1970.213155598995,
+      "y": 2813.7047285320305,
+      "width": 23.395233221231138,
+      "height": 77.00930935321958,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b03",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1039411955,
+      "version": 48,
+      "versionNonce": 1755036499,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1767314840058,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -23.395233221231138,
+          -77.00930935321958
+        ]
+      ],
+      "startBinding": {
+        "elementId": "F0-baFu3fvYs-ZAZhAR1F",
+        "mode": "inside",
+        "fixedPoint": [
+          0.018687204661491905,
+          0.13770027061732823
+        ]
+      },
+      "endBinding": {
+        "elementId": "O2ECD_2c4GbDBet7JMlGU",
+        "mode": "inside",
+        "fixedPoint": [
+          0.8909195958748973,
+          0.9280908708129473
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "S9FuM0-pgnBiYsBjQuP7l",
+      "type": "arrow",
+      "x": 2116.43336323169,
+      "y": 3053.50586904965,
+      "width": 314.86084710240266,
+      "height": 547.8383779304968,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b04",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1661417949,
+      "version": 89,
+      "versionNonce": 231639773,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1767314849223,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          314.86084710240266,
+          -547.8383779304968
+        ]
+      ],
+      "startBinding": {
+        "elementId": "Ii5JGNDUs5_kzBhe0_XTm",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9981476958472644,
+          0.8788662647858602
+        ]
+      },
+      "endBinding": {
+        "elementId": "bEhH5-XTp23mk3PXmGvAB",
+        "mode": "inside",
+        "fixedPoint": [
+          0.029378829013797163,
+          0.4292722443970809
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "HFwWZO1ZW5fG21PH8SEkz",
+      "type": "text",
+      "x": 1866.8842088718916,
+      "y": 1907.1394412093232,
+      "width": 5.233333110809326,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b05",
+      "roundness": null,
+      "seed": 2036903347,
+      "version": 3,
+      "versionNonce": 756654013,
+      "isDeleted": true,
+      "boundElements": null,
+      "updated": 1767315045217,
+      "link": null,
+      "locked": false,
+      "text": "",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "",
+      "autoResize": true,
+      "lineHeight": 1.25
+    }
+  ],
+  "appState": {
+    "gridSize": 20,
+    "gridStep": 5,
+    "gridModeEnabled": false,
+    "viewBackgroundColor": "#ffffff",
+    "lockedMultiSelections": {}
+  },
+  "files": {}
+}

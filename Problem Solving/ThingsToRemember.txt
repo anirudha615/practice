@@ -1,0 +1,71 @@
+Signature things to remember 
+    1. Operator overloading for comparison - 
+        a. For object comparison - Use mental model if current node needs to be ascending or descending. The signature is always '<'.
+            const bool operator<(const OrderRequest& otherRequest) const {
+                return m_executionTime < otherRequest.m_executionTime; // Ascending
+            }
+        b. For pointer comparison - Use mental model if 'a' needs to be greater or smaller. If it is greater, ascending else descending. The signature is always '()'
+            struct Cmp {
+                bool operator()(const OrderRequest* a, const OrderRequest* b) const {
+                    return a->execution_time > b->execution_time; // Ascending
+                }
+            };
+
+    2. Get currentTimeInMS -  std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    
+    3. Write std::sort quickly - 
+        std::sort(list.begin(), list.end(), [](const <InnerStructure>& a, const <InnerStructure>& b) {
+            return a.<something> < b.<something> // Ascending
+        });
+    
+    4. Usage of mutexes - 
+        a. On the method itself - std::lock_guard<std::mutex> lock(<mutex_name>)
+        b. On the object - Have a mutex in the data struct itself
+   
+    5. Working with asynchronous thread - Look at Scheduler.cpp (Very important) and AsyncIterator.cpp. 
+        a. If the worker threads share a state, lock using mutex and add conditions for sleeping.
+        b. The conditions of sleeping are  - 
+            (1) setup a wakeupTime using wait_for or 
+            (2) use variables to wake up the thread. There is an extra step that when you change the state of variables, 
+                call notify_all to wake up all threads to re-check the conditons.
+        c. Once you wake up, check if you need to abort the while loop. If yes do it, else keep on doing your work.
+        d. Don't have infinite while loop. Use the variable that you used in Step#C to abort as conditional variable for while loop.
+        e. Be mindful of using notify_one or notify_all depending upon the requirement. If the requirement is to ask all threads to pause, 
+           notify_all seems promising. But if the requirement is to execute an order, notify_one will wake up 1 sleeping thread. If you wake up 
+           all threads, they will be competing for the same resource but one will win due to shared mutex.
+        e. If you don't have a requirement to pause a worker thread and wants the thread to complete without interuption, you can use promise/future.
+           However, once promise/future is set, you can't reset and use it again. If you want the thread to keep on reporting the status, use shared_ptr.
+
+
+    6. Delimiter Parsing with strings - 
+        a. If delimiter is common, use text.find(delimiter, start)
+        b. If delimiter is a set, convert that set to string and use  text.find_first_of(delimiter, start) 
+            and that will give you the first occurence of any of the delimiter in the string.
+            
+        // Step 1: Start at position 0
+        size_t start = 0;
+        
+        // Step 2-5: Loop to find all delimiters
+        size_t found = 0;
+        while ((found = text.find(delimiter, start)) != std::string::npos) { // Returns the exact position of the delimiter
+            // Step 3: Extract text between start and found
+            std::string piece = text.substr(start, found - start); // inclusive of start and exclusive of found
+            result.push_back(piece);
+            
+            // Step 4: Move position past delimiter
+            start = found + 1;
+        }
+        
+        // Step 6: Don't forget the last piece!
+        std::string lastPiece = text.substr(start);
+        result.push_back(lastPiece);
+
+    7. Reading and Writing into the file - (Read PersistentCache.cpp)
+        a. Reading - Use ifstream and then do a while loop of getLine and then use string stream to infer that line using ">>"
+        b. Writing - Use ofstream and then use << to write to the file.
+
+    8. Hashing - 
+        uint32_t hashFunction(int key) {
+            std::hash<std::string> hasher;
+            return hasher(std::to_string(key)) % RING_SIZE;
+        }

@@ -1,0 +1,28 @@
+TECHNIQUE:
+1. Prefix Sum is the approach of calculating sum of contiguous elements till every index.
+   a. Example arr =  1, 2, 3, 4, 5
+        myMap[-1] = 0 // this will be by default
+        for (int i= 0; i < arr.size(); i++) {
+            myMap[i] = myMap[i-1] + arr[i]
+        }
+
+        Result -->
+        myMap[-1]=0 // Index to Prefix Sum Map
+        myMap[0]=1
+        myMap[1]=3
+        myMap[2]=6
+        myMap[3]=10
+        myMap[4]=15
+
+    b. When the question is to calculate the sum of subarray from index 1 to index 4, the formula will be myMap[j] - myMap[i-1]
+       We need to include both index 1 and index 4. So, ans = myMap[4] - myMap[0] ==> 15 - 1 ==> 14
+
+2. The question of find all contiguous sub arrays with target sum K, this can contain overlapping sliding windows and hence
+   it cannot be solved by Traditional Two Pointer Sliding Window which only caters to non-overlapping sliding window.
+     a. We need to reverse map of 'Prefix Sum to Index' map
+
+
+PROBLEMS TO REVISE
+   1. Find all subarrays whose sum is K --> Create a map of prefix Sum to Index. While lopping through the array, current element - target sum = result.
+      If result is present in that prefix sum, that index is the left boundary of the window of which all elements sum is equal to target sum.
+      Add th window = [left boundary + 1, right boundary (current index)] to the list of windows.

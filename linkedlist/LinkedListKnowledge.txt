@@ -1,0 +1,7 @@
+TECHNIQUE:
+  1. Always play with pointer (easy to modify as memory address remains same and we maintain 1 copy)
+  2. Use Dummy node when creating a new linked list.
+
+
+PROBLEMS TO REVISE:
+   a. Swap Pairs - Play with 4 pointers but use prev and curr as while condition because that's what it matters.

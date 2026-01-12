@@ -1,0 +1,157 @@
+TECHNIQUES:
+|
+|
+1. Two Pointer technique leverages the fact that the input array is sorted to optimize from nested loop traversal (O(N^2)) to single loop traversal O(N).
+2. Useful for questions that involve searching for two or more items in an array that meet a certain target.
+    a. Find all pair (2Sum) or all tuple (3Sum) or all quadruple (4Sum) which sums to a target.
+2. Technique A: Array is sorted - Two pointers are placed at two opposite ends of the sorted array. When we calculate the sum, 
+    a. If it lesser than target, we need a bigger number, hence we will increment the left pointer.
+    b. If it is greater than target, we need a lesser number, hence we will decrement the right pointer.
+    c. If it is equal, collect the left and right pointer and increment the left pointer or decrement the right pointer.
+    d. Optimization: If you are required to select unique, skip doing the calculation if the next and previous value of any pointer is same.
+    e. Termination Condition: Once left Pointer is >= right pointer, terminate.
+3. Technique B: Array is sorted - If it is more than 2 items, pointer will equal to the tuple required. If it is 3 SUM, three pointers.
+    a. If it is more than 2 pointers, keep the 2 pointers to follow technique A and keep the remaining pointer 
+       fixed at the left most (after one another and will move similar like the nested loop till the array size - 2)
+       Why array size - 2 because 2 pointers are following Technique A.
+    b. Since Technique B have outer loop, the complexity is O(N^(number of outer loops)) * O(N) [Technique A]
+        In 3SUM, complexity is O(N^2) and 4SUM, complexity is O(N^3)
+    c. Optimization: If you are required to select unique, skip doing the calculation if the next and previous value of any pointer is same.
+5. Technique C: Array is not sorted but you need to exchange element in places, use 'fast/slow in same direction' - PATTERN 2 below.
+6. Technique D: Array is not sorted but you need to make three types of elements exchange places, use 'opposite direction with fast/slow in same direction' - PATTERN 3 below.
+7. Technique E: If the problem does not require you to make elements switch places and ask to find continguous sequence that satisfies a certain constraint, use 'sliding window' - - PATTERN 4 below
+     a. Somtimes the constraint is something we need to figure - Pick up elemets from either front or back (mixture). Here the only constraint is to prepare a window where we won't pick up from
+        and hence it will cover scenarios where multiple combinations can be picked up.
+     b. Two Pointer sliding window has a limitation of array containing positive elements and non-overlapping windows. 
+        If the question requirement is overlapping windows (subarray with sum K), switch to prefixSum.
+
+PATTERN SELECTION:
+│
+├─ Question 1: Is the input SORTED or can be sorted?
+│   │
+│   ├─ YES, Sorted
+│   │   │
+│   │   ├─ Need to find PAIRS with target sum/condition?
+│   │   │   └─ → PATTERN 1: Opposite Direction (Two Sum)
+│   │   │
+│   │   ├─ Need to check PALINDROME?
+│   │   │   └─ → PATTERN 1: Opposite Direction (Converging)
+│   │   │
+│   │   ├─ Need to find TRIPLETS (3Sum, 4Sum, 3Triangle sides)?
+│   │   │   └─ → PATTERN 2: Opposite Direction + Loop with fixed pointers
+│   │
+│   └─ NO, Unsorted → Question 2
+│
+├─ Question 2: What do you need to do?
+│   │
+│   ├─ Need to MODIFY/REMOVE/SKIP elements in-place (move zeros, etc.)?
+│   │   └─ → PATTERN 3: Same Direction with Fast and Slow Pointers
+
+│   ├─ Need to PARTITION into multiple groups and proceed to MODIFY/REMOVE/SKIP elements in-place? (sort 0s, 1s, 2s)
+│   │   └─ → PATTERN 3: Same Direction with Fast and Slow Pointers and keep the remaining groups as count
+│   │
+│   ├─ Need to find SUBARRAY/SUBSTRING with condition?
+│   │   │
+│   │   ├─ FIXED window size?
+│   │   │   └─ → PATTERN 4: Fixed Window 
+│   │   │
+│   │   └─ VARIABLE window size?
+│   │       └─ → PATTERN 4: Sliding Window 
+│   │
+│
+└─ Still unclear? → See Detailed Pattern Characteristics below
+
+---
+
+## __Level 2: Detailed Pattern Characteristics__
+
+### __PATTERN 1: Opposite Direction (Converging Pointers) [Top Principle]
+
+### __PATTERN 2: Same Direction (Slow-Fast Pointers)__
+
+Recognition Checklist:
+□ Need to REMOVE duplicates
+□ Need to MOVE elements in-place
+□ Need to MODIFY array without extra space
+□ "In-place" is mentioned in problem
+□ Result array size is subset of input
+
+Initialization:
+slow = 0, fast = 0
+
+Movement Logic:
+while fast < n:
+    if condition_met:
+        process with slow pointer
+        slow += 1
+    fast += 1
+
+Time Complexity: O(n)
+Space Complexity: O(1)
+
+Examples:
+- Remove Duplicates from Sorted Array
+- Remove Element
+- Move Zeroes
+- Sort Array By Parity
+
+### __PATTERN 3å: Sliding Window__
+
+Recognition Checklist:
+□ Need to find SUBARRAY/SUBSTRING
+□ Keywords: "longest", "shortest", "maximum", "minimum"
+□ Need to maintain a WINDOW of elements
+□ Contiguous sequence matters
+
+A) Fixed Window:
+Initialization:
+left = 0
+window_size = k
+
+Movement Logic:
+for right in range(n):
+    add arr[right] to window
+    if right >= k - 1: # window completed
+        process window
+        remove arr[left] from window
+        left += 1
+
+B) Flexible Window:
+Initialization:
+left = 0,
+
+Movement Logic:
+for right in range(n):
+    add arr[right] to window
+    while window_invalid: # window broke rules
+        remove arr[left] from window
+        left += 1
+    process window
+
+Time Complexity: O(n)
+Space Complexity: O(1) to O(k)
+
+Examples:
+- Longest Substring Without Repeating Characters
+- Minimum Window Substring
+- Maximum Sum Subarray of Size K
+- Longest Subarray with Sum ≤ K
+
+
+OPPOSITE DIRECTION PROBLEMS TO REVISE: 
+    a. Sides Of Triangle - Fix the third pointer at the last index of the array (always the largest side). 
+        If two pointers satisfy the condition, everything between it also satisfy.
+    b. Trapping Rain Water - Instead of comparing the left and right pointer, we will compare current and max left pointer and current and max right pointer
+        but we will follow the principle of two pointer technique where we will increment left pointer if max_left < max_right else decrement right pointer
+
+SAME DIRECTION PROBLEMS TO REVISE:
+    a. Move Zeroes To End - Compare the pointers. If the left/slow is 0 and right is 1, exchange them and move the pointers together. 
+        If it does not satisfy the condition, move the right/fast pointer only.
+    b. Sort Colors - Similar problem to Move Zeroes To First, but with an additional element. For this element, we can remove the elements 
+        and count their occurence and then add them at the last. This element could be least or largest element.
+
+SLIDING WINDOW PROBLEMS TO REVISE:
+    a. maxSum of K Cards With Options - Since there are options to pick from, the window can be combination of options. Hence, 
+        we need to find a window which is constant and that would be 'window from where not to pick from' (Total (N) - Pickup (K))
+    b. LongestSubstring/LongestFixedSubArray without repeating - These are sliding and fixed window problems where the map should not have keys with values more than 1.
+       If it is, shorten the window. In case it is fixed window problem, we have to produce an output of K window size. Else for sliding window, you can produce an output with any window size

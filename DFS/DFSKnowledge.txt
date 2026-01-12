@@ -1,0 +1,173 @@
+INFORMATION:
+    1. A Binary Tree is balanced if the height of left and right sub-tree differ by 1.
+    2. A Binary Tree is complete if all the levels have 2 children but the last leaf level has nodes from left to right and it can be INCOMPLETE. Height is O(LogN)
+         a. Heap follows the protocol of Complete Binary Tree.
+
+BINARY SEARCH TREE:
+   1. BST follows the basic protocol of Left Node <= Parent <= Right Node which maintains its sorting protocol.
+       a. Binary Search in Tree is equivalent of Binary Search in arrays.
+   2. If BST is unbalanced, it will required O(N) searching because at that point of time, it is a linked list. 
+       a. Unlike Binary Search in array, you cannot move backward easily using pointers. 
+       b. Hence, BST works better when balanced.
+   3. Self-balancing BST Trees.
+        a. Red-Black Tree and AVL Trees (Ordered Set Concept). Both of them has a different protocol of self-balancing but both follows the above BST protocol.
+            That's why they are use in fit size problem such as lower_bound or upper_bound. (Amazon Locker).
+        a. B+ Trees are non-binary search trees where 1 node can have a max of M elements. 
+            Once it overflows, the middle one becomes parent, the left sorted side becomes left child and right becomes right child.
+   4. Heaps self-balance themselves on the basis of protocol Parent <= Child but they are never sorted. Hence, heaps are not BST.
+
+GRAPHS:
+   1. A connected graph is a graph where there is a path from one node to every other node. 
+   2. Graphs can be unidirected or bidirected.
+   3. A cycle is a pattern where three or more nodes can reach each other via multiple routes. 
+        a. To detect a cycle in bidrectional graph - Don't explore your parent (because you just came from there) but if you still land on a visited node, that means it is a definite cycle.
+        b. To detect a cycle in unidirectional graph - If you just land on a visited node, that means it is a definite cycle.
+   4. A tree should be a connected graph with no cycles. Running DFS on Tree will visit all nodes but there should be no cycle.
+   5. A disconnected graph is a graph where there are at least two nodes that are not connected to each other by a path. 
+        a. This gives birth to 2 different connected components in a disconnected graph.
+   6. We can represent Graphs by - 
+        a. Adjacency list - which is a list of list or map of list.
+        b. Matrix - Each cell in the grid represents a node. The neighbors of each node are the cells that are adjacent to it (in the up, down, left, and right directions)
+
+BACKTRACKING - 
+   1. When exploring a node, add the node to the current traversal path. 
+   2. Once the recursion of the stack is over, remove the node from the traversal path so that 
+      its parent can explore its sibling.
+   3. During Bakctracking, you may find an opportunity to traverse deep because you got what you wanted.
+      Use it as an optimization and return from the traversal early.
+
+
+TECHNIQUE:
+
+DEPTH FIRST SEARCH ON BINARY TREES:
+    1. DFS - go deep as far as possible and then backtrack. BFS - explores all the nodes at "level" before moving on to the next level.
+        void dfs(TreeNode* node) {
+            // base case for termination
+            if (!node) {
+                return;
+            }
+            dfs(node->left); // recursive call
+            dfs(node->right); // recursive call
+        }
+    2. Since we visit all the nodes of the tree, the time and space complexity is O(N).
+    3. While recursively going deeper, we need to return 'some value'. This value is govered based on the problem, but it covers 2 key areas - 
+        a. Return Value when the node is a nullptr.
+        b. Return Value when the recursion stack of that node is over.
+        c. Example - calculate the sum of all nodes 
+                int dfs(TreeNode* node) {
+                    // base case for termination when we visit a child of a leaf node (child will always be a nullptr and hence we can calculate its sum to be 0)
+                    if (node == nullptr) {
+                        return 0;
+                    }
+                    
+                    int left = dfs(node->left); // collect the sum from the left child
+                    int right = dfs(node->right); // collect the sum from the right child
+                    int totalSum = left + right + node->val; //sum the left + right sum + root value
+                    return totalSum; // Return the totalSum when the recursion stack of the node is over (starting from a leaf node till the root)
+                }
+
+
+DEPTH FIRST SEARCH ON ADJACENCY LIST (GRAPHS):
+   1. Unlike DFS on Binary tree, where we need to think of return value of base case (child nullptr of leaf node) and return value when the recursion stack of the node is over,
+   2. In Graphs, we don't need to think of return value of base case. Instead we will maintain a visited list of nodes which will help terminate from nodes which are already visited.
+   3. Unlike DFS on Binary Tree, we don't have to do left and right. Instead, we need to iterate over all the node's edges and append them to visited list after visiting.
+       
+       void dfsHelper(int node, int parent) {
+            if (visited.count(node)) {
+                // You have detected a cycle since you skipped exploring parent
+                return;
+            }
+
+            visited[node] = parent;
+            for (int neighbor : adjList[node]) {
+                //If neighbor is your parent, don't explore. You just came from there - It is a part of bidirectional graph process
+                // If during exploration you came across a visited node, that's a cycle.
+                if (neighbor != parent) {
+                    dfsHelper(neighbor, node);
+                }
+            }
+       }
+       
+       void dfs(std::unordered_map<int, std::vector<int>>& adjList) {
+            if (adjList.empty()) {
+                return;
+            }
+            std::unordered_map<int, int> visited;
+
+            // Handle disconnected components because connected components will be handled by dfsHelper via recursion.
+            for (auto& pair : adjList) {
+                if (visited.find(pair.first) == visited.end()) {
+                    dfsHelper(pair.first, -1);
+                }
+            }
+        }
+
+
+        unordered_map<int, vector<int>> buildAdjList(int totalNodes, vector<vector<int>>& edges) {
+            unordered_map<int, vector<int>> adjList;
+            
+            for (int i = 0; i < totalNodes; i++) {
+                adjList[i] = vector<int>();
+            }
+
+            for (const auto& edge : edges) {
+                int u = edge[0];
+                int v = edge[1];
+                adjList[u].push_back(v);
+                adjList[v].push_back(u);
+            }
+                
+            return adjList;
+        }
+    4. In summary, use 'For Loop' for disconnected components and use 'Recursion' for connected components. 
+        a. Use visited list to avoid assessing the node again.
+        b. Don't Explore your parent for bidirectional graph.
+    5. Complexty is O(N+E) where N = number of nodes and E = neighbours.
+
+
+DEPTH FIRST SEARCH ON MATRIX:
+   a. DFS on Matrix is very similar to adjacency list - Keep a track of visited nodes in a list.
+   b. However, unlike DFS on adjacency list where you have to iterate using 'For Loop' over all the node's edges, matrix has only 4 directions - up, down, left, and righ.
+   c. So, you have to manually do up, down, left, and right (similar to binary tree - left and right). Be mindful of the matrix boundaries.
+       void dfs(std::vector<std::vector<int>>& matrix) {
+            // up, down, left, right direction list
+            std::vector<std::vector<int>> directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+            std::unordered_set<std::string> visited;
+            dfsHelper(0, 0, matrix, visited, directions);
+        }
+        void dfsHelper(int r, int c, std::vector<std::vector<int>>& matrix, 
+                    std::unordered_set<std::string>& visited, 
+                    std::vector<std::vector<int>>& directions) {
+            std::string key = std::to_string(r) + "," + std::to_string(c);
+            if (visited.find(key) != visited.end()) {
+                return;
+            }
+            
+            // check if the cell is out of bounds
+            if (r < 0 || r >= matrix.size() || c < 0 || c >= matrix[0].size()) {
+                return;
+            }
+            
+            visited.insert(key);
+            // This is up, top, down and right direction which can be done manually
+            for (auto& dir : directions) {
+                dfsHelper(r + dir[0], c + dir[1], matrix, visited, directions);
+            }
+            return;
+        }
+    d. In summary, use 'Directions' to roam around the matrix. Use visited lis and matrix boundary to avoid assessing the node again.
+
+
+PROBLEMS TO REVISE
+    a. Validate BST - We need to make sure that the node in the left subtree should be lower than its parent and ancestors while the node in the right subtree should be greater than its parent and ancestors.
+       a. When you are moving to left edge, min = min passed down by the parent whereas max = parent node's value.
+       b. When you are moving to right edge, min = parent node's value and max = max passed down by parent.
+    b. Tree Diameter with Node=Left=Right - Similar to diameter problem. However, once you retrieve the diameters of left and right.
+       a. Check if left node = parent, then consider including them into diameter. Similar if right node = parent, then consider them into diameter.
+       b. Additionaly for the value being returned after recursion is over, only include the edges where parent = children.
+       c. If only left matches, return value = left edge + parent edge else right edge + parent edge. If both left = right = parent, then max(left, right) + parent edge (similar to diameter problem) 
+    c. Surrounded Regions - Start DFS from edges which will tell us the list of Os which are reachable from edges (connected components). 
+        Once DFS is done for all disconnected components, modify O to X and S to O
+    d. Word Search - Start DFS on the first matching char and explore its neighbors only if the current node matches the current character of the word. 
+       a. Follow the same concept of exploring neighbors when the current node matches the char. If it matches, mark it as visited and explore neighbors.
+       b. If the recursion stack is over and your visited node list does not match the word size, that means we went down a false route. Keep on popping so that the parent can explore the other sibling route.

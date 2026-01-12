@@ -1,0 +1,15 @@
+TECHNIQUE:
+   1. Binary Search works only if the array is sorted, It divides the search space into half for searching an elememnt. 
+   2. Modifies O(N) loop to O(LogN).
+   3. We work with 2 pointers (left and right) and third pointer: mid = (left+right)/2. 
+       If the target is less than mid, right = mid - 1 else left = mid + 1. If target == mid, return that.
+   4. Unlike two pointer, the termination condition is left should pass the right pointer. 
+
+
+PROBLEMS TO REVISE:
+   a. Harvesting Apples - Rate Search Space is from 1 to max(AppleList). You need to calculate total hours for every mid (rate). 
+      If hour calculated is <= hour required, dive deeper to find even lower rate but still be able to match the target hour.
+      If it is higher, you selected way too much lower rate, increase the rate.
+   b. Search in Sorted Array - Always priortize to search in the sorted side because binary search only works in sorted array. 
+      Once in the sorted range, check if the target falls in that range and keep binary search. If it does not fall, switch to
+      unsorted range. The algorithm in the next loop will figure out the sorted range inside of unsorted range.

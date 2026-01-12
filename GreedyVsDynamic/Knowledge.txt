@@ -1,0 +1,90 @@
+INFORMATION:
+   1. Greedy - Pick up the value which will give best result and then that value becomes your first choice.
+        a. Iterate for result - first picked value (choice) and repeat again.
+        b.  Step 1: Look at current state → Make BEST immediate choice → COMMIT
+            Step 2: Look at NEW state → Make BEST immediate choice → COMMIT  
+            Step 3: Look at NEW state → Make BEST immediate choice → COMMIT
+            ... (never reconsider previous choices)
+        c. Greedy is every other technique (BFS, DFS, TwoPointer, BS) where we make a decison and move forward.
+        d. If using Greedy algorithm does not provide you correct results, it is a DP problem.
+        e. For example - Contiguous SubArray is a Greedy Problem but Non-Contiguous Sub-array is a DP problem.
+           This is because contiguous subarray has items close by each other where sliding window will always provide you best resutl.
+           You don't have to think about the previous choices.
+           On the other hand, Non-Contiguous Sub-array - you will have to consider the previous choices and then decide should the current index is appropriate or not.
+   2. Dynamic - Pick up a first value which will give some result. 
+        a. Move to the second value and reconsider the previous value to think if the current choice is making sense with respect to previous choices
+        b.  Step 1: Consider choice A → Store result
+            Step 2: Consider choice B → Check how it combines with ALL previous results → Store result
+            Step 3: Consider choice C → Check how it combines with ALL previous results → Store result
+            ... (always consider combining with previous optimal results)
+
+
+DP GUIDELINE FOR 1-D Array
+1. Basic Formula for non-overlapping categories (1-D) is -> DP[i] = Σ (DP[previous_state] × number of categories)
+2. Basic Formula for non-overlapping categories (2-D) is DP[i][j] = DP[Neigboring Cells]
+3. If you come across overlapping categories, try to find out a way to make them non-overlapping (first mistake i did in maximum square)
+3. Climbing Stars problem - If you can climb stairs 1 or 2 step at a time, then ways to 
+        a. Reach Stair 1 is just 1 way (1 step)
+        b. Reach Stair 2 is 2 ways (Step 1 + Step 1 is 1st way and directly 2 steps is 2nd way)
+        c. So, now to reach Stair 3 - I can take 2 steps from Stair 1 and 1 step from Stair 2.
+        d. Therefore, for #a and #b, dp[1] = 1 and dp[2] = 2 and dp[0] = 1 (tricky) are my base cases.
+        e. Ways to reach Stair 3 = (Ways to reach Stair 1 + 2 steps) DP[1] + (Ways to reach Stair 2  + 1 step) [DP[2]]
+        f. Now, if the problem changes to climb stairs 1 or 2 or 3 steps at a time, then
+        g. Ways to reach Stair 3 = (Ways to reach Stair 1 + 2 steps) DP[1] + (Ways to reach Stair 2  + 1 step) [DP[2]] + (Ways to reach Stair 0  + 3 step) [DP[0]]
+4. If you see the pattern, each of the category ends with either 1, 2, or 3 steps. 
+     a. DP[1] ends with 2 steps - Catgeory 1
+     b. DP[2] ends with 1 steps - Catgeory 2
+     c. DP[0] ends with 3 steps - Catgeory 3 (Extended problem)
+5. All of these categories are non-overlapping and hence, we opted for addition.
+
+
+GREEDY ALGORITHM GUIDELINES:
+1. Sort the arrays provided with respect to the requirement given in the question.
+
+
+DP PROBLEMS TO REVISE
+A. 1D Array Problem where DP of current index is dependent on the previous indexes
+   1. Robbing House - For a given index, we check both the previous 2 adjacent house.
+        a. Current Index value + previous Index - 1 value --> Rob the house at current index
+        b. Previous Index value --> Skip the house and DP of the current house will be equal to previous one.
+   2. Decode String - We calculate the base of how many ways to decode single digit (1 or 0 way) and double digit (2 way or 1 or 0 way).
+        a. If the number is 3 digits, we fix the last character and check if that can be decoded. If yes, retrieve the number of ways we can decode the first 2 characters DP[2].
+           Similarly, if the last 2 characters can be decoded as double, then retrieve the ways we can decode the first character. DP[1].
+        b. The reason for the condition above is if the last character or last 2 characters are not able to get decoded on their own,
+            then any decoding that tries to end with that last single or double character will be invalid.
+        c. This covers the permutation for 3 characters.
+        d. Similarly for 4 characters, fix the 4th and check for DP[3] and fix the 3rd and 4th character and check for DP[2].
+   3. Counting Bits - For even, take the DP[half] as number of 1s are same. For odd, take DP[odd-1] + 1 because 1s increases from previous. 
+
+
+B. 2D Array Problem where DP of current cell depends upon the neighboring cells. 
+   1. Unique Path - This is a 2D problem where every cell knows how many ways are there to reach this position. 
+       a. Setup up from base path correctly where ways = 1 (either from left or up).
+       b. Now, if you come across any postion, just look at the DP of left and up, which will already hold 
+           number of ways to reach the left and up. Sum them up and that will become your ways for current position.
+   2. Maximum Square - Same concept as of Unique Path but at every position, you will have to check left, up and diagonal.
+       a. If left/up/diagonal all can make 1 square, then the current position can make min(Left, Up, diagonal) + 1 = 2
+
+C. Nested Loop - For every current index, validate all the previous indexes.
+   1. Longest Non-Contiguous SubArray - These are the cases where for every current index, you have to validate if the previous index is lesser or not.
+        a. If it lesser, we take the max length stored in all the previous indexes and add 1 to it.
+        b. Remember, the reason for taking max is that if we add 1 to all the previous indexes, that means there are variety of solutions
+           and we are concerned only if the solution which is the longest.
+   2. Profit Scheduling - Sort them by start time and at every index, check for previous index. If the previous job is completed before current,
+        add its profit else do not.
+        a. Same concept of checking with all previous indexes because all previous indexes can overlap with each other.
+        b. Hence, current job can be picked if all previous indexes complete before or any previous job.
+   3. Word Break - For every current index, you check if the (0, previousIndex) value exists in DP 
+        and substring(previousIndex, currentIndex) exists in dict. 
+        a. This is because for previous index, we already validated that it is present in dict or not.
+        b. So for word break, if previous is already validated, its value is store in DP and the rest we validate on the go.
+
+
+GREEDY PROBLEMS TO REVISE (TWO POINTERS)
+   1. Gas Station - Once we figure out that there's a solution, we can just loop through the array.
+      a. Starting from index 0, if there is no gas to the next station, mark the starting index to the station after that.
+   2. Jump Game - Keep a track of furthest index reached. 
+        a. If you cannot jump at an index, check if that index is less than furthest index reached and skip it.
+        a. If not, return false.
+   3. Stock Buy - Keep a track of minPrice as you loop through the array and check the profit every day.   
+    

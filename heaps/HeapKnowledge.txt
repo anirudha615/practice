@@ -1,0 +1,64 @@
+
+INFORMATION
+1. Heaps are complete binary tree where all levels are filled except the last one which is filled from left to right.
+2. Min Heap where root is lesser than both of its children.
+3. Max Heap where root is greater than both of its children.
+
+Operations -
+1. Push Operation - Add an element at the bottom and perform bubble up heapify --> O(Log N) as bubble up effect half of the tree
+2. Pop Operation - Remove an element from the top and replace it with last element and perform bubble down heapify --> O(Log N) as bubble down effect half of the tree
+3. Peek - Gets the top element O(1)
+4. Heapify a non-heapified tree is O(N) as all nodes are touched. Heapify a tree does not sort the array. 
+   For sort, we need to extract top element and perform Bulbble-down heapify - O(N * LogN)
+
+Left Child	--> 2 * i + 1
+Right Child	--> 2 * i + 2
+Parent	--> Floor[(i - 1) / 2]
+
+Code Simplification - Use priority Queue (which is by default max-heap)
+
+struct Element
+{
+    int _element;
+    Element(int element): _element(element) {}
+
+    //Max Heap
+    const bool operator<(const Element otherElement) const
+    {
+        return _element < otherElement._element; 
+    }
+
+    //Min Heap
+    const bool operator<(const Element otherElement) const
+    {
+        return _element > otherElement._element; 
+    }
+};
+
+TECHNIQUE:
+  1. Useful for problems which require us to evaluate K smallest or K largest element in a list.
+
+
+
+SORTING:
+  1. Heapify a tree does not sort the array. For sort, we need to extract top element and perform Bulbble-down heapify - O(N * LogN).
+  2. Merge Sort is dividing a list into 2 two parts repeatedly until they become a singular element and then perform 'merge 2 sorted arrays' concept.
+       a. Complexity is O(NLogN) where O(N) is the merging of two sorted lists.
+       b. O(LogN) is the process of repeatedly dividing the lists into two parts - Similar to binary search and hence the operation is O(LogN)
+  3. Counting Sort requires to keep an array as additional space complexity which will persist all elements as index and number of times it occurred as value.
+     a. Collect Data from un-sorted array into another array is O(N) and then looping through another array is O(K). Complexity is O(N+K) and space is O(K)
+     b. If elements in un-sorted array is sparse [1, 1000], then K would range from 1,2,3,....,1000.
+     c. If elements in un-sorted array is dense [1,2,3], then K would range from 1,2,3.
+
+BINARY SEARCH TREE:
+   1. BST follows the basic protocol of Left Node <= Parent <= Right Node which maintains its sorting protocol.
+       a. Binary Search in Tree is equivalent of Binary Search in arrays.
+   2. If BST is unbalanced, it will required O(N) searching because at that point of time, it is a linked list. 
+       a. Unlike Binary Search in array, you cannot move backward easily using pointers. 
+       b. Hence, BST works better when balanced.
+   3. Self-balancing BST Trees.
+        a. Red-Black Tree and AVL Trees (Ordered Set Concept). Both of them has a different protocol of self-balancing but both follows the above BST protocol.
+            That's why they are use in fit size problem such as lower_bound or upper_bound. (Amazon Locker).
+        a. B+ Trees are non-binary search trees where 1 node can have a max of M elements. 
+            Once it overflows, the middle one becomes parent, the left sorted side becomes left child and right becomes right child.
+   4. Heaps are self-balance themselves on the basis of protocol Parent <= Child but they are never sorted. Hence, heaps are not BST.

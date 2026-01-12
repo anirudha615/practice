@@ -1,0 +1,26 @@
+TECNHIQUE:
+1. Stacks are effective for problems where you need to find if a string is valid or not (Valid Parenthesis where each opening bracket should have a closing bracket)
+2. For problems where you are need to find next greater or next smaller element next to a specific element, follow the protocol of monotonically increasing/decreasing stack where - 
+   a. You check the element and evaluate it against the elements waiting in the stack, which are already sorted.
+   b. If the element being assessed at current iteration is greater or smaller than the top of the stack, you have found the next greater or smaller for the top of the stack. 
+   c. Pop and process the top element and then keep on checking if the same element at current iteration is greater or smaller than the next top.
+   d. Once the loop breaks, insert the element which was responsible for popping others into the stack.
+   e. The stack behavior would be monotonically increasing if we are looking for smaller elements and monotically decreasing if we are looking for bigger elements
+
+PROBLEMS TO REVISE:
+  a. Decode String - Keep numbers in one stack and parenthesis and characters in another stack. If stack is not empty (that means it is nested), prepare the string and push them into the stack again. 
+     MAIN PT 1: If the stack is empty, that means the nested decoded string is complete and append it to the final decoded string. 
+     MAIN PT 2: If there are no numbers prior to the string and stack is empty, append it to the final decoded string
+  b. Longest Valid Parenthesis - If you find a closing pair, the current index - index at top of stack will be length of your valid parenthesis window.
+     EDGE CASE: You have to start with an index -1 such that if you encouter a closing bracket at first, you know there is no pair for it, then you simply have to pop
+     -1 and push the index of the closing bracket into the stack.
+  c. Longest Rectangle in Histogram - We need to create monotically increasing stack. 
+      1. If we encounter a situation where the current bar is < top bar in the stack, that means the top bar in the stack is greater than currently evaluated bar and the next top bar.
+         b. As a result, the area occupied by it = height of the popped bar * width of all bars (current - top bar - 1)
+         c. Now if you pop another bar because of the same condition, that bar is greater than currently evaluated bar and the next top bar but SMALLER than the previous popped bar.
+         d. Hence, the area = height of recent popped bar * width of all bars (current - top bar - 1) which includes the previous popped bar.
+      2. Now, if we encounter a situation where the above condition is never executed that means all the bars are monotonically increasing and there's no stopper.
+         a. We will start popping the bar and that bar will be greater than top bar of the stack till end of array
+         b. Now, if we pop the new top bar in the stack, it will greater than the recent top bar but smaller than previously popped bar and that's what we want - the minumum
+         c. Area = height of popped bar * width of all bars (end of array - top bar - 1)
+     

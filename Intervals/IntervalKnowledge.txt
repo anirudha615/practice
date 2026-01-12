@@ -1,0 +1,16 @@
+TECHNIQUES:
+1. Intervals is a pair of start time and end time.
+2. To work with any interval problem, we need either sort the interval with start time and end time.
+3. If we are asked to find overlapping intervals (current start time <= previous end time) or merge overlapping intervals,
+   the approach is to sort the intervals by start time.
+4. If we are asked to find non-overlapping intervals, the approach is to sort the intervals by end time. Because if you sort by start time, the overlapping
+   interval might come first and it will mask all the non-overlapping intervals inside it.
+
+
+PROBLEMS TO REVISE:
+   a. Amazon Meetings - Find and merge all overlapping intervals. 
+       Once done, from the merged interval list, subtract the next start time and current end time to get free slot.
+   b. Car Rental Optimization - Sort the intervals by start time and keep the cars in a Self Balanced BST. When assigning a car to the interval,
+      find the car whose pickupTime <= interval's start time (Find upper bound which is > interval's start time and decrement 1).
+      Since the problem is about minimum number of cars used and all the other cars have pick up time more than interval's start time, the above logic
+      will give you the car which hasn't being picked once (if there's any)

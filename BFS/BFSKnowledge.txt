@@ -1,0 +1,157 @@
+INFORMATION:
+1. The distinguishing feature of BFS and DFS - 
+   a. DFS - go deep as far as possible and then backtrack. 
+   b. BFS - explores all the nodes at "level" before moving on to the next level.
+2. BFS is very helpful in finding shortest path as compared to DFS. 
+      a. If you are asked to find a distance between 2 nodes, if that nodes comes out from the queue, you can know the level count and that would be the distance.
+      b. On the other hand, you have to run DFS from every node to that specific node and them compare the max length.
+      c. In summary, level by level traversal is the quickest way to find the shortest distance between 2 nodes.
+
+
+TECHNIQUE:
+
+ BREADTH FIRST SEARCH ON BINARY TREE:
+  1. BFS uses a queue to keep track of the nodes it needs to visit, and follows these steps:
+       a. Start at the root node and add it to the queue.
+       b. Extract the node at the front of the queue and visit it.
+       c. Add the children of the node to the back queue.
+       d. Repeat steps b and c until the queue is empty, which means you've processed all nodes in the tree.
+
+    vector<int> bfs(TreeNode* root) {
+        
+            vector<int> result;
+            queue<TreeNode*> q;
+            // STEP 1: Start at the root node and add it to the queue.
+            q.push(root);
+            // STEP 4: Repeat STEP 2 and STEP 3 until Queue is empty.
+            while (!q.empty()) {
+                int levelSize = q.size();
+                for (int level = 0; level < levelSize; level++) {
+                    
+                    // STEP 2: Extract the node at the front of the queue and visit it.
+                    TreeNode* currNode = q.front();
+                    q.pop();
+                    result.push_back(currNode->val);
+                    
+                    // STEP 3: Add the children of the node to the back queue.
+                    if (currNode->left) {
+                        q.push(currNode->left);
+                    }
+                    if (currNode->right) {
+                        q.push(currNode->right);
+                    }
+                }
+            }
+            return result;
+        }
+
+ BREADTH FIRST SEARCH ON ADJACENCY LIST (GRAPHS):
+    1. The protocol is very similar to the Binary Tree protocol with an added step of maintaining a visited list. If the node is present in visited list, don't put in queue again.
+         a. Start at any node and add it to the queue.
+         b. Get the level size and for all the nodes in the level, Extract the node at the front of the queue and add it to visited list.
+         c. Add all its neighbors to the queue only if those neighbors are not present in the visited list.
+         d. Repeat steps b and c until the queue is empty, which means you've processed all nodes in the graph.
+
+         void bfs(int start) {
+            unordered_set<int> visited;
+            queue<int> q;
+            
+            // STEP 1: Start at the root node and add it to the queue.
+            q.push(start);
+
+            // STEP 4: Repeat steps 2 and 3 until the queue is empty.
+            while (!q.empty()) {
+
+                // STEP 2: For all the nodes in that level, extract the node from front of queue and add to visited list
+                int levelSize = q.size();
+                for (int level = 0; level < levelSize; level++) {
+
+                    int node = q.front();
+                    q.pop();
+                    visited.insert(start);
+
+                    // STEP 3: Add all node's neighbors to the queue only if those neighbors are not present in the visited list.
+                    for (int neighbor : adjList[node]) {
+                        if (visited.find(neighbor) == visited.end()) {
+                            visited.insert(neighbor);
+                            q.push(neighbor);
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+  BREADTH FIRST SEARCH ON MATRIX:
+     1. The protocl is exactly similar to BFS on Graph.
+          a. Start at any cell and add it to the queue.
+          b. For all the cells in that level, extract the cell from front of queue and add to visited list
+          c. Add all its neighbors (UP, DOWN, LEFT, RIGHR) to the queue only if those neighbors are not present in the visited list.
+          d. Repeat steps b and c until the queue is empty, which means you've processed all nodes in the graph.
+
+        void bfs(int start) {
+                unordered_set<string> visited;
+                queue<pair<int, int>> q;
+                
+                // STEP 1: Start at any cell and add it to the queue.
+                q.push({0, 0});
+
+                // STEP 4: Repeat steps 2 and 3 until the queue is empty.
+                while (!q.empty()) {
+
+                    // STEP 2: For all the cells in that level, extract the cell from front of queue and add to visited list
+                    int levelSize = q.size();
+                    for (int level = 0; level < levelSize; level++) {
+
+                        auto [row, col] = q.front();
+                        q.pop();
+                        std::string key = std::to_string(row) + "," + std::to_string(column);
+                        visited.insert(key);
+
+                        // STEP 3: Add all its neighbors (UP, DOWN, LEFT, RIGHR) to the queue only if those neighbors are not present in the visited list
+                        // and they are within the matrix boundaries
+                        if (!visited.count(std::to_string(row - 1) + "," + std::to_string(column))) { // UP
+                            q.push({row - 1, column});
+                        }
+                        if (!visited.count(std::to_string(row + 1) + "," + std::to_string(column))) { // DOWN
+                            q.push({row + 1, column});
+                        }
+                        if (!visited.count(std::to_string(row) + "," + std::to_string(column - 1))) { // LEFT
+                            q.push({row, column - 1});
+                        }
+                        if (!visited.count(std::to_string(row - 1) + "," + std::to_string(column + 1))) { // RIGHT
+                            q.push({row, column + 1});
+                        }
+                    }
+                }
+            }
+
+INFORMATION:
+  1. Topological sort takes a directed acyclic graph (DAG) and turns it into a linear ordering of nodes 
+      such that the directed edges only point forward, from left-to-right.
+  2. Below are its uses -
+       1. Installing software packages where some depend on others
+       2. Determining compilation order for source files, resolving symbol dependencies and determining order of object file linking
+       3. Ordering courses based on prerequisite requirements
+       4. Detecting and resolving deadlocks in transaction processing
+       5. Resource allocation and deadlock prevention
+  3. NOTE: If final result size < total nodes, there's a cycle.
+
+TECHNIQUE:
+   1. Find out the inbound edges to each node. For nodes which does have 0 inbound edges, add them to the queue.
+   2. Explore the neighbors and decrement the inbound edges for the neighbors (Simulate that the node being popped is not dependent on them)
+   3. If the inbound to the neighbors becomes 0, then add to the queue and repeat.
+   4. NOTE: No visited node list is needed because we're using inbound edges counting as the mechanism to track processing state.
+
+
+PROBLEMS TO REVISE:
+   1. ZiZZaG - Puzzle to remember (Use Deque) - 
+        a. Left To right --> Pop from back and push the children (from left to right) to front of the queue.
+        b. Righ To Left --> Pop from front and push the children (from right to left) to back of the queue.
+   2. MaxWidth - Push the index of each node (calculated from parent) to the queue. 
+        a. At every level, subtract the index of first and last node + 1 to calculate width at every level/
+   3. Find distance between all 1s to 0 in a matrix - 
+        a. Enqueuing a single 1 and performing BFS will require me to find the distance and then backtrack to the single 1 and repeat for all 1s.
+        b. Instead we will enqueue all 0 and replace 1s with -1s. At any level, if we increment -1 as neighbors, we will update the distance as level number 
+           and push them to the queue. In subsequent level, if we encounter -1 as neighbors, we will update the distance as level number and again push them into queue.
