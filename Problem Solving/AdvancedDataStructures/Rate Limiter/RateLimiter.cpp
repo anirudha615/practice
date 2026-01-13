@@ -196,14 +196,14 @@ public:
                 // STEP 2: Lock that bucket so that if the same user send the request at the same time via 2 or more threads, the bucket get updated once.
                 std::lock_guard<std::mutex> lock(tokenBucketPerParam->bucket_mutex);
 
-                // STEP 2: Calculate total Tokens after checking if refill is necessary
+                // STEP 2: Calculate total Tokens after checking if refill is necessary (Pessimistic locking)
                 long currentTimeInSeconds = getCurrentTimeInSec();
                 double tokenToBeRefilled = (currentTimeInSeconds - tokenBucketPerParam->lastRefillTime) * m_refillRatePerSecond;
-                double totalTokensToEvaluateAgainst = std::min(tokenBucketPerParam->tokens + tokenToBeRefilled, m_threshold);
+                double totalTokensToEvaluateAgainst = std::min(tokenBucketPerParam->tokens + tokenToBeRefilled, m_threshold); // READ
 
                 // STEP 3: Check totalTokensToEvaluateAgainst == existing tokens in the bucket. If no, update token bucket
                 if (totalTokensToEvaluateAgainst != tokenBucketPerParam->tokens) {
-                    tokenBucketPerParam->tokens = totalTokensToEvaluateAgainst;
+                    tokenBucketPerParam->tokens = totalTokensToEvaluateAgainst; // WRITE
                     tokenBucketPerParam->lastRefillTime = currentTimeInSeconds;
                 }
 

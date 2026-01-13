@@ -10,23 +10,6 @@
 
 using namespace std;
 
-struct SelfBalancingNode{
-    int m_key;
-    int m_value;
-    int64_t m_expirationtime;
-    bool m_isDead;
-    SelfBalancingNode() {}
-    SelfBalancingNode(int key, int value, int64_t expirationTime) 
-    : m_key(key),
-    m_value(value),
-    m_expirationtime(expirationTime),
-    m_isDead(false) {}
-
-    const bool operator<(const SelfBalancingNode& otherNode) const {
-        return m_expirationtime < otherNode.m_expirationtime; // Ascending
-    }
-};
-
 // LRU and LFU
 struct DoublyLinkedListNode {
     int m_key;
@@ -47,7 +30,7 @@ public:
     virtual ~ICache() = default;
     virtual int getValueFromCache(int key) = 0;
     virtual void putValueIntoCache(int key, int value, int64_t expirationTime) = 0;
-    virtual void deletekeyFromCache(int key) = 0;
+    virtual void deleteKeyFromCache(int key) = 0;
     virtual void runTest() = 0;
 };
 
@@ -94,7 +77,7 @@ public:
         return m_cache[key]->m_value;
     }
 
-    int getValueFromCache(int key) {
+    int getValueFromCache(int key) override {
         std::lock_guard<std::mutex> lock(lock_cache);
         if (!m_cache.count(key)) {
             return -1;
@@ -105,7 +88,7 @@ public:
         return node->m_value;
     }
 
-    void deleteKeyFromCache(int key) {
+    void deleteKeyFromCache(int key) override {
         std::lock_guard<std::mutex> lock(lock_cache);
         if (!m_cache.count(key)) {
             return;
@@ -139,7 +122,7 @@ public:
         --m_currentCapacity;
     }
 
-    void putValueIntoCache(int key, int value, int64_t expirationTime) {
+    void putValueIntoCache(int key, int value, int64_t expirationTime) override {
         std::lock_guard<std::mutex> lock(lock_cache);
         // If key exists in the map, retrieve the node. 
         DoublyLinkedListNode* node = nullptr;
@@ -234,7 +217,7 @@ public:
     }
 
     // Simple test method to demonstrate LRU cache functionality
-    void runTest() {
+    void runTest() override {
         cout << "=== LRU Cache Test ===" << endl;
         cout << "Cache capacity: " << m_totalCapacity << endl;
         printDLLState();
@@ -329,7 +312,7 @@ private:
 public:
     LeastFrequentlyUsedCache(int totalCapacity) : m_totalCapacity(totalCapacity) {}
 
-    int getValueFromCache(int key) {
+    int getValueFromCache(int key) override {
         std::lock_guard<std::mutex> lock(lock_cache);
         // Key does not exist
         if (!m_cache.count(key)) {
@@ -344,7 +327,7 @@ public:
         return node->m_value;
     }
 
-    void putValueIntoCache(int key, int value, int64_t expirationTime) {
+    void putValueIntoCache(int key, int value, int64_t expirationTime) override {
         std::lock_guard<std::mutex> lock(lock_cache);
         DoublyLinkedListNode* node = nullptr;
         // Key does not exist
@@ -471,8 +454,6 @@ public:
         }
     }
 
-
-
     void printFrequencyState() {
         std::lock_guard<std::mutex> lock(lock_cache);
         cout << "   minFrequency: " << minFrequency << ", capacity: " << m_currentCapacity << "/" << m_totalCapacity << endl;
@@ -547,210 +528,356 @@ public:
         
         cout << "\n=== Test Completed ===" << endl;
     }
+
+    void deleteKeyFromCache(int key) {
+        return;
+    }
+};
+
+struct Node{
+    int m_key;
+    int m_value;
+    int64_t m_expirationtime;
+    bool m_isDead;
+    std::shared_ptr<Node> next = nullptr;
+    std::shared_ptr<Node> prev = nullptr;
+    Node() {}
+    Node(int key, int value, int64_t expirationTime) 
+    : m_key(key),
+    m_value(value),
+    m_expirationtime(expirationTime),
+    m_isDead(false) {}
+};
+
+struct Comparator {
+    bool operator()(const std::shared_ptr<Node> nodeA, const std::shared_ptr<Node> NodeB) {
+        return nodeA->m_expirationtime > NodeB->m_expirationtime; // Ascending
+    }
 };
 
 /**
- * 1. We will use Map<Key, Node> where Node will contain value, expiration time and whether it is dead.
- * 2. We will not be using DLL because unlike LRU, LFU, we don't know where to add the recent PUT. 
- * 3. We will proceed with Self Balancing Trees (RBT/AVL)
- *      a. Since the problem has expiration time, it can fit anywhere, so we need to re-sort after every PUT.
- *      b. This is because when we hit total capacity, we need to remove the ones which expired or going to expire soon.
- *      c. Additionally, we also considered heap but heap would fail if I need to update the TTL as I have to find
- *         the existing element which is O(NLogN) and then reinsert the ones popped out (NLogN)
+ * This is TTL Based Cache with LRU Eviction.
  * 
- * Logic for PUT - 
- *    1. If the key does not exist in the map, 
- *      (1) Add to cache and increment the capacity. 
- *      (2) Trigger Step 2.a and 2.b as cleanup mechanism
- *        (2.a) If capacity exceeds the total capacity, remove the top element from the SelfBalancingTrees. O(LogN)
- *        (2.b) We will trigger a clean up mechansim to remove all (or max threshold) expired elements from the SelfBalancingTrees. O(K LogN)
- *      (3) Add the node to the SelfBalancingTrees and it will self balance it. O(LogN)
- *    2. If the key exists in the map, 
- *       (1) Retrieve from the cache and create a copy of it.
- *       (2) Trigger cleanup mechanism similar to 2.a and 2.b
- *       (3) Find the node in the SelfBalancingTrees and delete it. O(LogN)
- *       (4) Add the node to the SelfBalancingTrees. O(LogN)
+ * 1. We will maintain Map<Key, Node*> for cache.
+ * 2. We will maintain DLL for capacity.
+ * 3. We will maintain a minHeap for expiration time sorting
  * 
- * Logic for GET - 
- *     1. If the key does not exist in the map, return -1.
- *     2. If the key exist in the map, retrieve node. If expired, set it as Dead else return.
+ * 1. GET call - O(1)
+ *      a. If the node is expired, mark it as dead, remove from map and remove from DLL. All of these operations
+ *         are O(1). You don't have to remove from MinHeap which can be taken care async using TimeBoundedCleanup.
+ *      b. If the node is not expired, updateDLL and return the value
  * 
- * GET - O(1)
- * PUT - O(K LogN) K == constant ~= O(Log N)
+ * 2. PUT call - O(LogN)
+ *      a. If a node exists, update its value, updateDLL and reinsert into minHeap. The heap will get polluted
+ *         but during lazy cleanup, it should get cleared up.
+ *      b. If a node does not exist, create a new node, updateDLL, updateMap, increase capacity and insert into MinHeap.
+ *      c. Check if current capacity exceeds total capacity, if yes, mark head as dead, remove from map and remove from DLL.
+ * 
+ * 3. Delete - O(1)
+ *      a. If a node exists, mark node as dead, remove from map and remove from DLL.
+ *      b. Async cleanup will take care of removing the node.
+ * 
+ * 4. Cleanup - O(K LogN)
+ *      a. While the heap is not empty or you have exceeded the nodes to clean up, only pop out nodes which are expired. 
+ *      b. If a node is expired but not dead, remove from map and remove from DLL and pop from heap.
+ *      c. If a node is expired and dead, you already removed from map and DLL. So, only remove from heap.
+ *      d. For other cases, don't do anything.
+ * 
  * 
  */
 class TTLBasedCache: public ICache {
 private:
-    std::set<SelfBalancingNode> m_selfBalancingBST;
-    std::unordered_map<int, std::set<SelfBalancingNode>::iterator> m_cache;
+    std::unordered_map<int, std::shared_ptr<Node>> m_cache;
+    std::priority_queue<std::shared_ptr<Node>, std::vector<std::shared_ptr<Node>>, Comparator> m_minHeap;
+    std::shared_ptr<Node> m_tail; // Tail for LRU DLL
+    std::shared_ptr<Node> m_head; // Head for LRU DLL
     int m_currentCapacity = 0;  // Initialize to 0
     int m_totalCapacity;
     std::mutex lock_cache;
-public:
-    TTLBasedCache(int totalCapacity) : m_totalCapacity(totalCapacity) {}
-
-    int getValueFromCache(int key) {
-        std::lock_guard<std::mutex> lock(lock_cache);  // Add thread safety
-        if (!m_cache.count(key)) {
-            return -1;
-        }
-
-        auto nodeIt = m_cache[key];
-        if (nodeIt->m_expirationtime < getCurrentTimeInMillis()) {
-            // Mark as dead by creating a copy, removing old, and inserting updated
-            SelfBalancingNode updatedNode = *nodeIt;
-            updatedNode.m_isDead = true;
-            m_selfBalancingBST.erase(nodeIt);
-            auto newIt = m_selfBalancingBST.insert(updatedNode);
-            m_cache[key] = newIt.first;
-            return -1;
-        }
-
-        return nodeIt->m_value;
-    }
-
-    void putValueIntoCache(int key, int value, int64_t expirationTime) {
-        std::lock_guard<std::mutex> lock(lock_cache);
-        
-        // If key does not exist
-        if (!m_cache.count(key)) {
-            ++m_currentCapacity;
-            SelfBalancingNode newNode(key, value, expirationTime);
-            cleanup(); // O(k log n)
-            auto result = m_selfBalancingBST.insert(newNode);
-            m_cache[key] = result.first;  // Store iterator
-        } else {
-            // Key exists - remove old, insert new
-            auto oldIt = m_cache[key];
-            m_selfBalancingBST.erase(oldIt);  // Remove old version
-            cleanup(); // O(k log n)
-            SelfBalancingNode updatedNode(key, value, expirationTime);
-            auto result = m_selfBalancingBST.insert(updatedNode);
-            m_cache[key] = result.first;  // Update iterator
-        }
-    }
-
-    /**
-     * 1. Check if current capacity exceeds total and remove the top node.
-     * 2. Remove all expired nodes or dead nodes - 
-     * 
-     * O(N LogN) 
-     * 
-     * You can also mention max 10 entries to be cleaned up every PUT operation - which makes complexity is O(LogN)
-     */
-    void cleanup() {
-        if (m_currentCapacity > m_totalCapacity) {
-            auto earliestIt = m_selfBalancingBST.begin(); // O(1) - iterator
-            m_cache.erase(earliestIt->m_key);   // O(1) - remove from map first
-            m_selfBalancingBST.erase(earliestIt); // O(log n) - remove from set
-            m_currentCapacity--;
-        }
-
-        auto currentTime = getCurrentTimeInMillis();
-        while (!m_selfBalancingBST.empty()) {
-            auto earliestIt = m_selfBalancingBST.begin(); //O(1) - iterator to earliest
-            if (earliestIt->m_expirationtime > currentTime && !earliestIt->m_isDead) {
-                break;  // Stop only when entry is VALID (not expired AND not dead)
-            }
-            
-            // Clean up properly:
-            m_cache.erase(earliestIt->m_key); // O(1) - remove from map first
-            m_selfBalancingBST.erase(earliestIt); //O(log n) - remove from set
-            m_currentCapacity--;
-        }
-    }
 
     int64_t getCurrentTimeInMillis() {
         return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     }
 
-    
-    void printTTLState() {
+    void removeNodeFromDLL(const std::shared_ptr<Node> nodeToBeRemoved) {
+        if (nodeToBeRemoved->prev && nodeToBeRemoved->next) {
+            // nodeToBeRemoved is in the middle
+            nodeToBeRemoved->prev->next = nodeToBeRemoved->next;
+            nodeToBeRemoved->next->prev = nodeToBeRemoved->prev;
+        } else if (!nodeToBeRemoved->prev && nodeToBeRemoved->next) {
+            // nodeToBeRemoved is the tail
+            m_tail = nodeToBeRemoved->next;
+        } else if (nodeToBeRemoved->prev && !nodeToBeRemoved->next) {
+            // nodeToBeRemoved is the head
+            m_head = nodeToBeRemoved->prev;
+            if (m_head) {
+                m_head->next = nullptr;
+            }
+            nodeToBeRemoved->prev = nullptr;
+        } else {
+            // nodeToBeRemoved is the only element
+            m_head = m_tail = nullptr;
+        }
+    }
+
+    void addNodeToDLL(const std::shared_ptr<Node> nodeToBeAdded) {
+        if (nodeToBeAdded->prev && nodeToBeAdded->next) {
+            // nodeToBeAdded is in the middle
+            nodeToBeAdded->prev->next = nodeToBeAdded->next;
+            nodeToBeAdded->next->prev = nodeToBeAdded->prev;
+            nodeToBeAdded->next = m_tail;
+            nodeToBeAdded->prev = nullptr;
+            m_tail->prev = nodeToBeAdded;
+            m_tail = nodeToBeAdded;
+        } else if (!nodeToBeAdded->prev && nodeToBeAdded->next) {
+            // nodeToBeAdded is the tail
+            m_tail = nodeToBeAdded;
+        } else if (nodeToBeAdded->prev && !nodeToBeAdded->next) {
+            // nodeToBeAdded is the head
+            m_head = nodeToBeAdded->prev;
+            if (m_head) {
+                m_head->next = nullptr;
+            }
+            nodeToBeAdded->next = m_tail;
+            nodeToBeAdded->prev = nullptr;
+            m_tail->prev = nodeToBeAdded;
+            m_tail = nodeToBeAdded;
+        } else {
+            // nodeToBeAdded is the only element
+            m_head = m_tail = nodeToBeAdded;
+        }
+    }
+
+    /**
+     * Loop through the minHeap and only stop if an node is not expired
+     * 
+     * If the node is dead but not expired, we already removed it from Map and DLL and 
+     *    those nodes will be eventually cleaned up. So, don't do anything.
+     * If the node is not dead and not expired, don't do anything.
+     * If the node is dead and expired, it has been already removed from map and DLL. Only needs to be removed from heap
+     * If the node is not dead but expired, it has to be removed from map, DLL and heap
+     * 
+     * Make it Time bounded cleanup ~= O(K LogN) ~= O(LogN)
+     */
+    void cleanup() {
+        int64_t currentTime = getCurrentTimeInMillis();
+        int maxNodesToCleanedUp = 0;
+        while (!m_minHeap.empty() && maxNodesToCleanedUp < 2) {
+            std::shared_ptr<Node> node = m_minHeap.top();
+            // If the node is dead but not expired, we already removed it from Map and DLL and those nodes will be eventually cleaned up.
+            // If the node is not dead and not expired, don't do anything.
+            // If the node is dead and expired, it has been already removed from map and DLL. Only needs to be removed from heap
+            // If the node is not dead but expired, it has to be removed from map, DLL and heap
+            if (node->m_isDead && node->m_expirationtime < currentTime) {
+                // Pop from heap - O(LogN)
+                m_minHeap.pop();
+            } else if (!node->m_isDead && node->m_expirationtime < currentTime) {
+                // Remove node from map -- O(1)
+                m_cache.erase(node->m_key);
+                // Remove node from DLL -- O(1)
+                removeNodeFromDLL(node);
+                // Decrement capacity
+                --m_currentCapacity;
+                // Pop from heap - O(LogN)
+                m_minHeap.pop();
+            } else if (node->m_expirationtime > currentTime) {
+                break;
+            }
+            maxNodesToCleanedUp++;
+        }
+    }
+
+public:
+    TTLBasedCache(int totalCapacity) : m_totalCapacity(totalCapacity) {}
+
+    int getValueFromCache(int key) override {
+        std::lock_guard<std::mutex> lock(lock_cache);  // Add thread safety
+        if (!m_cache.count(key)) {
+            return -1;
+        }
+
+        std::shared_ptr<Node> node = m_cache[key];
+        if (node->m_expirationtime < getCurrentTimeInMillis()) {
+            // Mark node as dead
+            node->m_isDead = true;
+            // Remove node from map -- O(1)
+            m_cache.erase(node->m_key);
+            // Remove node from DLL -- O(1)
+            removeNodeFromDLL(node);
+            // Decrement capacity
+            --m_currentCapacity;
+            return -1;
+        }
+
+        addNodeToDLL(node); // O(1)
+        return node->m_value;
+    }
+
+    void putValueIntoCache(int key, int value, int64_t expirationTime) override {
         std::lock_guard<std::mutex> lock(lock_cache);
-        cout << "   Capacity: " << m_currentCapacity << "/" << m_totalCapacity << endl;
-        cout << "   TTL Tree (earliest to latest expiration):" << endl;
-        if (m_selfBalancingBST.empty()) {
-            cout << "   [EMPTY]" << endl;
+        std::shared_ptr<Node> node;
+
+        // Key exists
+        if (m_cache.count(key)) {
+            node = m_cache[key];
+            // Update the values
+            node->m_key = key;
+            node->m_value = value;
+            node->m_expirationtime = expirationTime;
+            // update DLL
+            addNodeToDLL(node); // O(1)
+            // Insert into minHeap
+            m_minHeap.push(node); // O(LogN)
+        } else {
+            // If key does not exist
+            ++m_currentCapacity;
+            node = std::make_shared<Node>(key, value, expirationTime);
+            // Insert into Map
+            m_cache[key] = node;
+            // update DLL
+            addNodeToDLL(node); // O(1)
+            // Insert into minHeap
+            m_minHeap.push(node); // O(LogN)
+        }
+
+        if (m_currentCapacity > m_totalCapacity) {
+            // Mark node as dead
+            m_head->m_isDead = true;
+            // Remove node from map -- O(1)
+            m_cache.erase(m_head->m_key);
+            // Remove node from DLL -- O(1)
+            removeNodeFromDLL(m_head);
+            // Decrement capacity
+            --m_currentCapacity;
+        }
+
+        //lazy cleanup - should be async
+        cleanup();
+    }
+
+    void deleteKeyFromCache(int key) {
+        std::lock_guard<std::mutex> lock(lock_cache);
+        if (!m_cache.count(key)) {
             return;
         }
-        
-        auto currentTime = getCurrentTimeInMillis();
-        cout << "   Current time: " << currentTime << endl;
-        cout << "   ";
-        for (auto node : m_selfBalancingBST) {
-            string status = "";
-            if (node.m_isDead) status = "(DEAD)";
-            else if (node.m_expirationtime < currentTime) status = "(EXPIRED)";
-            else status = "(VALID)";
-            
-            cout << "[" << node.m_key << ":" << node.m_value << ", exp:" << node.m_expirationtime << status << "] ";
-        }
-        cout << endl;
+        std::shared_ptr<Node> node = m_cache[key];
+        // Mark node as dead
+        node->m_isDead = true;
+        // Remove node from map -- O(1)
+        m_cache.erase(node->m_key);
+        // Remove node from DLL -- O(1)
+        removeNodeFromDLL(node);
+        // Decrement capacity
+        --m_currentCapacity;
     }
 
     void runTest() {
-        cout << "=== TTL Cache Test ===" << endl;
-        cout << "Cache capacity: " << m_totalCapacity << endl;
-        
-        int64_t currentTime = getCurrentTimeInMillis();
-        
-        // Test 1: Basic PUT with TTL (using much larger time spans)
-        cout << "\n1. Basic PUT with TTL Test:" << endl;
-        putValueIntoCache(1, 100, currentTime + 3600000);  // expires in 1 hour
-        cout << "   PUT(1, 100, +1hour)" << endl;
-        printTTLState();
-        
-        putValueIntoCache(2, 200, currentTime + 7200000); // expires in 2 hours  
-        cout << "   PUT(2, 200, +2hours)" << endl;
-        printTTLState();
-        
-        putValueIntoCache(3, 300, currentTime + 1800000);  // expires in 30 minutes (earliest)
-        cout << "   PUT(3, 300, +30min)" << endl;
-        printTTLState();
-        
-        // Test 2: GET operations with valid entries
-        cout << "\n2. Testing GET operations:" << endl;
-        cout << "   GET(1): " << getValueFromCache(1) << endl;
-        cout << "   GET(2): " << getValueFromCache(2) << endl;
-        cout << "   GET(3): " << getValueFromCache(3) << endl;
-        cout << "   GET(999): " << getValueFromCache(999) << " (should be -1)" << endl;
-        
-        // Test 3: Simulate expiration by using past time
-        cout << "\n3. Testing Expiration Logic:" << endl;
-        putValueIntoCache(4, 400, currentTime + 1000);  // Expires in 1s
-        cout << "   PUT(4, 400, +1s) " << endl;
-        printTTLState();
-        cout << "   Waiting 1 seconds for expiration..." << endl;
-        this_thread::sleep_for(chrono::seconds(3));
-        cout << "   GET(4): " << getValueFromCache(4) << " (should be -1, expired)" << endl;
-        printTTLState();
-        
-        // Test 4: TTL Update for existing key
-        cout << "\n4. Testing TTL Update:" << endl;
-        putValueIntoCache(1, 150, currentTime + 10800000); // Update key 1 with new TTL (3 hours)
-        cout << "   PUT(1, 150, +3hours) - update existing key" << endl;
-        printTTLState();
-        cout << "   GET(1): " << getValueFromCache(1) << " (should be 150)" << endl;
-        
-        // Test 5: Real-time expiration demonstration
-        cout << "\n5. Real-time Expiration Test:" << endl;
-        putValueIntoCache(5, 500, currentTime + 5000);  // expires in 5 seconds
-        cout << "   PUT(5, 500, +5sec)" << endl;
-        printTTLState();
-        cout << "   GET(5) immediately: " << getValueFromCache(5) << " (should be 500)" << endl;
-        cout << "   Waiting 6 seconds for expiration..." << endl;
-        this_thread::sleep_for(chrono::seconds(6));
-        cout << "   GET(5) after 6 seconds: " << getValueFromCache(5) << " (should be -1, expired)" << endl;
-        printTTLState();
-        
-        // Test 6: Capacity eviction with cleanup
-        cout << "\n6. Testing Capacity Eviction:" << endl;
-        putValueIntoCache(6, 600, currentTime + 5400000);  // expires in 1.5 hours
-        cout << "   PUT(6, 600, +1.5hours) - trigger cleanup" << endl;
-        printTTLState();
-        
-        cout << "\n=== TTL Test Completed ===" << endl;
+        cout << "=== TTL Cache Test Suite (Capacity: " << m_totalCapacity << ") ===" << endl;
+        int testsPassed = 0;
+        int totalTests = 0;
+
+        int64_t now = getCurrentTimeInMillis();
+
+        // Test 1: Basic PUT + GET (no expiration)
+        cout << "\n=== Test 1: Basic PUT + GET ===" << endl;
+        {
+            putValueIntoCache(1, 100, now + 10000);   // +10s
+            int v1 = getValueFromCache(1);
+            totalTests++;
+            if (v1 == 100) { cout << "PASS: GET(1)==100\n"; testsPassed++; }
+            else           { cout << "FAIL: GET(1) expected 100, got " << v1 << "\n"; }
+
+            totalTests++;
+            if (m_currentCapacity == 1) { cout << "PASS: capacity==1\n"; testsPassed++; }
+            else                        { cout << "FAIL: capacity expected 1, got " << m_currentCapacity << "\n"; }
+        }
+
+        // Test 2: Expiration on GET
+        cout << "\n=== Test 2: TTL Expiration on GET ===" << endl;
+        {
+            int64_t t = getCurrentTimeInMillis();
+            putValueIntoCache(2, 200, t + 1000);  // +1s
+            int vBefore = getValueFromCache(2);
+            cout << "   GET(2) before sleep: " << vBefore << "\n";
+            this_thread::sleep_for(chrono::seconds(2));
+            int vAfter = getValueFromCache(2);
+            totalTests++;
+            if (vAfter == -1) { cout << "✓ PASS: GET(2) after TTL returns -1\n"; testsPassed++; }
+            else              { cout << "✗ FAIL: GET(2) after TTL expected -1, got " << vAfter << "\n"; }
+
+            totalTests++;
+            if (m_currentCapacity == 1) { cout << "✓ PASS: capacity decremented after expiration\n"; testsPassed++; }
+            else                        { cout << "✗ FAIL: capacity expected 1, got " << m_currentCapacity << "\n"; }
+        }
+
+        // Test 3: Update existing key (value + TTL)
+        cout << "\n=== Test 3: Update Existing Key ===" << endl;
+        {
+            int64_t t = getCurrentTimeInMillis();
+            putValueIntoCache(1, 150, t + 5000);   // update key 1
+            int v = getValueFromCache(1);
+            totalTests++;
+            if (v == 150) { cout << "✓ PASS: updated GET(1)==150\n"; testsPassed++; }
+            else          { cout << "✗ FAIL: updated GET(1) expected 150, got " << v << "\n"; }
+
+            totalTests++;
+            if (m_currentCapacity == 1) { cout << "✓ PASS: capacity unchanged on update\n"; testsPassed++; }
+            else                        { cout << "✗ FAIL: capacity expected 1, got " << m_currentCapacity << "\n"; }
+        }
+
+        // Test 4: LRU eviction at capacity=3
+        cout << "\n=== Test 4: LRU Eviction (capacity=3) ===" << endl;
+        {
+            // Currently only key 1 is present
+            int64_t t = getCurrentTimeInMillis();
+            putValueIntoCache(2, 200, t + 10000);
+            putValueIntoCache(3, 300, t + 10000);
+            // Cache: {1,2,3} (some LRU order), capacity==3
+            totalTests++;
+            if (m_currentCapacity == 3) { cout << "✓ PASS: capacity==3 after adding 1,2,3\n"; testsPassed++; }
+            else                        { cout << "✗ FAIL: capacity expected 3, got " << m_currentCapacity << "\n"; }
+
+            // Make key 2 most recently used
+            (void)getValueFromCache(2);
+            // Add key 4 → should evict LRU (either 1 or 3, depending on your DLL logic)
+            putValueIntoCache(4, 400, t + 1);
+
+            int v2 = getValueFromCache(2);
+            totalTests++;
+            if (v2 == 200) {
+                cout << "✓ PASS: recently-used key (2) is present\n";
+                testsPassed++;
+            } else {
+                cout << "✗ FAIL: expected GET(2)==200 & GET(4)==400, got 2:" << v2 << "\n";
+            }
+
+            totalTests++;
+            if (m_currentCapacity == 3) { cout << "✓ PASS: capacity remains 3 after eviction\n"; testsPassed++; }
+            else                        { cout << "✗ FAIL: capacity expected 3, got " << m_currentCapacity << "\n"; }
+        }
+
+        // Test 5: deleteKeyFromCache
+        cout << "\n=== Test 5: Explicit Delete ===" << endl;
+        {
+            int before = m_currentCapacity;
+            deleteKeyFromCache(2);
+            int v = getValueFromCache(2);
+            totalTests++;
+            if (v == -1) { cout << "✓ PASS: deleted key returns -1\n"; testsPassed++; }
+            else         { cout << "✗ FAIL: deleted key expected -1, got " << v << "\n"; }
+
+            totalTests++;
+            if (m_currentCapacity == before - 1) {
+                cout << "✓ PASS: capacity decremented after delete\n";
+                testsPassed++;
+            } else {
+                cout << "✗ FAIL: capacity expected " << (before - 1) << ", got " << m_currentCapacity << "\n";
+            }
+        }
+
+        cout << "\n=== Summary: " << testsPassed << "/" << totalTests << " tests passed ===" << endl;
     }
+
 };
 
 class CacheFactoryPattern {

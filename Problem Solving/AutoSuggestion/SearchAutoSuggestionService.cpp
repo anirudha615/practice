@@ -122,10 +122,8 @@ public:
     }
 
     /**
-     * Helper function to collect words and build TopK heap in a single pass
+     * DFS on the Children's children
      * Used by searchAutoSuggestionWithReadPenalty
-     * 
-     * 
      */
     void collectWordsAndBuildHeap(TrieNode* node, priority_queue<pair<int, string>, vector<pair<int, string>>, greater<>>& topKMinHeap) {
         if (node->isValidWord) {

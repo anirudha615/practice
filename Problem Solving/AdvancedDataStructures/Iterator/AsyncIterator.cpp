@@ -69,7 +69,6 @@ public:
      * Resume Playing - 
      *    1. If the resumeSignal is false, make it true.
      *    2. Notify all threads to wake up.
-     *      
      */
     void resumePlaying() {
         if (!resumeSignal.load()) {

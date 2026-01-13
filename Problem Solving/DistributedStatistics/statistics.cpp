@@ -11,41 +11,25 @@ using namespace std;
  * If the range is small and the data is dense, array would be efficient
  * as index would be the key and value would be value as compared to unordered_map
  */
-struct Node {
+class Node {
+private:
+    std::mutex m_frequencyCounterMutex;
+    
+public:
     std::vector<int> m_list;
     std::map<int, int> m_frequencyCounter;
-    std::mutex m_frequencyCounterMutex;
     double timeTakenToRead = 0.0;
     double timeTakenToSend = 0.0;
-    
     Node(std::vector<int> list) : m_list(list) {}
-    
-    // Move constructor
-    Node(Node&& other) noexcept
-        : m_list(std::move(other.m_list)),
-          m_frequencyCounter(std::move(other.m_frequencyCounter)),
-          timeTakenToRead(other.timeTakenToRead),
-          timeTakenToSend(other.timeTakenToSend) {}
-    
-    // Move assignment operator
-    Node& operator=(Node&& other) noexcept {
-        if (this != &other) {
-            m_list = std::move(other.m_list);
-            m_frequencyCounter = std::move(other.m_frequencyCounter);
-            timeTakenToRead = other.timeTakenToRead;
-            timeTakenToSend = other.timeTakenToSend;
-        }
-        return *this;
+
+    std::mutex& getMutex() {
+        return m_frequencyCounterMutex;
     }
-    
-    // Delete copy constructor and copy assignment
-    Node(const Node&) = delete;
-    Node& operator=(const Node&) = delete;
 };
 
 class DistributedStatisticsManager {
 private:
-    std::vector<Node> m_nodeList;
+    std::vector<std::shared_ptr<Node>> m_nodeList;
     int m_receivingNodeIndex;
     std::vector<std::thread> m_threadPool;
     const double TIME_TAKEN_TO_READ_1_BYTE = 0.1;
@@ -58,42 +42,42 @@ private:
      * However, all the threads will converge on the receiving node where we need mutex of receiving node to update the frequency counter.
      */
     void sendFrequencyCounterToReceivingNode(int index) {
-        Node& sendingNode = m_nodeList[index];
-        Node& receivingNode = m_nodeList[m_receivingNodeIndex];
+        std::shared_ptr<Node> sendingNode = m_nodeList[index];
+        std::shared_ptr<Node> receivingNode = m_nodeList[m_receivingNodeIndex];
 
         /** Calcuatate frequencyCounterPerNode */
         std::unordered_map<int, int> frequencyCounterPerNode;
-        for (int integer : sendingNode.m_list) {
+        for (int integer : sendingNode->m_list) {
             frequencyCounterPerNode[integer]++;
         }
 
         /** Calculate time Taken to read */
-        sendingNode.timeTakenToRead = sendingNode.timeTakenToRead + (frequencyCounterPerNode.size() * 2 * 4 * TIME_TAKEN_TO_READ_1_BYTE);
+        sendingNode->timeTakenToRead = sendingNode->timeTakenToRead + (frequencyCounterPerNode.size() * 2 * 4 * TIME_TAKEN_TO_READ_1_BYTE);
 
         /** Calculate time Taken to send */
         if (index != m_receivingNodeIndex) {
-            sendingNode.timeTakenToSend = sendingNode.timeTakenToSend + (frequencyCounterPerNode.size() * 2 * 4 * TIME_TAKEN_TO_SEND_1_BYTE);
+            sendingNode->timeTakenToSend = sendingNode->timeTakenToSend + (frequencyCounterPerNode.size() * 2 * 4 * TIME_TAKEN_TO_SEND_1_BYTE);
         }
 
         /** Send the frequency counter to the receiving node*/
         {
-            std::lock_guard<std::mutex> lock(receivingNode.m_frequencyCounterMutex);
+            std::lock_guard<std::mutex> lock(receivingNode->getMutex());
             for (auto& pair : frequencyCounterPerNode) {
-                receivingNode.m_frequencyCounter[pair.first] = receivingNode.m_frequencyCounter[pair.first] + frequencyCounterPerNode[pair.first];
+                receivingNode->m_frequencyCounter[pair.first] = receivingNode->m_frequencyCounter[pair.first] + frequencyCounterPerNode[pair.first];
             }
         }
     }
 
 public:
-    DistributedStatisticsManager(std::vector<Node>&& nodeList)
+    DistributedStatisticsManager(const std::vector<std::shared_ptr<Node>>& nodeList)
     : m_nodeList(std::move(nodeList)) {
 
         // STEP 1: Find the receiving node Index
         int maxIntegerListSize = -1;
         for (int index = 0; index < m_nodeList.size(); index++) {
-            Node& node = m_nodeList[index];
-            maxIntegerListSize = std::max(maxIntegerListSize, static_cast<int>(node.m_list.size()));
-            if (maxIntegerListSize == node.m_list.size()) {
+            std::shared_ptr<Node> node = m_nodeList[index];
+            maxIntegerListSize = std::max(maxIntegerListSize, static_cast<int>(node->m_list.size()));
+            if (maxIntegerListSize == node->m_list.size()) {
                 m_receivingNodeIndex = index;
             }
         }
@@ -117,8 +101,8 @@ public:
         int totalCount = 0;
         int maxFrequency = -1;
         int distributedModeStatistics = -1;
-        Node& processingNode = m_nodeList.at(m_receivingNodeIndex);
-        for (auto& pair : processingNode.m_frequencyCounter) {
+        std::shared_ptr<Node> processingNode = m_nodeList.at(m_receivingNodeIndex);
+        for (auto& pair : processingNode->m_frequencyCounter) {
             maxFrequency = std::max(maxFrequency, pair.second);
             if (maxFrequency == pair.second) {
                 distributedModeStatistics = pair.first;
@@ -127,7 +111,7 @@ public:
             cumulativeCount[pair.first] = totalCount;
         }
         /** Update the receving node's timeTakenToRead */
-        processingNode.timeTakenToRead = processingNode.timeTakenToRead + (processingNode.m_frequencyCounter.size() * 2 * 4 * TIME_TAKEN_TO_READ_1_BYTE);
+        processingNode->timeTakenToRead = processingNode->timeTakenToRead + (processingNode->m_frequencyCounter.size() * 2 * 4 * TIME_TAKEN_TO_READ_1_BYTE);
         std::cout << "Mode is : " << distributedModeStatistics << std::endl;
 
         // STEP 5: Calculate median in the receiving node using the main thread
@@ -155,10 +139,10 @@ public:
         // STEP 6: Print time taken for each node to read and send
         std::cout << "\n--- Node Performance Metrics ---" << std::endl;
         for (int index = 0; index < m_nodeList.size(); index++) {
-            Node& node = m_nodeList[index];
+            std::shared_ptr<Node> node = m_nodeList[index];
             std::cout << "Node " << index << ":" << std::endl;
-            std::cout << "  Time taken to read:  " << node.timeTakenToRead << " s" << std::endl;
-            std::cout << "  Time taken to send:  " << node.timeTakenToSend << " s" << std::endl;
+            std::cout << "  Time taken to read:  " << node->timeTakenToRead << " s" << std::endl;
+            std::cout << "  Time taken to send:  " << node->timeTakenToSend << " s" << std::endl;
         }
     }
 };
@@ -179,10 +163,10 @@ int main() {
     // Total count: 15 elements
     // Median: 3 (8th element in sorted order)
     
-    std::vector<Node> nodeList;
-    nodeList.emplace_back(std::vector<int>{1, 2, 3, 3, 3});
-    nodeList.emplace_back(std::vector<int>{2, 3, 3, 4, 5, 6});  // Largest list - will be receiving node
-    nodeList.emplace_back(std::vector<int>{3, 3, 4, 5});
+    std::vector<std::shared_ptr<Node>> nodeList;
+    nodeList.emplace_back(std::make_shared<Node>(std::vector<int>{1, 2, 3, 3, 3}));
+    nodeList.emplace_back(std::make_shared<Node>(std::vector<int>{2, 3, 3, 4, 5, 6})); // Largest list - will be receiving node
+    nodeList.emplace_back(std::make_shared<Node>(std::vector<int>{3, 3, 4, 5}));  
     
     std::cout << "\nNode 0: [1, 2, 3, 3, 3]" << std::endl;
     std::cout << "Node 1: [2, 3, 3, 4, 5, 6] (Receiving Node)" << std::endl;
@@ -191,7 +175,7 @@ int main() {
     std::cout << "Expected Median: 3" << std::endl;
     std::cout << "\nActual Results:" << std::endl;
     
-    DistributedStatisticsManager manager(std::move(nodeList));
+    DistributedStatisticsManager manager(nodeList);
     
     std::cout << "\nTest completed successfully!" << std::endl;
     

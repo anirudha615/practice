@@ -133,7 +133,7 @@ public:
 
     /**
      * Worfklow - 
-     *    1. Request for an elevator
+     *    1. Request for a closest elevator
      *    2. If not found, return false
      *    3. If found, create a link between elevator and request and set the target floor.
      */

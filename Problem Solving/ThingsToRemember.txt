@@ -18,16 +18,35 @@ Signature things to remember
             return a.<something> < b.<something> // Ascending
         });
     
-    4. Usage of mutexes - 
-        a. On the method itself - std::lock_guard<std::mutex> lock(<mutex_name>)
-        b. On the object - Have a mutex in the data struct itself
+    4. Usage of mutexes - Only 1 reader and 1 writer (std::lock_guard<std::mutex> lock(<mutex_name>))
+        a. Coarse-grained locking by putting the lock on the method which locks the entire DS  and no concurrent request on DS.
+        b. Fine-grained locking on the object of the DS and no concurrent request to that particular object of DS.
+        c. Return the mutex by reference as it is non-copyable and non-moveable
+    
+    5. Usage of shared mutexes - Multiple readers and only 1 writer 
+        a. READER - std::shared_lock<std::shared_mutex> lock(<mutex_name>) and WRITER - std::unique_lock<std::shared_mutex> lock(<mutex_name>);
+        b. Very useful when DS internally changes the address of the object during rehashing - Example MAP. To be used when reading and writing to the map.
+        c. It can be used along with fine-grained locking where you retrieve the value from the map and release the lock. Enable the fine-grained locking and proceed with modifying the value.
+        d. Read PersistentCache.cpp
+    
+    6. Optimisitic And Pessimistic Atomic Concurrency
+        1. Optimisitic Concurrency - 
+            a. Add versionControl where the client will provide the lastReadVersion of the object and the system will decide to update the object 
+               if user's lastReadVersion == object's lastUpdatedVersion. 
+            b. Useful when writes are rarely conflicting (giving writes responsibility to User)
+            c. Have a look at PersistentCache.cpp
+        2. Pessimistic Concurrency -
+            a. Fine-grained locking the particular object, read the value and then update the value.
+            b. Useful when writes are frequently conflicting (giving writes responsibility to system)
+            c. Have a lool at RateLimiter.cpp
    
-    5. Working with asynchronous thread - Look at Scheduler.cpp (Very important) and AsyncIterator.cpp. 
+    7. Working with asynchronous thread - Look at Scheduler.cpp/Crawler.cppp/AsyncIterator.cpp. 
         a. If the worker threads share a state, lock using mutex and add conditions for sleeping.
         b. The conditions of sleeping are  - 
             (1) setup a wakeupTime using wait_for or 
-            (2) use variables to wake up the thread. There is an extra step that when you change the state of variables, 
-                call notify_all to wake up all threads to re-check the conditons.
+            (2) use conditions in the lambda to wake up the thread. 
+                (a). There is an extra step that when you change the state of variables, call notify_all to 
+                     wake up all threads to re-check the conditons in the lambda. IF it is true, they will wake up.
         c. Once you wake up, check if you need to abort the while loop. If yes do it, else keep on doing your work.
         d. Don't have infinite while loop. Use the variable that you used in Step#C to abort as conditional variable for while loop.
         e. Be mindful of using notify_one or notify_all depending upon the requirement. If the requirement is to ask all threads to pause, 
@@ -37,7 +56,7 @@ Signature things to remember
            However, once promise/future is set, you can't reset and use it again. If you want the thread to keep on reporting the status, use shared_ptr.
 
 
-    6. Delimiter Parsing with strings - 
+    8. Delimiter Parsing with strings - 
         a. If delimiter is common, use text.find(delimiter, start)
         b. If delimiter is a set, convert that set to string and use  text.find_first_of(delimiter, start) 
             and that will give you the first occurence of any of the delimiter in the string.
@@ -60,12 +79,45 @@ Signature things to remember
         std::string lastPiece = text.substr(start);
         result.push_back(lastPiece);
 
-    7. Reading and Writing into the file - (Read PersistentCache.cpp)
+    9. Reading and Writing into the file - (Read PersistentCache.cpp)
         a. Reading - Use ifstream and then do a while loop of getLine and then use string stream to infer that line using ">>"
         b. Writing - Use ofstream and then use << to write to the file.
 
-    8. Hashing - 
+    10. Hashing - PersistentCache.cpp
         uint32_t hashFunction(int key) {
             std::hash<std::string> hasher;
             return hasher(std::to_string(key)) % RING_SIZE;
         }
+
+
+
+GENERAL KNOWLEDGE
+
+1. CPU/RAM CONTEXT SWITCHINHG - 
+   a. Timer interrupt fires: Current process (Process A) is interrupted
+   b. Save state: OS saves Process A's CPU registers to Process A's PCB in RAM (RAM contains every process's PCB)
+   c. Check queue: Scheduler reads the ready queue from RAM to find next process (RAM also contains OS Scheduling Queue)
+   d. Select Process B: Scheduler picks Process B from the queue
+   e. Load PCB: OS reads Process B's PCB from RAM
+   f. Restore registers: CPU registers are loaded with values from Process B's PCB
+   g. Set program counter: CPU's program counter is set to the RAM address stored in Process B's PCB (say address 0x00401000)
+      (RAM also contains the instruction to execute the task of Process B)
+   h. Fetch instruction: CPU fetches the instruction at RAM address 0x00401000
+   i. Execute: CPU executes that instruction (which might read/write other data in RAM)
+   j. Continue: CPU keeps fetching consecutive instructions from RAM until next interrupt
+
+2. Virtual Machines - 
+   1. VMs are cheap as compared to physical servers, provides isolation from malware (leetcode) and rapid provisioning of resources such as CI/CD setup
+   2. VM -> Hypervisor —> Host OS —> Hardware (Type2) and VM -> Hypervisor —> Hardware (Type 1) --> Execution of a task in VM
+   3. Hypervisor creates a file called VM1 or VM2 on physical disk and takes the responsibility of transalting the task being executed in VM 
+      to a task to be executed in file VM1 and VM2 by Host OS.
+       a. In short, these files VM1 and VM2 are allocated space on disk.
+   4. Similar to allocating space on physical disk, Hypervisor also allocates some space in RAM and creates its own PCB.
+
+3. Containers - 
+   1. Unlike VM which runs their own OS, container shares host OS and is essentially a process with special isolations.
+   2. For example, its absolute path in container is wrapped by Host OS. So, when we try to open a document in the container,
+      the HOST OS just appends as a prefix to the document location to be found in actual disk.
+   3. Containers are a process, so, it also have PCB in RAM and get some space allocated.
+   4. Unlike VM, where translations done by hypervisor is complex, the translations in containers are not complex in relation.
+​
