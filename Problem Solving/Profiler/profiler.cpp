@@ -93,17 +93,12 @@ private:
     std::vector<Trace> m_FilteredTraces;
 public:
 
+    // This eliminates based on non-exclusive timestamp
     void analyzeTrace(const std::vector<Trace> originalTraces) override {
        std::stack<Trace> traceStack;
        traceStack.push({"START", -1, "Garbage"});
        for (auto& trace : originalTraces) {
-            // If function names don't match, blindly push
-            if (trace.functionName != traceStack.top().functionName ) {
-                traceStack.push(trace);
-            } else if (trace.functionName == traceStack.top().functionName && trace.operation == traceStack.top().operation) {
-                // If function names match and the operation name also matched, that means there is a recursive function, push
-                traceStack.push(trace);
-            } else if (trace.functionName == traceStack.top().functionName && trace.operation != traceStack.top().operation) {
+            if (trace.functionName == traceStack.top().functionName && trace.operation != traceStack.top().operation) {
                 // IF function name match but operation names don't match, its time to evaluate.
                 Trace topTrace = traceStack.top();
                 traceStack.pop();
@@ -111,6 +106,43 @@ public:
                     m_FilteredTraces.push_back(topTrace); // START TRACE
                     m_FilteredTraces.push_back(trace); // END TRACE
                 }
+            } else {
+                // If function names don't match, blindly push
+                // If function names match and the operation name also matched, that means there is a recursive function, push
+                traceStack.push(trace);
+            }
+        }
+    }
+
+    // This eliminates based on exclusive timestamp
+    void analyzeTraceByCalculatingExclusiveTimestamps(const std::vector<Trace> originalTraces) {
+        std::stack<Trace> traceStack;
+        std::unordered_map<string, int> functionNameToTimeToSubstract;
+        std::unordered_map<string, int> functionNameToExclusiveTimestamp;
+
+        for (const Trace& trace : originalTraces) {
+            if (trace.operation == "END" && !traceStack.empty() && traceStack.top().functionName == trace.functionName) {
+                // STEP 1: Calculate the non-exclusive timestamp for that function
+                Trace& traceStart = traceStack.top();
+                traceStack.pop();
+                int nonExclusiveTimestamp = trace.timestamp - traceStart.timestamp + 1;
+                // STEP 2: Put the non-exclusive timestamp for the current function to the top of the stack (for nested behavior)
+                if (!traceStack.empty()) {
+                    functionNameToTimeToSubstract[traceStack.top().functionName] += nonExclusiveTimestamp;
+                }
+                // STEP 3: Calculate the exclusive timestamp for that function.
+                if (functionNameToTimeToSubstract.count(trace.functionName)) {
+                    functionNameToExclusiveTimestamp[trace.functionName] += (nonExclusiveTimestamp - functionNameToTimeToSubstract[trace.functionName]);
+                } else {
+                    functionNameToExclusiveTimestamp[trace.functionName] += nonExclusiveTimestamp;
+                }
+                // STEP 4: Filtering
+                if (functionNameToExclusiveTimestamp[trace.functionName] > m_threshold) {
+                    m_FilteredTraces.push_back(traceStart); // START TRACE
+                    m_FilteredTraces.push_back(trace); // END TRACE
+                }
+            } else {
+                traceStack.push(trace);
             }
         }
     }
@@ -127,7 +159,7 @@ public:
  */
 class Profiler {
 private:
-    std::vector<std::string> m_currentFunctionStack;
+    std::vector<std::string> m_previousFunctionStack;
     std::vector<Trace> m_traces;
     std::vector<std::unique_ptr<IFilter>> m_filters;
 
@@ -137,10 +169,10 @@ private:
      */
     /** Find the index of the first mismatch between current function stack and the new function stack */
     int getIndexOfFirstMismatch(const std::vector<string> newFunctionStack) {
-        int minimumLength = std::min(newFunctionStack.size(), m_currentFunctionStack.size());
+        int minimumLength = std::min(newFunctionStack.size(), m_previousFunctionStack.size());
         int commonFunctionIndex = 0;
         for (int index = 0; index < minimumLength; index++) {
-            if (newFunctionStack[index] == m_currentFunctionStack[index]) {
+            if (newFunctionStack[index] == m_previousFunctionStack[index]) {
                 commonFunctionIndex++;
             } else {
                 break;
@@ -163,8 +195,8 @@ public:
 
             // STEP 2: From commonLastFunctionIndex till the end of the current function stack, eveything got ended.
             // Hence, we need to print them in reverse as the function call are in stack format
-            for (int index = m_currentFunctionStack.size() - 1; index >= commonLastFunctionIndex; index--) {
-                m_traces.push_back({"END", sampleStack.timestamp, m_currentFunctionStack[index]});
+            for (int index = m_previousFunctionStack.size() - 1; index >= commonLastFunctionIndex; index--) {
+                m_traces.push_back({"END", sampleStack.timestamp, m_previousFunctionStack[index]});
             }
 
             // STEP 3: From commonLastFunctionIndex to the end of the new function stack, everything got started. 
@@ -174,7 +206,7 @@ public:
             }
 
             // STEP 4: Update the new function stack as the current one
-            m_currentFunctionStack = sampleStack.funtionStack;
+            m_previousFunctionStack = sampleStack.funtionStack;
         }
     }
 

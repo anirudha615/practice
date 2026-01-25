@@ -1,15 +1,11 @@
 Signature things to remember 
     1. Operator overloading for comparison - 
-        a. For object comparison - Use mental model if current node needs to be ascending or descending. The signature is always '<'.
-            const bool operator<(const OrderRequest& otherRequest) const {
-                return m_executionTime < otherRequest.m_executionTime; // Ascending
+        Use mental model if 'a' needs to be greater or smaller. If it is greater, ascending else descending. The signature is always '()'
+        struct Cmp {
+            bool operator()(const OrderRequest* a, const OrderRequest* b) const {
+                return a->execution_time > b->execution_time; // Ascending
             }
-        b. For pointer comparison - Use mental model if 'a' needs to be greater or smaller. If it is greater, ascending else descending. The signature is always '()'
-            struct Cmp {
-                bool operator()(const OrderRequest* a, const OrderRequest* b) const {
-                    return a->execution_time > b->execution_time; // Ascending
-                }
-            };
+        };
 
     2. Get currentTimeInMS -  std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     
