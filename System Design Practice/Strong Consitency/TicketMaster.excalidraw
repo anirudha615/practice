@@ -1,0 +1,2240 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "elements": [
+    {
+      "id": "mw21enPCP8kX-oljDj5Ou",
+      "type": "text",
+      "x": 267.70942546700127,
+      "y": -2333.390312679221,
+      "width": 1772,
+      "height": 4475,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2W",
+      "roundness": null,
+      "seed": 1069966160,
+      "version": 17689,
+      "versionNonce": 1906701136,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771125916720,
+      "link": null,
+      "locked": false,
+      "text": "Ticket-Master\n\nFunctional Requirements - \n   1. User should be able to view events\n   2. User should be able to search events\n   3. User should be able to book tickets to events\n\nNon-Functional Requirements - \n   1. With 100K events per day and 100M users, we expect a max TPS of 100K \n        for events with high popularity\n   2. Viewing/Searching the events should be high availability - eventual consistency is fine.\n   3. Booking the ticket should be strongly consistent.\n   4. There should be no data loss and the system should be fault tolerant.\n   5. Latency of searching/viewing the events should be in real time (100-200ms)\n\nAPI Routes -\n   \n1. GET /search?eventName={}&otherParams={}\n\nReturns List<Events>\n{\n     Id\n     Title\n     Description\n     Timestamp\n     ........\n}\n\n\n2. GET event/<eventId>\n\n{\n     Id\n     Title\n     Description\n     Timestamp\n     SeatRemaining\n     SeatMap: [\n         {\n             seatId\n             seatPrice\n         }\n      ]   \n}\n\n\n3. POST event/eventId/reserve\n\n{\n      seatId\n      userId\n      timestamp\n}\n\nReturns reserveId and statusCode\n\n4. POST event/eventId/book\n \n{\n     reserveId\n     cardDetails\n     timestamp\n}\n\nReturns bookingId and statusCode\n\nHigh Level Design \n\n1. Users should be able to view the event\n      a. User makes a GET request to VIEW microservice which makes a DB call to EVENT table using the eventId and retrieve the event metadata\n          and displays on the user's application.\n\n2. How will users be able to search for events?\n      a. Starting simple, if users needs to search for an event, the view microservice can trigger a query to the DB to retrieve events which matches the search parameters\n          using LIKE. However, this is not scalable as LIKE would require to SCAN the entire database and will soon lead to system not meeting latency SLA.\n      b. In order to meet Latency SLA, we will trigger a CDC change from our source database to another database with inverted index (Something like ElasticSearch).\n      c. For every event being written to the database, it will trigger a CDC change to the DB with inverted index, where the event name and description will be tokenized and \n         stemmed to map words to the eventId\n      d. So, now when a USER makes a GET request to the View microservice using search endpoint, the microservice can query the DB with inverted index and fetch the list\n          of eventIds which matches the search strings and returns the list with partial event metadata (containing eventId, event title, event description, etc.)\n\n\n3. How will users be able to book specific seats for events? Each physical seat has exactly one ticket.\n      a. When viewing the events, user would like to book a seat. Booking a seat is a two-way process because we need to respect the user's choice by guaranteeing the seat\n           for some time, which will allow the users to enter the credit card details before confirming the booking. If we don't hold the seat for some time, it will lead to a very \n           bad customer experience.\n     b. When a user makes a POST request to book a seat, the app should send a POST request with reserve endpoint so that the booking microservice can append a new key \n         called <eventId_seatId_userId> as 1 (which basically acts as a distributed lock) with a TTL of 10 minutes.\n     c. 10 minutes is enough for a user to add the credit card details and other information, post which the user will hit confirm and the app will send a POST request with book endpoint\n         to the booking microservice which will  first check if the key <eventId_seatId_userId> exists in the cache and then proceed with 'Stripe' or some payment service to charge USER's\n         account. \n     d. Once confirmed, it will make a DB call to update the SEAT table with relevant data such as seatId, eventId, userId, status as BOOKED and timestamp. Similarly it will also update\n          USER table to maintain the history of purchases.\n     e. With the introduction of a cache (which acts as a distributed lock), the flow of Viewing an event will also change. So, when the user clicks on the event, the VIEW microservice\n          will query the database to fetch the list of SEATS whose status is not BOOKED, but will also query the cache to verify which seats are reserved. The difference of them \n         will be returned to another user, respecting availability as well as showing the correct source of information so that no two users can book the same seat.\n\n4. What would happen if the cache becomes unavailable or the reservation key expires between the moment you verify it exists and when you complete the payment processing with Stripe?\n      a. When a POST request with book endpoint is made, the first step of the microservice would be talk to the cache and confirm if the <eventId_seatId_userId> exists.\n      b. While cache becoming unavailable is an availability drop for the service, the booking microservice during 'RESERVE' endpoint POST request should update the cache as well as the \n          database by updating the SEATS table with status as RESERVED. Write-through-cache is important over here as this information is critical data,\n      c. The microservice should also update the TTL of the key by appending the  payment SLA, so that the key does not expirewhen the payment is in progress. \n          This will help the system to prevent another user for booking the same seat while the payment of another user is in progress.\n      d. So, the workflow is defined as - \n            1. Check the cache if the key exists. In case of cache being unavailable, check the database if the status of the seat is RESERVED.\n            2. Update the status in the DB as 'PAYMENT_IN_PROGRESS' and make the payment via STRIPE.\n            3. Wait for the asynchronous notification from the payment service\n            4. Update the DB with status as BOOKED\n            5. Return the status to the user.\n\n5. How can your design scale to support up to 10M concurrent users reading event data?\n       a. With a max TPS of 100K, a single database server will become a bottleneck. So, to support the high read traffic, we will first start with optimizing the database.\n       b. Our main database can be sharded via eventID with an intent that every event will not receive proportional traffic. With events with high traffic, we can have\n           multiple replicas around our main sharded database server whereas for events with relative medium to low traffic, we will have replicas in small numbers\n          as compared to events with high traffic. We can have a load balancer to distribute the read traffic evenly across all replicas. \n       c. The replicas are useful to support high reads. However, booking the seats should hit the main sharded database server and eventually propagate to replicas.\n       d. Our cache can also be sharded based on eventId but if the max TPS is 100K, a single cache server (Redis) should be able to handle the load. But we can have \n           auto-scaling enabled during peak days.\n       e. Our inverted index DB can also be sharded based on eventId.\n       f. In cases where events having a relative high traffic and every replica is going to be overwhelmed, we need a cache to prevent the reads going to the databases.\n       g. We can have multiple Keys based on LRU eviction policy where we will cache the popular eventId and popular key searches such as Taylor Swift which \n            would prevent the VIEW microservice to hit the service's database.\n\n6. How would you determine the appropriate cache size and TTL values for event data versus search results, given that event data is relatively static while search popularity can change rapidly?\n      a. The microservice should emit metrics on the cache hit and which keys are used to retrieve data. These metrics would be helpful to proactively update the TTL values of these keys.\n      b. Say if TaylorSwift keyword is about to expire in 5 minutes but it still most used cache key, the VIEW microservice can update the TTL of the TaylorSwift search keyword by another 20 minutes\n          based on the metrics that it is still used the most in the last 1 minute.\n      c. On the other hand, eventID keys can have longer TTLs as compared to <Popular_searches>. However, we can follow the same protocol of using metrics and proactively update the TTL\n          given that the eventID keys are most used ones.\n      d. So, eventID keys will have longer TTLs as compared to <Popular_searches> and the mechanism to proactively update the TTL of keys based on recency will prevent cache miss scenarios\n          and thundering herd problem to the database.\n\n7. How can you improve search to handle complex queries more efficiently ?\n      a. Common keywords such as 'A', 'The', etc are ranked way lower than other words such as 'Taylor', 'Swift'. Search Engines uses term frequency to rank keywords (TF-IDF) \n      b. So, when a user searches for a complex query such as 'Taylor Swift performance', Search Engine de-priortize searching for 'performance' and focus on two keywords\n           'Taylor' and 'Switft'. \n      c. The microservice will query the cache and if there's a miss, it will call the database. However, the algorithm in search enginer is relatively straightforward where it will \n          return the results based on the intersection of the search result from 'Taylor' and 'Swift' \n      d. For example - If Taylor returned 100 Partial Events and Swift returns 100 Partial Events, the search engine does a diff to find the eventId which are common in \n          both the responses and and return the result\n      e. On the other hand, if there are 5 or 6 or more keywords, search engines will take the ones which have high ranking score (lower term frequency) and then do a intersection \n          between the results of top 2 and use the result to do intersection with another keyword until we hit a SLA or all keywords are searched and return the response. \n          This layer-level approach of intersection slowly trim down the results to include all the keywords that user has searched for.\n      f. Addtionally, when the users adds date as strings, the search engine could use dates as primary filter and sort the results of events which are happening on a particular data\n         and then proceed to add more filters based on search phrases to trim down the results.\n\n\n8. How can you make the seat map on the event page automatically refresh to display the latest seat availability in real time?\n      a. When a user makes a GET request to view the event, the view microservice should establishing a web socket connection with the client and register itself as a subscriber\n          to a topic (eventId) in a pub/sub architecture. \n      b. So, if multiple users are viewing a popular event and the user's app are connected to different VIEW micro-service servers via web socket connection, every server would\n         register itself as a subscriber to the topic which has the eventID. NOTE: Those servers can register a subscriber to other topics (having different eventID).\n      c. So, every server will have in-memory map of <TopicID>:<{WS1, WS2, WS3}> considering all 3 user are on the server vieweing an event which is registered in that TopicID.\n      d. Now, if another user reserves and books a seat, the booking microservice will do its respective workflow of booking and then publish an message to the topicID which would\n          propagate that information to all the servers which is subscribed to the topicID. Once those servers receive the message, it will look into its in-memory map using the topicId \n          and find the list of web socket connections and send the message to the applications to the update the UX of a seat being booked.\n      e. If a server crashes, the connection with the user's app will break. The user's app will try to make a connection with another VIEW microservice server which will registers\n          its websocket connection and map it to the TopicID. It will follow the similar process of registering itself to the topicId in Pub/Sub architecture. This would mean that the app\n          should handle the responsbility of having a connection with the server if the previous one breaks, without having user to navigate itself within the app. This would require\n          app to have smart health connection check with the server periodically. If it senses that the connection is likely to break due to PING latency or no response on PINGS, proactively\n          switch to another server without disrupting the user's experience.\n\n\n9. How would you implement a virtual waiting room that queues users for popular events and grants access based on their queue position?\n      a. Once the service hit a max TPS of 100K, rate limiter would start to drop messages instantly with 429 and the users will keep on hitting the service.\n      b. To proactively address it, we can have a throttling queue which acts as a virtual waiting room.\n      c. So, if now the rate limiter will have to acknowledge the throttling queue depth as well as the max requests per second to the service.\n      d. Once the Rate limiter allows, we will have messages in the throttling queue getting the first priority and any new messages would be appended to the queue.\n      e. Once the throttling queue reaches a certain depth, rate limiter would start to throw 429 instantly.\n      f. Users waiting in the throttling queue will see the estimated time based on request SLA and queue depth.\n      g. Here the throttling queue is standard non-ordered SQS which can auto-scale. \n      \n          \n      \n    \n\n\n\n",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Ticket-Master\n\nFunctional Requirements - \n   1. User should be able to view events\n   2. User should be able to search events\n   3. User should be able to book tickets to events\n\nNon-Functional Requirements - \n   1. With 100K events per day and 100M users, we expect a max TPS of 100K \n        for events with high popularity\n   2. Viewing/Searching the events should be high availability - eventual consistency is fine.\n   3. Booking the ticket should be strongly consistent.\n   4. There should be no data loss and the system should be fault tolerant.\n   5. Latency of searching/viewing the events should be in real time (100-200ms)\n\nAPI Routes -\n   \n1. GET /search?eventName={}&otherParams={}\n\nReturns List<Events>\n{\n     Id\n     Title\n     Description\n     Timestamp\n     ........\n}\n\n\n2. GET event/<eventId>\n\n{\n     Id\n     Title\n     Description\n     Timestamp\n     SeatRemaining\n     SeatMap: [\n         {\n             seatId\n             seatPrice\n         }\n      ]   \n}\n\n\n3. POST event/eventId/reserve\n\n{\n      seatId\n      userId\n      timestamp\n}\n\nReturns reserveId and statusCode\n\n4. POST event/eventId/book\n \n{\n     reserveId\n     cardDetails\n     timestamp\n}\n\nReturns bookingId and statusCode\n\nHigh Level Design \n\n1. Users should be able to view the event\n      a. User makes a GET request to VIEW microservice which makes a DB call to EVENT table using the eventId and retrieve the event metadata\n          and displays on the user's application.\n\n2. How will users be able to search for events?\n      a. Starting simple, if users needs to search for an event, the view microservice can trigger a query to the DB to retrieve events which matches the search parameters\n          using LIKE. However, this is not scalable as LIKE would require to SCAN the entire database and will soon lead to system not meeting latency SLA.\n      b. In order to meet Latency SLA, we will trigger a CDC change from our source database to another database with inverted index (Something like ElasticSearch).\n      c. For every event being written to the database, it will trigger a CDC change to the DB with inverted index, where the event name and description will be tokenized and \n         stemmed to map words to the eventId\n      d. So, now when a USER makes a GET request to the View microservice using search endpoint, the microservice can query the DB with inverted index and fetch the list\n          of eventIds which matches the search strings and returns the list with partial event metadata (containing eventId, event title, event description, etc.)\n\n\n3. How will users be able to book specific seats for events? Each physical seat has exactly one ticket.\n      a. When viewing the events, user would like to book a seat. Booking a seat is a two-way process because we need to respect the user's choice by guaranteeing the seat\n           for some time, which will allow the users to enter the credit card details before confirming the booking. If we don't hold the seat for some time, it will lead to a very \n           bad customer experience.\n     b. When a user makes a POST request to book a seat, the app should send a POST request with reserve endpoint so that the booking microservice can append a new key \n         called <eventId_seatId_userId> as 1 (which basically acts as a distributed lock) with a TTL of 10 minutes.\n     c. 10 minutes is enough for a user to add the credit card details and other information, post which the user will hit confirm and the app will send a POST request with book endpoint\n         to the booking microservice which will  first check if the key <eventId_seatId_userId> exists in the cache and then proceed with 'Stripe' or some payment service to charge USER's\n         account. \n     d. Once confirmed, it will make a DB call to update the SEAT table with relevant data such as seatId, eventId, userId, status as BOOKED and timestamp. Similarly it will also update\n          USER table to maintain the history of purchases.\n     e. With the introduction of a cache (which acts as a distributed lock), the flow of Viewing an event will also change. So, when the user clicks on the event, the VIEW microservice\n          will query the database to fetch the list of SEATS whose status is not BOOKED, but will also query the cache to verify which seats are reserved. The difference of them \n         will be returned to another user, respecting availability as well as showing the correct source of information so that no two users can book the same seat.\n\n4. What would happen if the cache becomes unavailable or the reservation key expires between the moment you verify it exists and when you complete the payment processing with Stripe?\n      a. When a POST request with book endpoint is made, the first step of the microservice would be talk to the cache and confirm if the <eventId_seatId_userId> exists.\n      b. While cache becoming unavailable is an availability drop for the service, the booking microservice during 'RESERVE' endpoint POST request should update the cache as well as the \n          database by updating the SEATS table with status as RESERVED. Write-through-cache is important over here as this information is critical data,\n      c. The microservice should also update the TTL of the key by appending the  payment SLA, so that the key does not expirewhen the payment is in progress. \n          This will help the system to prevent another user for booking the same seat while the payment of another user is in progress.\n      d. So, the workflow is defined as - \n            1. Check the cache if the key exists. In case of cache being unavailable, check the database if the status of the seat is RESERVED.\n            2. Update the status in the DB as 'PAYMENT_IN_PROGRESS' and make the payment via STRIPE.\n            3. Wait for the asynchronous notification from the payment service\n            4. Update the DB with status as BOOKED\n            5. Return the status to the user.\n\n5. How can your design scale to support up to 10M concurrent users reading event data?\n       a. With a max TPS of 100K, a single database server will become a bottleneck. So, to support the high read traffic, we will first start with optimizing the database.\n       b. Our main database can be sharded via eventID with an intent that every event will not receive proportional traffic. With events with high traffic, we can have\n           multiple replicas around our main sharded database server whereas for events with relative medium to low traffic, we will have replicas in small numbers\n          as compared to events with high traffic. We can have a load balancer to distribute the read traffic evenly across all replicas. \n       c. The replicas are useful to support high reads. However, booking the seats should hit the main sharded database server and eventually propagate to replicas.\n       d. Our cache can also be sharded based on eventId but if the max TPS is 100K, a single cache server (Redis) should be able to handle the load. But we can have \n           auto-scaling enabled during peak days.\n       e. Our inverted index DB can also be sharded based on eventId.\n       f. In cases where events having a relative high traffic and every replica is going to be overwhelmed, we need a cache to prevent the reads going to the databases.\n       g. We can have multiple Keys based on LRU eviction policy where we will cache the popular eventId and popular key searches such as Taylor Swift which \n            would prevent the VIEW microservice to hit the service's database.\n\n6. How would you determine the appropriate cache size and TTL values for event data versus search results, given that event data is relatively static while search popularity can change rapidly?\n      a. The microservice should emit metrics on the cache hit and which keys are used to retrieve data. These metrics would be helpful to proactively update the TTL values of these keys.\n      b. Say if TaylorSwift keyword is about to expire in 5 minutes but it still most used cache key, the VIEW microservice can update the TTL of the TaylorSwift search keyword by another 20 minutes\n          based on the metrics that it is still used the most in the last 1 minute.\n      c. On the other hand, eventID keys can have longer TTLs as compared to <Popular_searches>. However, we can follow the same protocol of using metrics and proactively update the TTL\n          given that the eventID keys are most used ones.\n      d. So, eventID keys will have longer TTLs as compared to <Popular_searches> and the mechanism to proactively update the TTL of keys based on recency will prevent cache miss scenarios\n          and thundering herd problem to the database.\n\n7. How can you improve search to handle complex queries more efficiently ?\n      a. Common keywords such as 'A', 'The', etc are ranked way lower than other words such as 'Taylor', 'Swift'. Search Engines uses term frequency to rank keywords (TF-IDF) \n      b. So, when a user searches for a complex query such as 'Taylor Swift performance', Search Engine de-priortize searching for 'performance' and focus on two keywords\n           'Taylor' and 'Switft'. \n      c. The microservice will query the cache and if there's a miss, it will call the database. However, the algorithm in search enginer is relatively straightforward where it will \n          return the results based on the intersection of the search result from 'Taylor' and 'Swift' \n      d. For example - If Taylor returned 100 Partial Events and Swift returns 100 Partial Events, the search engine does a diff to find the eventId which are common in \n          both the responses and and return the result\n      e. On the other hand, if there are 5 or 6 or more keywords, search engines will take the ones which have high ranking score (lower term frequency) and then do a intersection \n          between the results of top 2 and use the result to do intersection with another keyword until we hit a SLA or all keywords are searched and return the response. \n          This layer-level approach of intersection slowly trim down the results to include all the keywords that user has searched for.\n      f. Addtionally, when the users adds date as strings, the search engine could use dates as primary filter and sort the results of events which are happening on a particular data\n         and then proceed to add more filters based on search phrases to trim down the results.\n\n\n8. How can you make the seat map on the event page automatically refresh to display the latest seat availability in real time?\n      a. When a user makes a GET request to view the event, the view microservice should establishing a web socket connection with the client and register itself as a subscriber\n          to a topic (eventId) in a pub/sub architecture. \n      b. So, if multiple users are viewing a popular event and the user's app are connected to different VIEW micro-service servers via web socket connection, every server would\n         register itself as a subscriber to the topic which has the eventID. NOTE: Those servers can register a subscriber to other topics (having different eventID).\n      c. So, every server will have in-memory map of <TopicID>:<{WS1, WS2, WS3}> considering all 3 user are on the server vieweing an event which is registered in that TopicID.\n      d. Now, if another user reserves and books a seat, the booking microservice will do its respective workflow of booking and then publish an message to the topicID which would\n          propagate that information to all the servers which is subscribed to the topicID. Once those servers receive the message, it will look into its in-memory map using the topicId \n          and find the list of web socket connections and send the message to the applications to the update the UX of a seat being booked.\n      e. If a server crashes, the connection with the user's app will break. The user's app will try to make a connection with another VIEW microservice server which will registers\n          its websocket connection and map it to the TopicID. It will follow the similar process of registering itself to the topicId in Pub/Sub architecture. This would mean that the app\n          should handle the responsbility of having a connection with the server if the previous one breaks, without having user to navigate itself within the app. This would require\n          app to have smart health connection check with the server periodically. If it senses that the connection is likely to break due to PING latency or no response on PINGS, proactively\n          switch to another server without disrupting the user's experience.\n\n\n9. How would you implement a virtual waiting room that queues users for popular events and grants access based on their queue position?\n      a. Once the service hit a max TPS of 100K, rate limiter would start to drop messages instantly with 429 and the users will keep on hitting the service.\n      b. To proactively address it, we can have a throttling queue which acts as a virtual waiting room.\n      c. So, if now the rate limiter will have to acknowledge the throttling queue depth as well as the max requests per second to the service.\n      d. Once the Rate limiter allows, we will have messages in the throttling queue getting the first priority and any new messages would be appended to the queue.\n      e. Once the throttling queue reaches a certain depth, rate limiter would start to throw 429 instantly.\n      f. Users waiting in the throttling queue will see the estimated time based on request SLA and queue depth.\n      g. Here the throttling queue is standard non-ordered SQS which can auto-scale. \n      \n          \n      \n    \n\n\n\n",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "zaGPv47lwPEvBs-5And4W",
+      "type": "ellipse",
+      "x": 452.1188064397375,
+      "y": 2365.3842764518417,
+      "width": 174.19769260639669,
+      "height": 124.29731191185601,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2Y",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 784687952,
+      "version": 150,
+      "versionNonce": 699712944,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "ZGa2aqcjvND29_d4Ed7WU"
+        },
+        {
+          "id": "K5xYr3ykAxQlLEcFvwjg1",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771124796367,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "ZGa2aqcjvND29_d4Ed7WU",
+      "type": "text",
+      "x": 517.9961346822427,
+      "y": 2415.0871963397035,
+      "width": 42.266666412353516,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2Z",
+      "roundness": null,
+      "seed": 1058180528,
+      "version": 112,
+      "versionNonce": 2087751600,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124796367,
+      "link": null,
+      "locked": false,
+      "text": "User",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "zaGPv47lwPEvBs-5And4W",
+      "originalText": "User",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "q_M0fquAH-3F34IhUKu7D",
+      "type": "rectangle",
+      "x": 730.6062333520972,
+      "y": 2282.935274296378,
+      "width": 121.3321479089579,
+      "height": 712.9277788026245,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2a",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 993961904,
+      "version": 132,
+      "versionNonce": 1838846384,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "yLF6dqnWpDwuQ4INxnODg"
+        },
+        {
+          "id": "mYk-OYLBTIsbISS3ZV-_4",
+          "type": "arrow"
+        },
+        {
+          "id": "K5xYr3ykAxQlLEcFvwjg1",
+          "type": "arrow"
+        },
+        {
+          "id": "frldmKrs5rqz9bD93yyTg",
+          "type": "arrow"
+        },
+        {
+          "id": "KmqZbrQALX9HdrPxaehfb",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771125819191,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "yLF6dqnWpDwuQ4INxnODg",
+      "type": "text",
+      "x": 749.4389752448086,
+      "y": 2564.3991636976903,
+      "width": 83.66666412353516,
+      "height": 150,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2b",
+      "roundness": null,
+      "seed": 789804464,
+      "version": 126,
+      "versionNonce": 1507266896,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771125557321,
+      "link": null,
+      "locked": false,
+      "text": "API\nGateway\n(Load\nBalancer,\nRate\nLimiter)",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "q_M0fquAH-3F34IhUKu7D",
+      "originalText": "API Gateway\n(Load Balancer, Rate Limiter)",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "kEa-e_-hdA3-Mx2h-pKAo",
+      "type": "rectangle",
+      "x": 976.7099464536745,
+      "y": 2362.3304602083326,
+      "width": 284.8858097833779,
+      "height": 117.9463543689144,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2c",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1989809584,
+      "version": 130,
+      "versionNonce": 1351593392,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "h2y9x8BnxK2IzxJdAgos6"
+        },
+        {
+          "id": "mYk-OYLBTIsbISS3ZV-_4",
+          "type": "arrow"
+        },
+        {
+          "id": "rnfqfANxeA-CnugpY0_yQ",
+          "type": "arrow"
+        },
+        {
+          "id": "fwFZNTojhfxkTHkkE4NJR",
+          "type": "arrow"
+        },
+        {
+          "id": "Ygz5Enafi5xN8PKese1Bu",
+          "type": "arrow"
+        },
+        {
+          "id": "J75cWOltcMxyUQh7KfIbK",
+          "type": "arrow"
+        },
+        {
+          "id": "0AqO0edk-SmUVNl0DdZTy",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771124777748,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "h2y9x8BnxK2IzxJdAgos6",
+      "type": "text",
+      "x": 1093.2361853144796,
+      "y": 2408.80363739279,
+      "width": 51.83333206176758,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2d",
+      "roundness": null,
+      "seed": 677780304,
+      "version": 91,
+      "versionNonce": 1686010704,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124742601,
+      "link": null,
+      "locked": false,
+      "text": "View ",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "kEa-e_-hdA3-Mx2h-pKAo",
+      "originalText": "View ",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "nQnkwKSnlWub7gLci8Tit",
+      "type": "ellipse",
+      "x": 1539.2747905758613,
+      "y": 2343.615763291583,
+      "width": 168.75401471244675,
+      "height": 127.0191508588309,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2e",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 529028432,
+      "version": 267,
+      "versionNonce": 382444976,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "OoUU4lXso51J8IcSOPLEv"
+        },
+        {
+          "id": "rnfqfANxeA-CnugpY0_yQ",
+          "type": "arrow"
+        },
+        {
+          "id": "ygU5hW9uVjCTH4DALzJFl",
+          "type": "arrow"
+        },
+        {
+          "id": "k1TItyEjNYMYT2b3FMdvY",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771124749618,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "OoUU4lXso51J8IcSOPLEv",
+      "type": "text",
+      "x": 1609.238243854272,
+      "y": 2394.71728726458,
+      "width": 28.5,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2f",
+      "roundness": null,
+      "seed": 1763245904,
+      "version": 146,
+      "versionNonce": 1672179632,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124749618,
+      "link": null,
+      "locked": false,
+      "text": "DB",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "nQnkwKSnlWub7gLci8Tit",
+      "originalText": "DB",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "2wpHuyvAT7flrpkNnbuP4",
+      "type": "text",
+      "x": 1739.4041903784052,
+      "y": 2298.264177673083,
+      "width": 120.66666412353516,
+      "height": 150,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2g",
+      "roundness": null,
+      "seed": 1537781584,
+      "version": 121,
+      "versionNonce": 929065904,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124747701,
+      "link": null,
+      "locked": false,
+      "text": "Event\n    id\n    title\n    description\n    artist\n    timestamp",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Event\n    id\n    title\n    description\n    artist\n    timestamp",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "BLVrEsMBjDY9ssjzGTW9f",
+      "type": "text",
+      "x": 1897.270849302952,
+      "y": 2294.6350590771162,
+      "width": 117.26667022705078,
+      "height": 150,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2h",
+      "roundness": null,
+      "seed": 231071568,
+      "version": 111,
+      "versionNonce": 1639413168,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124747702,
+      "link": null,
+      "locked": false,
+      "text": "Seat\n    seatId\n    eventId\n    userId\n    status\n    timestamp",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Seat\n    seatId\n    eventId\n    userId\n    status\n    timestamp",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "HLhQrxx63ry8c5X01WrFF",
+      "type": "text",
+      "x": 2056.9520675254826,
+      "y": 2280.1185846932503,
+      "width": 117.26667022705078,
+      "height": 125,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2i",
+      "roundness": null,
+      "seed": 941094320,
+      "version": 104,
+      "versionNonce": 10305456,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124747702,
+      "link": null,
+      "locked": false,
+      "text": "User\n    id\n    seatId\n    eventId\n    timestamp",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "User\n    id\n    seatId\n    eventId\n    timestamp",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "mYk-OYLBTIsbISS3ZV-_4",
+      "type": "arrow",
+      "x": 848.8795876162915,
+      "y": 2418.513420265254,
+      "width": 121.83035883738307,
+      "height": 6.524091838891309,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2j",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 642202960,
+      "version": 176,
+      "versionNonce": 1269993808,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124742601,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          121.83035883738307,
+          -6.524091838891309
+        ]
+      ],
+      "startBinding": {
+        "elementId": "q_M0fquAH-3F34IhUKu7D",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9747899159663869,
+          0.19017094017094144
+        ]
+      },
+      "endBinding": {
+        "elementId": "kEa-e_-hdA3-Mx2h-pKAo",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.3703961084086224,
+          0.3703961084086202
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "rnfqfANxeA-CnugpY0_yQ",
+      "type": "arrow",
+      "x": 1258.8739172900775,
+      "y": 2409.509001955899,
+      "width": 281.29375167050557,
+      "height": 7.603628338687031,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2k",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 2068888400,
+      "version": 237,
+      "versionNonce": 1442970032,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124749618,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          281.29375167050557,
+          -7.603628338687031
+        ]
+      ],
+      "startBinding": {
+        "elementId": "kEa-e_-hdA3-Mx2h-pKAo",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9904458598726116,
+          0.40000000000000385
+        ]
+      },
+      "endBinding": {
+        "elementId": "nQnkwKSnlWub7gLci8Tit",
+        "mode": "inside",
+        "fixedPoint": [
+          0.005291005291004788,
+          0.4589041095890502
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "K5xYr3ykAxQlLEcFvwjg1",
+      "type": "arrow",
+      "x": 632.252209872988,
+      "y": 2425.0007553180294,
+      "width": 100.393219242285,
+      "height": 2.6527646754639136,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2l",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 725650768,
+      "version": 159,
+      "versionNonce": 1495472560,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124796368,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          100.393219242285,
+          2.6527646754639136
+        ]
+      ],
+      "startBinding": {
+        "elementId": "zaGPv47lwPEvBs-5And4W",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5001,
+          0.4598540145985413
+        ]
+      },
+      "endBinding": {
+        "elementId": "q_M0fquAH-3F34IhUKu7D",
+        "mode": "inside",
+        "fixedPoint": [
+          0.01680672268907611,
+          0.20299145299145516
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "Bgm5JnXxVVaycdvoLW8Xo",
+      "type": "ellipse",
+      "x": 1523.1602700781261,
+      "y": 2062.2291929510266,
+      "width": 171.4758536594215,
+      "height": 132.46282875278075,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2m",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 217382224,
+      "version": 391,
+      "versionNonce": 1110047664,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "oO20rAWTiCaGwBT0_RRJh"
+        },
+        {
+          "id": "ygU5hW9uVjCTH4DALzJFl",
+          "type": "arrow"
+        },
+        {
+          "id": "fwFZNTojhfxkTHkkE4NJR",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771124752949,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "oO20rAWTiCaGwBT0_RRJh",
+      "type": "text",
+      "x": 1567.10565950344,
+      "y": 2103.6279250942953,
+      "width": 83.33333587646484,
+      "height": 50,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2n",
+      "roundness": null,
+      "seed": 1711854416,
+      "version": 308,
+      "versionNonce": 2093942192,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771124752949,
+      "link": null,
+      "locked": false,
+      "text": "Inverted\nIndex DB",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "Bgm5JnXxVVaycdvoLW8Xo",
+      "originalText": "Inverted Index DB",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "ygU5hW9uVjCTH4DALzJFl",
+      "type": "arrow",
+      "x": 1614.2765748925046,
+      "y": 2345.3557516595138,
+      "width": 3.563818686684499,
+      "height": 153.38556890268183,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2o",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1331706800,
+      "version": 239,
+      "versionNonce": 1916981168,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "AMVBdbz1Z_YEYeyjhSoff"
+        }
+      ],
+      "updated": 1771124752949,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -3.563818686684499,
+          -153.38556890268183
+        ]
+      ],
+      "startBinding": {
+        "elementId": "nQnkwKSnlWub7gLci8Tit",
+        "mode": "inside",
+        "fixedPoint": [
+          0.4444444444444459,
+          0.013698630136998716
+        ]
+      },
+      "endBinding": {
+        "elementId": "Bgm5JnXxVVaycdvoLW8Xo",
+        "mode": "inside",
+        "fixedPoint": [
+          0.5105820105820104,
+          0.9794520547945174
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "AMVBdbz1Z_YEYeyjhSoff",
+      "type": "text",
+      "x": 1442.721522562057,
+      "y": 2238.680486581671,
+      "width": 41.93333435058594,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2p",
+      "roundness": null,
+      "seed": 1830011312,
+      "version": 5,
+      "versionNonce": 773108656,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771119075506,
+      "link": null,
+      "locked": false,
+      "text": "CDC",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "ygU5hW9uVjCTH4DALzJFl",
+      "originalText": "CDC",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "07DAjYUznDbxotUPokWBa",
+      "type": "text",
+      "x": 1711.1836706035115,
+      "y": 2109.6324645078917,
+      "width": 213.86666870117188,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2q",
+      "roundness": null,
+      "seed": 1308974000,
+      "version": 131,
+      "versionNonce": 1384811952,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124754899,
+      "link": null,
+      "locked": false,
+      "text": "words: [<PartialEvent>]",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "words: [<PartialEvent>]",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "fwFZNTojhfxkTHkkE4NJR",
+      "type": "arrow",
+      "x": 1115.5788388483436,
+      "y": 2365.746881762693,
+      "width": 418.0151471931865,
+      "height": 209.16060531653557,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2r",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 168373584,
+      "version": 194,
+      "versionNonce": 1521310128,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124752949,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          418.0151471931865,
+          -209.16060531653557
+        ]
+      ],
+      "startBinding": {
+        "elementId": "kEa-e_-hdA3-Mx2h-pKAo",
+        "mode": "inside",
+        "fixedPoint": [
+          0.48745457873195747,
+          0.028965893627153856
+        ]
+      },
+      "endBinding": {
+        "elementId": "Bgm5JnXxVVaycdvoLW8Xo",
+        "mode": "inside",
+        "fixedPoint": [
+          0.060846560846561024,
+          0.7123287671232844
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "53fNw25AlDKMv5FKGSg5i",
+      "type": "rectangle",
+      "x": 986.0672949120496,
+      "y": 2737.935874479082,
+      "width": 284.8858097833779,
+      "height": 117.9463543689144,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2s",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 504376656,
+      "version": 241,
+      "versionNonce": 1288956752,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "Arcvy9OKu3oMKqxzhWDvX"
+        },
+        {
+          "id": "LrqTJr9gqXl93E6SVKB0x",
+          "type": "arrow"
+        },
+        {
+          "id": "WDIeCQmaPT2zS2BH0CUHi",
+          "type": "arrow"
+        },
+        {
+          "id": "frldmKrs5rqz9bD93yyTg",
+          "type": "arrow"
+        },
+        {
+          "id": "k1TItyEjNYMYT2b3FMdvY",
+          "type": "arrow"
+        },
+        {
+          "id": "1gxbegnwf85faXK__Qmz0",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771124782195,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "Arcvy9OKu3oMKqxzhWDvX",
+      "type": "text",
+      "x": 1091.4602005666782,
+      "y": 2784.4090516635392,
+      "width": 74.0999984741211,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2t",
+      "roundness": null,
+      "seed": 205390672,
+      "version": 208,
+      "versionNonce": 1753163600,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771124738726,
+      "link": null,
+      "locked": false,
+      "text": "Booking",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "53fNw25AlDKMv5FKGSg5i",
+      "originalText": "Booking",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "t_VIC_VnHnXx1yxOUoyyb",
+      "type": "ellipse",
+      "x": 1550.9003381567154,
+      "y": 2736.981169502014,
+      "width": 135.18466769975538,
+      "height": 117.94635436891393,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2u",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1068251984,
+      "version": 371,
+      "versionNonce": 650391472,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "C3VNu5B298_mk17jrBt-Z"
+        },
+        {
+          "id": "LrqTJr9gqXl93E6SVKB0x",
+          "type": "arrow"
+        },
+        {
+          "id": "Ygz5Enafi5xN8PKese1Bu",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771124764534,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "C3VNu5B298_mk17jrBt-Z",
+      "type": "text",
+      "x": 1591.0810075912964,
+      "y": 2783.2540131912256,
+      "width": 55.233333587646484,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2uV",
+      "roundness": null,
+      "seed": 500906928,
+      "version": 95,
+      "versionNonce": 939702704,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124764534,
+      "link": null,
+      "locked": false,
+      "text": "Cache",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "t_VIC_VnHnXx1yxOUoyyb",
+      "originalText": "Cache",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "jf9LBcyKWB9l19O3AmoA1",
+      "type": "text",
+      "x": 1437.2574355982747,
+      "y": 2860.2701526931837,
+      "width": 432.3666687011719,
+      "height": 50,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2w",
+      "roundness": null,
+      "seed": 417037744,
+      "version": 191,
+      "versionNonce": 1769906608,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124759034,
+      "link": null,
+      "locked": false,
+      "text": "\n<eventId_seatId_userId>: 1 <TTL = 10 minutes>",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "\n<eventId_seatId_userId>: 1 <TTL = 10 minutes>",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "FcjoNlyakUwg2e1k2ehJs",
+      "type": "rectangle",
+      "x": 995.1400914019662,
+      "y": 2939.351956555228,
+      "width": 284.8858097833779,
+      "height": 117.9463543689144,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2x",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 241840048,
+      "version": 290,
+      "versionNonce": 239664976,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "WQCXi29YM7IUV5O4JlN6O"
+        },
+        {
+          "id": "WDIeCQmaPT2zS2BH0CUHi",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771124738727,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "WQCXi29YM7IUV5O4JlN6O",
+      "type": "text",
+      "x": 1110.6329955307158,
+      "y": 2985.825133739685,
+      "width": 53.900001525878906,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2y",
+      "roundness": null,
+      "seed": 988330416,
+      "version": 267,
+      "versionNonce": 1636603216,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771124738727,
+      "link": null,
+      "locked": false,
+      "text": "Stripe",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "FcjoNlyakUwg2e1k2ehJs",
+      "originalText": "Stripe",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "LrqTJr9gqXl93E6SVKB0x",
+      "type": "arrow",
+      "x": 1268.2312657484526,
+      "y": 2797.8163313125306,
+      "width": 285.84455117973334,
+      "height": 1.8501899906227663,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2z",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1178376528,
+      "version": 205,
+      "versionNonce": 1960838064,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124764534,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          285.84455117973334,
+          -1.8501899906227663
+        ]
+      ],
+      "startBinding": {
+        "elementId": "53fNw25AlDKMv5FKGSg5i",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9904458598726116,
+          0.507692307692305
+        ]
+      },
+      "endBinding": {
+        "elementId": "t_VIC_VnHnXx1yxOUoyyb",
+        "mode": "inside",
+        "fixedPoint": [
+          0.023489932885904678,
+          0.5001
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "WDIeCQmaPT2zS2BH0CUHi",
+      "type": "arrow",
+      "x": 1121.2519626118055,
+      "y": 2855.8822288479964,
+      "width": 2.7218389469749127,
+      "height": 88.0061259521899,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b30",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 258143152,
+      "version": 118,
+      "versionNonce": 1944939344,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124738727,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          2.7218389469749127,
+          88.0061259521899
+        ]
+      ],
+      "startBinding": {
+        "elementId": "53fNw25AlDKMv5FKGSg5i",
+        "mode": "inside",
+        "fixedPoint": [
+          0.474522292993631,
+          1
+        ]
+      },
+      "endBinding": {
+        "elementId": "FcjoNlyakUwg2e1k2ehJs",
+        "mode": "inside",
+        "fixedPoint": [
+          0.45222929936305756,
+          0.03846153846154054
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "frldmKrs5rqz9bD93yyTg",
+      "type": "arrow",
+      "x": 849.89918549788,
+      "y": 2793.2575091230424,
+      "width": 138.889948361145,
+      "height": 3.6633371759335205,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b32",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 442878896,
+      "version": 168,
+      "versionNonce": 79270736,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124738727,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          138.889948361145,
+          3.6633371759335205
+        ]
+      ],
+      "startBinding": {
+        "elementId": "q_M0fquAH-3F34IhUKu7D",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9831932773109302,
+          0.7158119658119652
+        ]
+      },
+      "endBinding": {
+        "elementId": "53fNw25AlDKMv5FKGSg5i",
+        "mode": "inside",
+        "fixedPoint": [
+          0.009554140127390007,
+          0.5001
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "k1TItyEjNYMYT2b3FMdvY",
+      "type": "arrow",
+      "x": 1275.1376787771142,
+      "y": 2753.6858660679054,
+      "width": 258.23184367673866,
+      "height": 343.378785838318,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b33",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 133424464,
+      "version": 288,
+      "versionNonce": 1415452592,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124749651,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          258.23184367673866,
+          -343.378785838318
+        ]
+      ],
+      "startBinding": {
+        "elementId": "53fNw25AlDKMv5FKGSg5i",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.8054785020804414,
+          0.80547850208044
+        ]
+      },
+      "endBinding": {
+        "elementId": "nQnkwKSnlWub7gLci8Tit",
+        "mode": "orbit",
+        "fixedPoint": [
+          -0.005291005291002135,
+          0.47260273972603173
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "Ygz5Enafi5xN8PKese1Bu",
+      "type": "arrow",
+      "x": 1259.7811969390698,
+      "y": 2404.97260371094,
+      "width": 294.2946199891164,
+      "height": 394.61086157149657,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b34",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1177778512,
+      "version": 190,
+      "versionNonce": 2072251824,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124764534,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          294.2946199891164,
+          394.61086157149657
+        ]
+      ],
+      "startBinding": {
+        "elementId": "kEa-e_-hdA3-Mx2h-pKAo",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9936305732484099,
+          0.3615384615384595
+        ]
+      },
+      "endBinding": {
+        "elementId": "t_VIC_VnHnXx1yxOUoyyb",
+        "mode": "inside",
+        "fixedPoint": [
+          0.02348993288590636,
+          0.5307692307692222
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "xm2tQV6mGjC5g3NxzlrrY",
+      "type": "ellipse",
+      "x": 1597.058298139123,
+      "y": 2498.867830756391,
+      "width": 101.61532068706465,
+      "height": 87.72183894697493,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b35",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 595657040,
+      "version": 61,
+      "versionNonce": 667714992,
+      "isDeleted": true,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "HTKHeEgiJbJmSNnS0rW2T"
+        },
+        {
+          "id": "1yOtDw40wzPpss8HLY9Gv",
+          "type": "arrow"
+        },
+        {
+          "id": "i20t1WnPy8bzPE2mfX7Mt",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771121472932,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "HTKHeEgiJbJmSNnS0rW2T",
+      "type": "text",
+      "x": 1619.372849760758,
+      "y": 2530.214396641098,
+      "width": 57.13333511352539,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b36",
+      "roundness": null,
+      "seed": 1130833232,
+      "version": 29,
+      "versionNonce": 1835789648,
+      "isDeleted": true,
+      "boundElements": null,
+      "updated": 1771121472932,
+      "link": null,
+      "locked": false,
+      "text": "CRON",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "xm2tQV6mGjC5g3NxzlrrY",
+      "originalText": "CRON",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "1yOtDw40wzPpss8HLY9Gv",
+      "type": "arrow",
+      "x": 1595.1502551274393,
+      "y": 2561.309887714596,
+      "width": 70.67432890764826,
+      "height": 16.491272504069002,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b37",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1260138832,
+      "version": 35,
+      "versionNonce": 1221785520,
+      "isDeleted": true,
+      "boundElements": null,
+      "updated": 1771121475288,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -70.67432890764826,
+          16.491272504069002
+        ]
+      ],
+      "startBinding": null,
+      "endBinding": {
+        "elementId": "t_VIC_VnHnXx1yxOUoyyb",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9697986577181232,
+          0.42307692307692063
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "i20t1WnPy8bzPE2mfX7Mt",
+      "type": "arrow",
+      "x": 1598.840045937933,
+      "y": 2517.5401702434283,
+      "width": 68.92044182419204,
+      "height": 99.42022824729384,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b38",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1787283792,
+      "version": 34,
+      "versionNonce": 1126441904,
+      "isDeleted": true,
+      "boundElements": null,
+      "updated": 1771121474080,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -68.92044182419204,
+          -99.42022824729384
+        ]
+      ],
+      "startBinding": null,
+      "endBinding": {
+        "elementId": "nQnkwKSnlWub7gLci8Tit",
+        "mode": "inside",
+        "fixedPoint": [
+          0.8440860215053786,
+          0.8571428571428675
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "xO1IfMAPQYsS-gjbIXuxM",
+      "type": "ellipse",
+      "x": 1038.5266251130688,
+      "y": 2062.513744919483,
+      "width": 135.18466769975538,
+      "height": 117.94635436891393,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b39",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1364111280,
+      "version": 365,
+      "versionNonce": 1696840112,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "WLZDmJ2Gw-HiPz1yx6lYy"
+        },
+        {
+          "id": "J75cWOltcMxyUQh7KfIbK",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771124756465,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "WLZDmJ2Gw-HiPz1yx6lYy",
+      "type": "text",
+      "x": 1078.7072945476498,
+      "y": 2108.7865886086947,
+      "width": 55.233333587646484,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3A",
+      "roundness": null,
+      "seed": 758987184,
+      "version": 89,
+      "versionNonce": 1440809904,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771124756465,
+      "link": null,
+      "locked": false,
+      "text": "Cache",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "xO1IfMAPQYsS-gjbIXuxM",
+      "originalText": "Cache",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "tPojI6B2isPMn7Rtj6VWL",
+      "type": "text",
+      "x": 1000.975568751609,
+      "y": 2002.5858627579576,
+      "width": 330.6333312988281,
+      "height": 50,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3B",
+      "roundness": null,
+      "seed": 693275984,
+      "version": 69,
+      "versionNonce": 116008880,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771122148116,
+      "link": null,
+      "locked": false,
+      "text": "<eventId> : <Event>\n<Popular_Searches>: <PartialEvent>",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "<eventId> : <Event>\n<Popular_Searches>: <PartialEvent>",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "J75cWOltcMxyUQh7KfIbK",
+      "type": "arrow",
+      "x": 1113.037409063624,
+      "y": 2356.3304602083326,
+      "width": 2.566798972310835,
+      "height": 169.98405221999838,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3C",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 233307056,
+      "version": 116,
+      "versionNonce": 342166960,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124756465,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -2.566798972310835,
+          -169.98405221999838
+        ]
+      ],
+      "startBinding": {
+        "elementId": "kEa-e_-hdA3-Mx2h-pKAo",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.4808917197452236,
+          0.48089171974522454
+        ]
+      },
+      "endBinding": {
+        "elementId": "xO1IfMAPQYsS-gjbIXuxM",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5243760780213215,
+          0.5001
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "M5R3gKenxerQp9ZckrkTK",
+      "type": "rectangle",
+      "x": 981.7500871515433,
+      "y": 2548.1387468040057,
+      "width": 284.8858097833779,
+      "height": 117.9463543689144,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3D",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 273491792,
+      "version": 194,
+      "versionNonce": 973192528,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "86ljaM1mB7kZUfQsolS-K"
+        },
+        {
+          "id": "0AqO0edk-SmUVNl0DdZTy",
+          "type": "arrow"
+        },
+        {
+          "id": "1gxbegnwf85faXK__Qmz0",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771124784243,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "86ljaM1mB7kZUfQsolS-K",
+      "type": "text",
+      "x": 1085.7763241049997,
+      "y": 2594.611923988463,
+      "width": 76.83333587646484,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3E",
+      "roundness": null,
+      "seed": 1623965008,
+      "version": 163,
+      "versionNonce": 1060099920,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771124774852,
+      "link": null,
+      "locked": false,
+      "text": "Pub/Sub",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "M5R3gKenxerQp9ZckrkTK",
+      "originalText": "Pub/Sub",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "0AqO0edk-SmUVNl0DdZTy",
+      "type": "arrow",
+      "x": 1115.6006472496204,
+      "y": 2479.1814570613524,
+      "width": 1.909409954135981,
+      "height": 76.37639816543924,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3F",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1512820656,
+      "version": 55,
+      "versionNonce": 845687728,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124779794,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1.909409954135981,
+          76.37639816543924
+        ]
+      ],
+      "startBinding": {
+        "elementId": "kEa-e_-hdA3-Mx2h-pKAo",
+        "mode": "inside",
+        "fixedPoint": [
+          0.4875311301098353,
+          0.9907130871339306
+        ]
+      },
+      "endBinding": {
+        "elementId": "M5R3gKenxerQp9ZckrkTK",
+        "mode": "inside",
+        "fixedPoint": [
+          0.476541706852449,
+          0.06290239713200749
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "1gxbegnwf85faXK__Qmz0",
+      "type": "arrow",
+      "x": 1129.92122190564,
+      "y": 2740.7706207779806,
+      "width": 0.9547049770678768,
+      "height": 78.285808119575,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3G",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 2082548048,
+      "version": 62,
+      "versionNonce": 1480795984,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771124784242,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -0.9547049770678768,
+          -78.285808119575
+        ]
+      ],
+      "startBinding": {
+        "elementId": "53fNw25AlDKMv5FKGSg5i",
+        "mode": "inside",
+        "fixedPoint": [
+          0.5049529392249281,
+          0.024034200243545006
+        ]
+      },
+      "endBinding": {
+        "elementId": "M5R3gKenxerQp9ZckrkTK",
+        "mode": "inside",
+        "fixedPoint": [
+          0.5167559236768221,
+          0.9694752030804327
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "YFUfCmpEVntCU8NyCcx3w",
+      "type": "rectangle",
+      "x": 689.8022274772984,
+      "y": 2137.3970752710156,
+      "width": 211.94450490909298,
+      "height": 74.46698821130258,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3H",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 1624627024,
+      "version": 69,
+      "versionNonce": 1314144176,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "Mce6eORoeT_Qn9Qd3Gci3"
+        },
+        {
+          "id": "KmqZbrQALX9HdrPxaehfb",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771125821053,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "Mce6eORoeT_Qn9Qd3Gci3",
+      "type": "text",
+      "x": 775.6911459627287,
+      "y": 2162.130569376667,
+      "width": 40.16666793823242,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3I",
+      "roundness": null,
+      "seed": 1983311280,
+      "version": 5,
+      "versionNonce": 1069309872,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771125814940,
+      "link": null,
+      "locked": false,
+      "text": "SQS",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "YFUfCmpEVntCU8NyCcx3w",
+      "originalText": "SQS",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "KmqZbrQALX9HdrPxaehfb",
+      "type": "arrow",
+      "x": 798.6385948630488,
+      "y": 2276.935274296378,
+      "width": 0,
+      "height": 59.07121081405967,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3J",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1905013680,
+      "version": 47,
+      "versionNonce": 319867312,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771125821054,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          -59.07121081405967
+        ]
+      ],
+      "startBinding": {
+        "elementId": "q_M0fquAH-3F34IhUKu7D",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5607117543324135,
+          0.43928824566758673
+        ]
+      },
+      "endBinding": {
+        "elementId": "YFUfCmpEVntCU8NyCcx3w",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5135135135135136,
+          0.5135135135135094
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    }
+  ],
+  "appState": {
+    "gridSize": 20,
+    "gridStep": 5,
+    "gridModeEnabled": false,
+    "viewBackgroundColor": "#ffffff",
+    "lockedMultiSelections": {}
+  },
+  "files": {}
+}

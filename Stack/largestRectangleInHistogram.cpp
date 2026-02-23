@@ -13,7 +13,7 @@ using namespace std;
  *      a. In that case, we will pop out the top bar and it will be greater between the top bar in the stack till the end of array
  *      b. This is because unlike Assessment phase, there is no currently evaluated bar which required us to pop the top bar before reaching the end of array.
  *         We have just 1 stoper which is top bar of the stack.
- *      c. So, area = height of popped bar *width of all bars in between the top bar in the stack and end of array.
+ *      c. So, area = height of popped bar * width of all bars in between the top bar in the stack and end of array.
  * 4. The difference between assessment and cleanup phase is width calculation
  *      a. Assessment - the popped bar is maximum between top bar in the stack and currently evaluated bar.
  *      b. Cleanup - the popper bar is maximum between top bar in the stack and end of array.
@@ -51,6 +51,6 @@ int largestRectangleInHistogram(std::vector<int> heights) {
 }
 
 int main() {
-    std::vector<int> heights {2, 8, 5, 6, 7, 3};
+    std::vector<int> heights {2, 8, 5, 6, 2, 3};
     std::cout << largestRectangleInHistogram(heights) << std::endl;
 }

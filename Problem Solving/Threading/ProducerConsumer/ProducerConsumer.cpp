@@ -43,7 +43,7 @@ public:
                 }
 
                 // Sleep till the timeout
-                m_notFull.wait_until(lock, std::chrono::system_clock::from_time_t(timeout), [this] {
+                m_notFull.wait_for(lock, std::chrono::milliseconds(timeout), [this] {
                     return m_currentCapacity < m_totalCapacity || m_shutdown.load();
                 });
 
@@ -75,7 +75,7 @@ public:
                 }
 
                 // Sleep until timeout
-                m_notEmpty.wait_until(lock, std::chrono::system_clock::from_time_t(timeout), [this]{
+                m_notEmpty.wait_for(lock, std::chrono::milliseconds(timeout), [this]{
                     return m_currentCapacity != 0 || m_shutdown.load();
                 });
 

@@ -87,7 +87,7 @@ TECHNIQUE:
      1. The protocl is exactly similar to BFS on Graph.
           a. Start at any cell and add it to the queue.
           b. For all the cells in that level, extract the cell from front of queue and add to visited list
-          c. Add all its neighbors (UP, DOWN, LEFT, RIGHR) to the queue only if those neighbors are not present in the visited list.
+          c. Add all its neighbors (UP, DOWN, LEFT, RIGHT) to the queue only if those neighbors are not present in the visited list.
           d. Repeat steps b and c until the queue is empty, which means you've processed all nodes in the graph.
 
         void bfs(int start) {
@@ -127,7 +127,7 @@ TECHNIQUE:
                 }
             }
 
-INFORMATION:
+TOPOLOGICAL SORT:
   1. Topological sort takes a directed acyclic graph (DAG) and turns it into a linear ordering of nodes 
       such that the directed edges only point forward, from left-to-right.
   2. Below are its uses -
@@ -145,13 +145,33 @@ TECHNIQUE:
    4. NOTE: No visited node list is needed because we're using inbound edges counting as the mechanism to track processing state.
 
 
+DJIKSTRA:
+   1. While BFS is useful to find shortest path between source and destination node, it will fail if the edges has a weight. 
+   2. Hence, the usage of dikstra which will take only POSITIVE weight between edges.
+
+TECHNIQUE:
+   1. Initialize a distance vector for each of the nodes
+   2. Create a minHeap with startingNode and its distance. Sort the minHeap using the distance.
+   3. Assess the neighbor and if the distance to the neighbor (distance[poppedNode] + edgeWeight) < distance[neighbor],
+      that means you found a new path to neighbor whose distance is less than previously calculated path (with bigger distance).
+   4. Update the distance and then add the neighbor and its distance to the minHeap for that neighbor to be processed -> explore its neighbors.
+   5. If a node is pushed twice, only process the node if the distance is less than distance[node] (saved in cache) 
+      as there is no point in processing the node with bigger distance 
+   5. Since it is following BFS, the complexity is O(V+E). However, it uses minHeap on the vertices, so pushing/popping incur O(LogV).
+      Hence total complexity is O(V+E)*LogV (V ~= N)
+
+
 PROBLEMS TO REVISE:
    1. ZiZZaG - Puzzle to remember (Use Deque) - 
         a. Left To right --> Pop from back and push the children (from left to right) to front of the queue.
         b. Righ To Left --> Pop from front and push the children (from right to left) to back of the queue.
    2. MaxWidth - Push the index of each node (calculated from parent) to the queue. 
-        a. At every level, subtract the index of first and last node + 1 to calculate width at every level/
+        a. At every level, subtract the index of first and last node + 1 to calculate width at every level.
    3. Find distance between all 1s to 0 in a matrix - 
         a. Enqueuing a single 1 and performing BFS will require me to find the distance and then backtrack to the single 1 and repeat for all 1s.
-        b. Instead we will enqueue all 0 and replace 1s with -1s. At any level, if we increment -1 as neighbors, we will update the distance as level number 
-           and push them to the queue. In subsequent level, if we encounter -1 as neighbors, we will update the distance as level number and again push them into queue.
+        b. Instead we will enqueue all 0 and replace 1s with -1s. At any level, if we found -1 as neighbors, we will update the cell with level number 
+           which indicates the distance between cell and nearest 0 and then proceed to push them to the queue.
+        c. In subsequent level, if we encounter -1 as neighbors, we will update the distance as level number and again push them into queue.
+   4. MinimumEffortBetweenSourceAndDestination - The max effort is the distance between source and any cell. Hence the minimum effort will be within (0, max)
+      Hence, we need binary search to find the right effort. For every effort, we will check if we can reach to destination using BFS '
+      only if the distance between current cell and neighbor cell is <= effort.

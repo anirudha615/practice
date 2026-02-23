@@ -17,7 +17,7 @@ bool decodeAsDouble(int digit) {
  * 
  * Puzzle - 
  *    1. Figure out the base cases -
- *       a. For a single non-zero digit, there is only 1 way to decode. For a single zero dgit, there is no way to decode.
+ *       a. For a single non-zero digit, there is only 1 way to decode. For a single zero digit, there is no way to decode.
  *       b. For a double digit, there are 2 ways to decode if the digit is between 1 and 26. If it is 00 or above 26 but less than 99, there is no way or 1 way to decode it.
  *    2. So, for three digits, check if the last character can be decoded as single. If yes, then check the number of ways to decode the first 2 characters which is DP[2].
  *       Similarly, if the last 2 characters can be decoded as double, then check the number of ways we can decode the 1st character which is DP[1]

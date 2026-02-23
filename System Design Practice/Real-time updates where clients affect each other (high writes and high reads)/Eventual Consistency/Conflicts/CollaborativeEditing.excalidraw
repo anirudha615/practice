@@ -636,8 +636,8 @@
       "type": "text",
       "x": 2704.1093592665425,
       "y": 4098.006692460267,
-      "width": 487.5666809082031,
-      "height": 450,
+      "width": 1055.800048828125,
+      "height": 495,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -651,20 +651,20 @@
       "index": "b3c",
       "roundness": null,
       "seed": 1954863156,
-      "version": 763,
-      "versionNonce": 1010022196,
+      "version": 857,
+      "versionNonce": 495339770,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763868017343,
+      "updated": 1769998303548,
       "link": null,
       "locked": false,
-      "text": "documentText\n           locationId (PK)\n           documentId (FK)\n           text\n           cursorUserId\n           authorId\n           lastUpdatedTimestamp\n           \n           \n           ",
+      "text": "documentText\n           locationId (PK)\n           documentId (FK)\n           text\n           cursorUserId\n           authorId\n           lastUpdatedTimestamp\n           \n  (NOTE: This would be a WAL Log and Snapshot design pattern \n   and not a direct relation)        \n           ",
       "fontSize": 36,
       "fontFamily": 6,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "documentText\n           locationId (PK)\n           documentId (FK)\n           text\n           cursorUserId\n           authorId\n           lastUpdatedTimestamp\n           \n           \n           ",
+      "originalText": "documentText\n           locationId (PK)\n           documentId (FK)\n           text\n           cursorUserId\n           authorId\n           lastUpdatedTimestamp\n           \n  (NOTE: This would be a WAL Log and Snapshot design pattern \n   and not a direct relation)        \n           ",
       "autoResize": true,
       "lineHeight": 1.25
     },
@@ -794,8 +794,8 @@
       "lastCommittedPoint": null,
       "startBinding": null,
       "endBinding": {
-        "mode": "orbit",
         "elementId": "tnTyFs0cxIVYXxSyZFH1I",
+        "mode": "orbit",
         "fixedPoint": [
           -0.06012877455107936,
           0.25435752514000376
@@ -846,16 +846,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "6xcf_G3IDAUiEd9OYHCMv",
+        "mode": "orbit",
         "fixedPoint": [
           0.5001,
           0.45522385840943536
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "tnTyFs0cxIVYXxSyZFH1I",
+        "mode": "orbit",
         "fixedPoint": [
           -0.003182349283347213,
           0.760537597083239
@@ -906,16 +906,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "tnTyFs0cxIVYXxSyZFH1I",
+        "mode": "orbit",
         "fixedPoint": [
           1.0299885091455254,
           0.2894941130764792
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "IbdjWroPlQetJXYeHdq6Q",
+        "mode": "orbit",
         "fixedPoint": [
           0.414129344537682,
           0.5858706554623183
@@ -966,16 +966,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "tnTyFs0cxIVYXxSyZFH1I",
+        "mode": "orbit",
         "fixedPoint": [
           1.0062350641025644,
           0.7842056251882901
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "5kNcznd70767GxEoHcJZZ",
+        "mode": "orbit",
         "fixedPoint": [
           0.49408203032285397,
           0.5059179696771455
@@ -1299,16 +1299,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "IbdjWroPlQetJXYeHdq6Q",
+        "mode": "orbit",
         "fixedPoint": [
           0.7107947091230271,
           0.2892052908769776
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "r3wUWd2FLlZ-4Bam6_TnX",
+        "mode": "orbit",
         "fixedPoint": [
           0.28688901535184674,
           0.7131109846481543
@@ -1359,16 +1359,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "5kNcznd70767GxEoHcJZZ",
+        "mode": "orbit",
         "fixedPoint": [
           0.8202396392017414,
           0.820239639201738
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "r3wUWd2FLlZ-4Bam6_TnX",
+        "mode": "orbit",
         "fixedPoint": [
           0.18110633766674947,
           0.1811063376667476
@@ -1420,8 +1420,8 @@
       "lastCommittedPoint": null,
       "startBinding": null,
       "endBinding": {
-        "mode": "orbit",
         "elementId": "j0l-V49tykuzeLLxETMRQ",
+        "mode": "orbit",
         "fixedPoint": [
           0.6021055858650654,
           0.39789441413493587
@@ -1472,16 +1472,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "j0l-V49tykuzeLLxETMRQ",
+        "mode": "orbit",
         "fixedPoint": [
           0.6475191944702396,
           0.35248080552976
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "IbdjWroPlQetJXYeHdq6Q",
+        "mode": "orbit",
         "fixedPoint": [
           0.8329003737813382,
           0.1670996262186595
@@ -1532,8 +1532,8 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "r3wUWd2FLlZ-4Bam6_TnX",
+        "mode": "orbit",
         "fixedPoint": [
           0.6768253499131607,
           0.6768253499131615
@@ -1585,16 +1585,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "j0l-V49tykuzeLLxETMRQ",
+        "mode": "orbit",
         "fixedPoint": [
           0.9466323583438461,
           0.053367641656151044
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "5kNcznd70767GxEoHcJZZ",
+        "mode": "orbit",
         "fixedPoint": [
           0.60030019688759,
           0.6003001968875831
@@ -1645,16 +1645,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "IbdjWroPlQetJXYeHdq6Q",
+        "mode": "orbit",
         "fixedPoint": [
           0.45209222211527705,
           0.45209222211527983
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "ucZ1aYX-l-VDkFrSakEZM",
+        "mode": "orbit",
         "fixedPoint": [
           0.43916322770243194,
           0.5608367722975681
@@ -1781,16 +1781,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "r3wUWd2FLlZ-4Bam6_TnX",
+        "mode": "orbit",
         "fixedPoint": [
           0.45956845775433985,
           0.4595684577543401
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "Fxkx0fIR1vhFpzZnKpigt",
+        "mode": "orbit",
         "fixedPoint": [
           0.4653109726805982,
           0.5001

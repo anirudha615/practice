@@ -22,7 +22,7 @@ GRAPHS:
    3. A cycle is a pattern where three or more nodes can reach each other via multiple routes. 
         a. To detect a cycle in bidrectional graph - Don't explore your parent (because you just came from there) but if you still land on a visited node, that means it is a definite cycle.
         b. To detect a cycle in unidirectional graph - If you just land on a visited node, that means it is a definite cycle.
-   4. A tree should be a connected graph with no cycles. Running DFS on Tree will visit all nodes but there should be no cycle.
+   4. A tree is a connected graph with no cycles. Running DFS on Tree will visit all nodes but there should be no cycle.
    5. A disconnected graph is a graph where there are at least two nodes that are not connected to each other by a path. 
         a. This gives birth to 2 different connected components in a disconnected graph.
    6. We can represent Graphs by - 

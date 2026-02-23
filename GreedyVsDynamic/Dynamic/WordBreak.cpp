@@ -36,6 +36,6 @@ bool wordBreak(std::string s, std::vector<std::string> dict) {
 
 
 int main() {
-    std::vector<std::string> dict {"a", "cd"};
-    std::cout << wordBreak("aecd", dict) << std::endl;
+    std::vector<std::string> dict {"hello", "interview"};
+    std::cout << wordBreak("hellointerview", dict) << std::endl;
 }

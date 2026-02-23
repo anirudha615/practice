@@ -2,38 +2,26 @@
 
 using namespace std;
 
-struct Element
-{
-    int _element;
-    Element(int element): _element(element) {}
-
-    const bool operator<(const Element otherElement) const
-    {
-        return _element < otherElement._element;
-    }
-};
-
 /**
- * Find the Kth largest element 
+ * Find the Kth largest element - 
+ *   1. Take a minHeap of size K and keep on pushing item till it reaches its size.
+ *   2. Only pop the top if there is any integer > top as we want largest.
  * 
- * 1. Push the elemenets in a max heap.
- * 2. Pop out K-1 times from the max heap and return the top element.
+ * If we want smallest, take maxHeap
  */
-int findKthLargest(vector<int>& nums, int k) {
-    std::priority_queue<Element> myQueue; // maxHeap
-
-    for (auto num : nums) {
-        myQueue.push(Element(num)); // O(N) heapify an array
+int findKthLargest(vector<int> nums, int k) {
+    std::priority_queue<int, std::vector<int>, std::greater<int>> minHeap;
+    for (int data : nums) {
+        if (minHeap.size() < k) {
+            minHeap.push(data);
+        } else if (data > minHeap.top()) {
+            minHeap.pop();
+            minHeap.push(data);
+        }
     }
+    return minHeap.top();
 
-    // Remove all index except k-1 index
-    for (int i = 0; i < k - 1; i++) {
-        myQueue.pop(); // bubble-down max heapify O(KLogN)
     }
-
-    return myQueue.top()._element; //O(1)
-        
-}
 
 int main() {
     std::vector<int> num = {3, 2, 1, 5, 6, 4};

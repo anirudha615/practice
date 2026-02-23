@@ -300,9 +300,9 @@ private:
      */
     std::shared_ptr<PersistentCache> getPrimaryShardInHashRing(string key) {
         int32_t position = hashFunction(key); // This will fall in between 0 and RING_SIZE-1
-        auto nodePtr = m_hashRing.lower_bound(position);
+        auto nodePtr = m_hashRing.lower_bound(position); // Get the iterator > or = to the position (clockwise)
         if (nodePtr == m_hashRing.end()) {
-            nodePtr = m_hashRing.begin();
+            nodePtr = m_hashRing.begin(); // If it hits the end, get me to the beginnning (moving clockwise)
         }
         return nodePtr->second;
     }

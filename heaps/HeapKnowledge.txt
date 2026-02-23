@@ -41,7 +41,7 @@ TECHNIQUE:
 
 
 SORTING:
-  1. Heapify a tree does not sort the array. For sort, we need to extract top element and perform Bulbble-down heapify - O(N * LogN).
+  1. Heapify a tree does not sort the array. For sort, we need to extract top element and perform Bubble-down heapify - O(N * LogN).
   2. Merge Sort is dividing a list into 2 two parts repeatedly until they become a singular element and then perform 'merge 2 sorted arrays' concept.
        a. Complexity is O(NLogN) where O(N) is the merging of two sorted lists.
        b. O(LogN) is the process of repeatedly dividing the lists into two parts - Similar to binary search and hence the operation is O(LogN)

@@ -14,3 +14,6 @@ PROBLEMS TO REVISE:
       find the car whose pickupTime <= interval's start time (Find upper bound which is > interval's start time and decrement 1).
       Since the problem is about minimum number of cars used and all the other cars have pick up time more than interval's start time, the above logic
       will give you the car which hasn't being picked once (if there's any)
+   c. Meeting Rooms 2 - Similar to Car Rental Optimization but we have to derive the minimum rooms required. Start with sorting by start timestamp
+      and while evalutating the current meeting, check if there exists a room whose meeting's start time >= room's end time and take the room.
+      

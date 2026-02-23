@@ -154,4 +154,6 @@ SLIDING WINDOW PROBLEMS TO REVISE:
     a. maxSum of K Cards With Options - Since there are options to pick from, the window can be combination of options. Hence, 
         we need to find a window which is constant and that would be 'window from where not to pick from' (Total (N) - Pickup (K))
     b. LongestSubstring/LongestFixedSubArray without repeating - These are sliding and fixed window problems where the map should not have keys with values more than 1.
-       If it is, shorten the window. In case it is fixed window problem, we have to produce an output of K window size. Else for sliding window, you can produce an output with any window size
+       If it is, shorten the window. In case it is fixed window problem, we have to produce an output of K window size. Else for sliding window, you can produce an output with any window size.
+    c. LongestSubstring with K Replacement allowed - We will use sliding window but the window will become invalid 
+       if the current substring size - maximum frequency of the char in the map exceeds K.

@@ -1,5 +1,5 @@
 ---
 triple:          'arm64-apple-darwin'
-binary-path:     '/Users/hanirud/workspace/practice/Stack/largestRectangleInHistogram'
+binary-path:     '/Users/anirudha/workspace/practice/Stack/largestRectangleInHistogram'
 relocations:     []
 ...

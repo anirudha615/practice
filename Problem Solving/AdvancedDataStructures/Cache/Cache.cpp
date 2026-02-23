@@ -560,7 +560,7 @@ struct Comparator {
  * 
  * 1. We will maintain Map<Key, Node*> for cache.
  * 2. We will maintain DLL for capacity.
- * 3. We will maintain a minHeap for expiration time sorting
+ * 3. We will maintain a minHeap for expiration time sorting so that it can get cleaned up before GET is called.
  * 
  * 1. GET call - O(1)
  *      a. If the node is expired, mark it as dead, remove from map and remove from DLL. All of these operations
@@ -649,7 +649,7 @@ private:
     }
 
     /**
-     * Loop through the minHeap and only stop if an node is not expired
+     * Loop through the minHeap and only stop if an node is not expired or maxNodesToCleanedUp 
      * 
      * If the node is dead but not expired, we already removed it from Map and DLL and 
      *    those nodes will be eventually cleaned up. So, don't do anything.

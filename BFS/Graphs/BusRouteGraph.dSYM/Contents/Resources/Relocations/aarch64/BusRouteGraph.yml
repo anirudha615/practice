@@ -1,5 +1,5 @@
 ---
 triple:          'arm64-apple-darwin'
-binary-path:     '/Users/hanirud/workspace/practice/BFS/BusRouteGraph'
+binary-path:     '/Users/anirudha/workspace/practice/BFS/Graphs/BusRouteGraph'
 relocations:     []
 ...

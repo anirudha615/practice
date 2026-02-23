@@ -100,6 +100,39 @@ ListNode* mergeKSortedListsOptimized(std::vector<ListNode*> sortedLists) {
     return finalHead->next;
 }
 
+struct ListElement {
+    int value;
+    int currentIndex;
+    int listIndex;
+};
+
+struct Cmp {
+    bool operator()(const ListElement a, const ListElement b) {
+        return a.value > b.value; // Ascending
+    }
+};
+
+std::vector<int> mergeKSortedListWithoutPointer(std::vector<std::vector<int>> sortedLists) {
+    std::priority_queue<ListElement, std::vector<ListElement>, Cmp> minHeap;
+    std::vector<int> result;
+
+    for (int index = 0; index < sortedLists.size(); index++) {
+        minHeap.push({sortedLists.at(index).at(0), 0, index});
+    }
+
+    while (!minHeap.empty()) {
+        ListElement frontElement = minHeap.top();
+        minHeap.pop();
+        result.push_back(frontElement.value);
+
+        std::vector<int> sortedList = sortedLists.at(frontElement.listIndex);
+        if (frontElement.currentIndex + 1 < sortedList.size()) {
+            minHeap.push({sortedList.at(frontElement.currentIndex + 1), frontElement.currentIndex + 1, frontElement.listIndex});
+        }
+    }
+    return result;
+}
+
 int main() {
     ListNode* head = new ListNode(1);
     head->next = new ListNode(4);
@@ -117,5 +150,10 @@ int main() {
     while (head) {
         std::cout << head->val << std::endl;
         head = head->next;
+    }
+
+    std::vector<int> result = mergeKSortedListWithoutPointer({{3,4,6},{2,3,5},{-1,6}});
+    for (auto coordinate : result) {
+        std::cout << coordinate << ", " << std::endl;
     }
 }

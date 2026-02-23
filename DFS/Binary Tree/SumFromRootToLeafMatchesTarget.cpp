@@ -12,33 +12,29 @@ struct TreeNode
 };
 
 
-bool pathSum(TreeNode* head, int target, std::vector<int>& currentPath, std::vector<std::vector<int>>& allPath) {
+void pathSum(TreeNode* head, int target, std::vector<int>& currentPath, std::vector<std::vector<int>>& allPath) {
     if (!head) {
-        // When we encounter a nullptr (child of leaf node) and target sent to it is 0, we have found a path.
-        // when you return that target is found, the parent stack can take the responsibility of adding the current path to allPath
-        return target == 0;
+        // When we encounter a nullptr (child of leaf node), we simply return
+        return;
     }
 
     currentPath.push_back(head->val);
     int targetToBePassed = target - head->val;
-    bool leftPathFound = pathSum(head->left, targetToBePassed, currentPath, allPath);
-    bool rightPathFound = pathSum(head->right, targetToBePassed, currentPath, allPath);
+    pathSum(head->left, targetToBePassed, currentPath, allPath);
+    pathSum(head->right, targetToBePassed, currentPath, allPath);
     /**
      * When the node's recursion stack is over, 
-     *   1. Revaluate if either of left or right subtree found a path.
-     *   2. If either of subtree found a path and target passed from 'LEAF' node to 'nullptr' children is 0, path is found
-     *   3. Add the currentPath to allPaths.
+     *   1. If the targetToBePassed is 0 and left and right child are nullptr, we found a path.
+     *   2. Add the currentPath to allPaths.
      *   4. Since the data is already recorded, lets remove current node from currentPath 
      *      so that we can evaluate others siblings or other section of the tree which could potentially be a new path.
      */
-    bool eitherPathFound = leftPathFound || rightPathFound;
-    if (eitherPathFound && !targetToBePassed && !head->left && !head->right) {
+    if (!targetToBePassed && !head->left && !head->right) {
          allPath.push_back(currentPath);
     }
     if (!currentPath.empty()) {
         currentPath.pop_back();
     }
-    return eitherPathFound;
 }
 
 std::vector<std::vector<int>> collectPaths(TreeNode* head, int target) {

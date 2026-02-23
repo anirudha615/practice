@@ -263,14 +263,13 @@ int main() {
     unordered_map<string, int> freqMap = buildWordFrequencyMap(filename);
 
     cout << "Naive Approach (Preparing TopK while traversing the map):" << endl;
-    searchAutoSuggestionWithReadPenalty(freqMap, "appl"); // Read is O(M * N * LogK)
+    //searchAutoSuggestionWithReadPenalty(freqMap, "appl"); // Read is O(M * N * LogK)
 
     cout << "\nRead Friendly Approach (Pre-computed TopK):" << endl;
     searchAutoSuggestionWithWritePenaltyAndReadFriendly(freqMap, "appl"); // Read is O(N+K)
-
     
     cout << "\nRead Penalty (On-demand TopK):" << endl;
-    searchAutoSuggestionWithWriteFriendlyAndReadPenalty(freqMap, "appl"); // Read is O(NLogK)
+    //searchAutoSuggestionWithWriteFriendlyAndReadPenalty(freqMap, "appl"); // Read is O(NLogK)
 
     return 0;
 }

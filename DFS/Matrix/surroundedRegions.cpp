@@ -35,8 +35,9 @@ void dfs_helper(vector<vector<char>>& grid, int row, int column) {
 *   b. Once that is done, whatever Os are present can be blindly modified  by X
 * 
 * Below is the mistake I did - 
-*    a. I tried to perform DFS traversal on Os which are not starting at the edge and as a result, eventually I reached an edge which has O
-*       but failed to propagate to its child and as a result, there are edge cases which I missed.
+*    a. I tried to perform DFS traversal on Os which are not starting at the edge and as a result, 
+        eventually I reached an edge which has O but failed to propagate to its child and as a result, 
+        there are edge cases which I missed.
 *    b. Hence, the solution is to perform DFS from the boundary and mark them S. Whichever Os are left, mark them X.
 *  
 */ 

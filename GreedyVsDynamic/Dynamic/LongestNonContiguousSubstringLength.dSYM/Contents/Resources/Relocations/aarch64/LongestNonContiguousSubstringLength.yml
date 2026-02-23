@@ -1,5 +1,5 @@
 ---
 triple:          'arm64-apple-darwin'
-binary-path:     '/Users/hanirud/workspace/practice/GreedyVsDynamic/Dynamic/LongestNonContiguousSubstringLength'
+binary-path:     '/Users/anirudha/workspace/practice/GreedyVsDynamic/Dynamic/LongestNonContiguousSubstringLength'
 relocations:     []
 ...
