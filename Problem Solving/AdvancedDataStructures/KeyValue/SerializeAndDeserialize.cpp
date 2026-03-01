@@ -47,7 +47,7 @@ public:
     void deSerializeStrings() {
         for (auto s : serializedStrings) {
             int currentPointer = 0;
-            // STEP 1: Find the length of the key (could be 2 or more digit)
+            // STEP 1: Find the length of the key
             int lengthToExtractLength = 0;
             while (s.at(currentPointer + lengthToExtractLength) != ':') {
                 lengthToExtractLength++;
@@ -55,11 +55,11 @@ public:
             int keyLength = std::stoi(s.substr(currentPointer, lengthToExtractLength));
             
             // STEP 2: Use the key length to extract the key string
-            currentPointer = currentPointer + lengthToExtractLength + 1; // Land on Key String
+            currentPointer = currentPointer + lengthToExtractLength + 1; // Jump 'Key Length' and : and land on 'Key String'
             string key = s.substr(currentPointer, keyLength);
 
-            // STEP3: Find the length of the value (could be 2 or more digits)
-            currentPointer = currentPointer + keyLength + 1; // Land on Value Length 
+            // STEP3: Find the length of the value 
+            currentPointer = currentPointer + keyLength + 1; // Jump Key String and : and land on 'Value Length' 
             lengthToExtractLength = 0;
             while (s.at(currentPointer + lengthToExtractLength) != ':') {
                 lengthToExtractLength++;
@@ -67,7 +67,7 @@ public:
             int valueLength = std::stoi(s.substr(currentPointer, lengthToExtractLength));
 
             // STEP 4: Use the value length to extract value
-            currentPointer = currentPointer + lengthToExtractLength + 1; // land on Value string
+            currentPointer = currentPointer + lengthToExtractLength + 1; // Jump 'Value Length' and : and land on 'Value String'
             string value = s.substr(currentPointer, valueLength);
 
             if (m_cache.count(key) && m_cache[key] == value){

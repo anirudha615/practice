@@ -25,6 +25,9 @@ struct DoublyLinkedListNode {
     m_nextNode(nullptr) {}
 };
 
+/**
+ * https://www.hellointerview.com/community/questions/kv-store-eviction/cmj4k51r300kw08ado0weux4y?level=MID_LEVEL
+ */
 class ICache {
 public:
     virtual ~ICache() = default;
@@ -391,6 +394,7 @@ public:
                     head_tail.second->m_prevNode = nullptr;
                 }   
             } else if (node == head_tail.first && node == head_tail.second) {
+                // node is the only element
                 head_tail.first = nullptr;
                 head_tail.second = nullptr;
             }

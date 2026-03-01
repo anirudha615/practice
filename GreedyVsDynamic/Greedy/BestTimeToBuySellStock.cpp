@@ -4,27 +4,13 @@
 using namespace std;
 
 /**
- * I made the mistake of seeing this problem at an angle of monotonically increasing stack
  * 
- * MISTAKE APPROACH
- * 1. The approach is to push the prices >= top of the current element of the stack and wait.
- * 2. Once you encounter a price lower than the top of the current element, pop out the elements until
- *    the top of the element is < current price.
- * 3. Since all the elements are monotonically increasing, profit will always be top - last item Popped.
- * 4. Push the current price and repeat from Step 1.
+ * https://leetcode.com/problems/best-time-to-buy-and-sell-stock/description/
  * 
- * 1. The problem with the monotically increasing approach is that we make smaller transaction - 
- * 2. So, if we see a stock price lesser than top of the element of the stack, we start calculating profit
- *    but stops if the current stock price is greater than other elements in the stack, which is wrong.
- * 3. You need to empty the entire stack to calculate the profit between monotically increasing stack.
- * 4. If the requirement is to find the next tentative drop in stock price so that you could sell, then we could use the concept.
- * 
- * 
- * CORRECTED APPROACH - 
- *   1. Keep a track of minimum price observed
- *   2. Simulate the profit by selling the stock at every index 
+ * Goal: We only want maximum profit by selling stock once. 
+ * So, we track minimum price and simulate the profit by selling stock at every day.
  */
-int maxProfit(vector<int>& prices) {
+int maxProfitBySellingStockOnce(vector<int>& prices) {
     int minimumPrice = INT16_MAX;
     int maxProfit = 0;
 
@@ -36,8 +22,46 @@ int maxProfit(vector<int>& prices) {
     return maxProfit;
 }
 
+/**
+ * https://leetcode.com/problems/best-time-to-buy-and-sell-stock-ii/description/
+ * 
+ * Goal: We want maximum total profit where we can buy/sell stocks multiple times but it has to be non-overlapping transaction.
+ * 
+ * 1. This is greedy because we always want the maximum profit in multiple transactions and that could only happen if 
+ *    we sense the dip and sell it a day prior and then again rebuy the dip.
+ * 2. If we don't sell before the dip, it would cost us some profit margin. Hence greedily selling it to gain max profit.
+ * 
+ * Approach:
+ *   1. We will track the minimum price and as soon as the profit drops, we will sell a day prior.
+ *   2. We will track a new minimum price and then repeat the process 
+ */
+int totalProfitBySellingStockMultipleTimes(vector<int>& prices) {
+    int minimumPrice = INT16_MAX;
+    int previousProfit = 0;
+    int totalProfit = 0;
+
+    for (int index = 0; index < prices.size(); index++) {
+        minimumPrice = std::min(minimumPrice, prices.at(index)); // Minimum price observed
+        int profit = prices.at(index) - minimumPrice; // Sell stock everyday and calculate profit.
+        if (profit < previousProfit) {
+            // If profit is < previousProfit, we did a mistake of not selling the stock earlier. 
+            // So, let's sell the stock at index - 1 (i.e using previousProfit)
+            totalProfit += previousProfit;
+
+            // Since we sold the stock previous day, lets buy the dip and use it as a minimum price
+            // and re-calculate profit
+            minimumPrice = prices.at(index);
+            profit = prices.at(index) - minimumPrice;
+        }
+        previousProfit = profit;
+    }
+    totalProfit += previousProfit;
+    
+    return totalProfit;
+}
+
 int main() {
-    std::vector<int> stockPrices {7,1,5,3,6,4};
-    std::cout << maxProfit(stockPrices) << std::endl;
+    std::vector<int> stockPrices {6,1,3,2,4,7};
+    std::cout << totalProfitBySellingStockMultipleTimes(stockPrices) << std::endl;
 }
 

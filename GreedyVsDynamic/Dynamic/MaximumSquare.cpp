@@ -4,12 +4,18 @@
 using namespace std;
 
 /**
- * This looks tempting for a DFS but DFS won't help with geometrical shapes.
+ * This looks tempting for a DFS but DFS won't help with geometrical shapes. 
+ * DFS helps with connectivity (areaOfIslands in DFS) but this is a shape structure.
  * 
- * In this problem, every cell with value 1 is a square and every cell with value 0 is not a square.
- * So, we will store the number of squares each cell can store.
+ * For a square, the shape should consist of 1s at circumference as well as inside the square.
+ * DFS would help to find all 1s but will not help in asserting the shape.
  * 
- * In order for a matrix to support 2*2 square, the up, left and diagonal also needs to be 1 (which means they are square themselves)
+ * Hence, we need DP here as at every cell with value 1, we need to identify 
+ * if diagonal, up and left cellas are also 1. Then that cell will have side as '2'. Hence, area would be 2*2 = 4.
+ * 
+ * Similar for a square of 3*3, we need the last cell [9,9] to have value 1 and its diagonal, left and up to have side 
+ * length as 2. So, the side length of cell [9,9] will have value 2+1=3 and area = 3*3 = 9;
+ * 
  * This gives birth to the logic that if (i, j) == 1, then DP[i, j] = min(DP[i-1,j], DP[i, j-1], DP[i-1, j-1]) + 1
  * else DP[i,j] = 0
  */

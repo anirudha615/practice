@@ -6,10 +6,10 @@
     {
       "id": "dVeT0_o4DbfiZkG5d6AFj",
       "type": "text",
-      "x": -111.98629699190616,
-      "y": -3881.38209185742,
-      "width": 2524.7333984375,
-      "height": 5850,
+      "x": -158.40667504923778,
+      "y": -4538.596918037536,
+      "width": 2568.5,
+      "height": 6480,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "#ffffff",
@@ -23,28 +23,28 @@
       "index": "b3k",
       "roundness": null,
       "seed": 2129404623,
-      "version": 9929,
-      "versionNonce": 2021016147,
+      "version": 14511,
+      "versionNonce": 1983500763,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1766625060659,
+      "updated": 1771973002498,
       "link": null,
       "locked": false,
-      "text": "Amazon Locker/Amazon Shopping/Booking a seat for a movie/event - Availability of items and place order with strong consistency\n\nFunctional Requirements\n  1. Customers should be able to search for an item\n  2. Customers should be able to add multiple items to the cart.\n  3. Customers should be able to purchase their cart.\n  4. Other customers should be able to view updated inventory\n\nNon-Functional Requirements \n   1. Strong consistency such that once an item is in cart, other customers could see updated inventory.\n   2. Customers should be able to purchase the item without any latency overhead (< 500ms)\n   3. Search latency should be low (< 500ms)\n\n\nSystem Interface/ API Contracts\n\n1. SEARCH AN ITEM\nGET /Search?searchTerm={}&location={}\nRESPONSE:\n{\n   Body: List<Items>\n   Status:\n}\n\n2. VIEW AN ITEM\nGET /Item/<ItemId>\n\nRESPONSE:\n{\n   Body: \n   {\n         name: string\n         description: string\n         imageURL: string\n         count: int\n         price: double\n    }\n   Status:\n}\n\n3. ADD AN ITEM TO CART\nPOST /AddToCart\n        headers {Token for authentication}\n        Body \n        {\n            ItemId: string\n            ItemCount: int\n            Timestamp: int\n        }\n\nResponse\n{\n   cartId\n   Status\n}\n\n4. ADD MULTIPLE ITEMS TO CART\nPUT /AddToCart/<CartId>\n        headers {Token for authentication}\n        Body \n        {\n            ItemId: string\n            ItemCount: int\n            Timestamp: int\n        }\n\nResponse\n{\n   cartId\n   Status\n}\n\n5. PURCHASE CART\nPOST /Purchase\n        headers {Token for authentication}\n        Body \n        {\n            cartId: string\n            paymentDetails: <>\n        }\n\nResponse\n{\n   transactionId\n   Status\n}\n\nData Flow for use-cases \n\n1. Customers view an item \n    1. Client make a GET request to Catalog Service, which searches the item in the database and return the response.\n    2. Asynchronously, it can write <item_id>:<count> to the distributed cache\n\n2. Customer searches for an item\n   1. Client make a GET request to Search Service.\n   2. Whenever an item is added to the database, \n       the name and description is propagated to Elastic search database in an eventual consistent manner\n       via Capture Data Change (I don't know the concept) or stream of events (Kinesis + SNS + SQS)\n\n3. User1 and User 3 adds the same item to the cart\n   1. When there is no cart, 'Add to Item Cart' service will first create a cart for the user. At one time, only one cart can exist for the user\n   2. Say item1 has 10 counts and User1 add 3 of item1 to the cart.\n   3. 'AddItemToCart' service will check if '<item_id>:10' key exists in the cache. If not, it will query the database and create a cache key.\n   4. Post that, it will create a '<reserve_user_id_item_id>:3' and update the <item_id>:7. The reserve key will have a TTL of 10 minutes.\n           a. Step3 and Step4 are atomic operations. They need to be executed together.\n   5. Once the reserve key is set, 'AddItemToCart' service can create a new record in CART table.\n   6. Now, when user2 or user3 makes a request to CatalogService, it will check if an item exists in the distributed cache. If yes, it will\n       query '<item_id>' and return. If no, query the database. \n   7. Since Step3 and Step4 are atomic, both the servers will try to make a request to the cache. Since the cache is single threaded,\n        the request will be processed synchronously.\n   8. Now after 10 minutes if the User1 purchases the cart, the 'PurchaseService' validate the payment via Stripe Service and on ack, \n       it will delete the <reserver_user_id_item_id> key from Redis and update the user. Asynchronously, it can update the CART table\n       with status:Succeeded.\n   9. [Explicit Deletion] If User2 deletes the cart, the 'PurchaseService' will delete the <reserver_user_id_item_id> key from Redis and update the user. \n       Asynchronously, it can update the CART table with status:Deleted.\n 10. [Implicit Deletion]If User3 abandons the cart, the TTL will expire and 'PurchaseService' can act as a listener to event deleted via TTL and then update\n       <item_id> with the value of <reserver_user_id_item_id>\n 11. Distributed Cache is the source of truth.\n\n\nSharding of Cache - \n     1. We should proceed to shard the cache by 'item_id'. Because all the reservation from all the users regarding the same item lives in the same \n          cache instance. \n              a. In case the all the users decides to abandon the cart because of the same item, the event from TTL will need to update that instance of the cache.\n              b. If few users decides to abandon their cart, multiple instances of the cache will get invalidated but notification from every cache instance will go\n                  to its own individual purchase service instance, which would directly update the same cache instance.\n             c. Cache Instance to Purchase Service instance (1:1)\n     2. If we shard by user_id, we won't have any idea where total count of item_id resides. Hence not a good idea.\n    \n   ",
+      "text": "Amazon Locker/Amazon Shopping/Booking a seat for a movie/event - Availability of items and place order with strong consistency\n\nFunctional Requirements\n  1. Customers should be able to search for an item\n  2. Customers should be able to add multiple items to the cart.\n  3. Customers should be able to purchase their cart.\n  4. Other customers should be able to view updated inventory\n\nNon-Functional Requirements \n   1. Strong consistency such that once an item is in cart, other customers could see updated inventory.\n   2. Customers should be able to purchase the item without any latency overhead (< 500ms)\n   3. Search latency should be low (< 500ms)\n\n\nSystem Interface/ API Contracts\n\n1. SEARCH AN ITEM\nGET /Search?searchTerm={}&location={}\nRESPONSE:\n{\n   Body: List<Items>\n   Status:\n}\n\n2. VIEW AN ITEM\nGET /Item/<ItemId>\n\nRESPONSE:\n{\n   Body: \n   {\n         name: string\n         description: string\n         imageURL: string\n         count: int\n         price: double\n    }\n   Status:\n}\n\n3. ADD AN ITEM TO CART\nPOST /AddToCart\n        headers {Token for authentication}\n        Body \n        {\n            ItemId: string\n            ItemCount: int\n            Timestamp: int\n        }\n\nResponse\n{\n   cartId\n   Status\n}\n\n4. ADD MULTIPLE ITEMS TO CART\nPUT /AddToCart/<CartId>\n        headers {Token for authentication}\n        Body \n        {\n            ItemId: string\n            ItemCount: int\n            Timestamp: int\n        }\n\nResponse\n{\n   cartId\n   Status\n}\n\n5. PURCHASE CART\nPOST /Purchase\n        headers {Token for authentication}\n        Body \n        {\n            cartId: string\n            paymentDetails: <>\n        }\n\nResponse\n{\n   transactionId\n   Status\n}\n\nData Flow for use-cases \n\n1. Customers view an item \n    1. Client make a GET request to Catalog Service, which searches the item in the database and return the response.\n    2. Asynchronously, it can write <item_id>:<count> to the distributed cache\n\n2. Customer searches for an item\n   1. Client make a GET request to Search Service.\n   2. Whenever an item is added to the database, the name and description is propagated to Elastic search database \n       in an eventual consistent manner via Capture Data Change (Kinesis + Event Bridge + SQS)\n\n3. User1 and User3 adds the same item to the cart - \n    1. We can have 2 strategies - (1) Maintaining total Items count and user cart reservation status in database or (2) maintaining\n         the same in cache and then asynchronously writing to the database.\n    2. Let's evaluate contention - \n          a. If we only use database and <total_item> for a product is 1 and 2 users hit 'Add to Cart', we can use optimistic/pessimistic locking \n              (database transaction/version control) to lock the row and first read the total item for the product and if it is > 1, then update the \n              User's Cart with itemId, quantity and status: Reserved. \n          b. The 2nd user will be waiting as the current row is locked. Once the row is unlocked, the 2nd user will also check if the total item > 1\n              and in his case, it will return as false and it will return \"Try again\".\n          c. On the other hand, if we use Redis as a distributed_lock, we can have <total_items>: 1 as a key/value pair. The client can make \n              an atomic call to check if the total_items > 1 and if yes, create a new key/value pair <reserve_userId_itemId>: 1. Now if the 2nd user\n              is waiting for the Redis to accept the call, it will see <total_items> as 0 and hence return \"Try again\".\n          d. So, once a request is successful by Redis, the server should asynchronously write to the database.\n          e. So, contention can be resolved using database as well as distributed lock.\n    3. Let's evaluate explicit deletion -\n         a. If we use database, multiple users wants to delete their cart having the same item. In such scenarios, the client can write transaction\n             with optimistic locking to delete the user's cart, lock the Item row and update the totalItems += cart.quantity. In this way, every call will\n             wait for the row to be unlocked.\n         b. Similarly, if we use Redis as distributed_lock, we have to remove the reservation_key, update the \"total_items\" and then repeat Step #a.\n         c. So, in terms of distributed lock, there is an extra step.\n     4. Let's evaluate cart reservation expiry -\n         a. For database, we need something like TTL notification feature (DynamoDB has the feature) for which if the customer hasn't acted for like \n             10 minutes, we will follow the procedure of \"Explicit Deletion\".\n         b. On the other hand, Redis has TTL notification feature, firing of which, the server can listen to and follow the procedure of \"Explicit Deletion\"\n    5. Let's evaluate cart confirmation - \n        a. If we use database, we mark the status of USER's CART as confirmed and thats it. We don't need to modify TotalItems in ITEM.\n        b. If we use cache, we can explicitly delete the \"<reserve_userId_itemId>\" key and then proceed to update the database with Step #a.\n    6. Now, the only reason I can think of having distributed_lock over database is throughput. If the number of calls to \"Add Item to Cart\"\n        is exceeding like 30K/40K TPS, we need cache to avoid database getting bottlnecked.\n\n4. GET call for Catalog Service will modify if we proceed with Redis as distributed lock.\n    a. Consider throughput is the challenge and we spin up a Redis as distributed lock. \n    b. Since we require strong consistency in viewing the inventory, the CatalogService will first need to query the database to retrieve\n        the item metadata from the ITEM table and then cross-verify from totalItems metadata from the cache and then return to the user.\n\n\n\nSharding of Cache - \n     1. We should proceed to shard the cache by 'item_id'. Because all the reservation from all the users regarding the \"same item\" lives in the same \n          cache instance. \n        a. In case, all the users decides to abandon the cart because of the \"same item\", the TTL notification from the cache will require to update that cache only.\n        b. If few users decides to abandon their cart, multiple instances of the cache will get invalidated but notification from every cache instance will go\n            to its own individual purchase service instance, which would directly update the same cache instance. Cache Instance to Purchase Service instance (1:1)\n     2. If we shard by user_id, we won't have any idea where total count of item_id resides. Hence not a good idea.\n    \n   ",
       "fontSize": 36,
       "fontFamily": 6,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "Amazon Locker/Amazon Shopping/Booking a seat for a movie/event - Availability of items and place order with strong consistency\n\nFunctional Requirements\n  1. Customers should be able to search for an item\n  2. Customers should be able to add multiple items to the cart.\n  3. Customers should be able to purchase their cart.\n  4. Other customers should be able to view updated inventory\n\nNon-Functional Requirements \n   1. Strong consistency such that once an item is in cart, other customers could see updated inventory.\n   2. Customers should be able to purchase the item without any latency overhead (< 500ms)\n   3. Search latency should be low (< 500ms)\n\n\nSystem Interface/ API Contracts\n\n1. SEARCH AN ITEM\nGET /Search?searchTerm={}&location={}\nRESPONSE:\n{\n   Body: List<Items>\n   Status:\n}\n\n2. VIEW AN ITEM\nGET /Item/<ItemId>\n\nRESPONSE:\n{\n   Body: \n   {\n         name: string\n         description: string\n         imageURL: string\n         count: int\n         price: double\n    }\n   Status:\n}\n\n3. ADD AN ITEM TO CART\nPOST /AddToCart\n        headers {Token for authentication}\n        Body \n        {\n            ItemId: string\n            ItemCount: int\n            Timestamp: int\n        }\n\nResponse\n{\n   cartId\n   Status\n}\n\n4. ADD MULTIPLE ITEMS TO CART\nPUT /AddToCart/<CartId>\n        headers {Token for authentication}\n        Body \n        {\n            ItemId: string\n            ItemCount: int\n            Timestamp: int\n        }\n\nResponse\n{\n   cartId\n   Status\n}\n\n5. PURCHASE CART\nPOST /Purchase\n        headers {Token for authentication}\n        Body \n        {\n            cartId: string\n            paymentDetails: <>\n        }\n\nResponse\n{\n   transactionId\n   Status\n}\n\nData Flow for use-cases \n\n1. Customers view an item \n    1. Client make a GET request to Catalog Service, which searches the item in the database and return the response.\n    2. Asynchronously, it can write <item_id>:<count> to the distributed cache\n\n2. Customer searches for an item\n   1. Client make a GET request to Search Service.\n   2. Whenever an item is added to the database, \n       the name and description is propagated to Elastic search database in an eventual consistent manner\n       via Capture Data Change (I don't know the concept) or stream of events (Kinesis + SNS + SQS)\n\n3. User1 and User 3 adds the same item to the cart\n   1. When there is no cart, 'Add to Item Cart' service will first create a cart for the user. At one time, only one cart can exist for the user\n   2. Say item1 has 10 counts and User1 add 3 of item1 to the cart.\n   3. 'AddItemToCart' service will check if '<item_id>:10' key exists in the cache. If not, it will query the database and create a cache key.\n   4. Post that, it will create a '<reserve_user_id_item_id>:3' and update the <item_id>:7. The reserve key will have a TTL of 10 minutes.\n           a. Step3 and Step4 are atomic operations. They need to be executed together.\n   5. Once the reserve key is set, 'AddItemToCart' service can create a new record in CART table.\n   6. Now, when user2 or user3 makes a request to CatalogService, it will check if an item exists in the distributed cache. If yes, it will\n       query '<item_id>' and return. If no, query the database. \n   7. Since Step3 and Step4 are atomic, both the servers will try to make a request to the cache. Since the cache is single threaded,\n        the request will be processed synchronously.\n   8. Now after 10 minutes if the User1 purchases the cart, the 'PurchaseService' validate the payment via Stripe Service and on ack, \n       it will delete the <reserver_user_id_item_id> key from Redis and update the user. Asynchronously, it can update the CART table\n       with status:Succeeded.\n   9. [Explicit Deletion] If User2 deletes the cart, the 'PurchaseService' will delete the <reserver_user_id_item_id> key from Redis and update the user. \n       Asynchronously, it can update the CART table with status:Deleted.\n 10. [Implicit Deletion]If User3 abandons the cart, the TTL will expire and 'PurchaseService' can act as a listener to event deleted via TTL and then update\n       <item_id> with the value of <reserver_user_id_item_id>\n 11. Distributed Cache is the source of truth.\n\n\nSharding of Cache - \n     1. We should proceed to shard the cache by 'item_id'. Because all the reservation from all the users regarding the same item lives in the same \n          cache instance. \n              a. In case the all the users decides to abandon the cart because of the same item, the event from TTL will need to update that instance of the cache.\n              b. If few users decides to abandon their cart, multiple instances of the cache will get invalidated but notification from every cache instance will go\n                  to its own individual purchase service instance, which would directly update the same cache instance.\n             c. Cache Instance to Purchase Service instance (1:1)\n     2. If we shard by user_id, we won't have any idea where total count of item_id resides. Hence not a good idea.\n    \n   ",
+      "originalText": "Amazon Locker/Amazon Shopping/Booking a seat for a movie/event - Availability of items and place order with strong consistency\n\nFunctional Requirements\n  1. Customers should be able to search for an item\n  2. Customers should be able to add multiple items to the cart.\n  3. Customers should be able to purchase their cart.\n  4. Other customers should be able to view updated inventory\n\nNon-Functional Requirements \n   1. Strong consistency such that once an item is in cart, other customers could see updated inventory.\n   2. Customers should be able to purchase the item without any latency overhead (< 500ms)\n   3. Search latency should be low (< 500ms)\n\n\nSystem Interface/ API Contracts\n\n1. SEARCH AN ITEM\nGET /Search?searchTerm={}&location={}\nRESPONSE:\n{\n   Body: List<Items>\n   Status:\n}\n\n2. VIEW AN ITEM\nGET /Item/<ItemId>\n\nRESPONSE:\n{\n   Body: \n   {\n         name: string\n         description: string\n         imageURL: string\n         count: int\n         price: double\n    }\n   Status:\n}\n\n3. ADD AN ITEM TO CART\nPOST /AddToCart\n        headers {Token for authentication}\n        Body \n        {\n            ItemId: string\n            ItemCount: int\n            Timestamp: int\n        }\n\nResponse\n{\n   cartId\n   Status\n}\n\n4. ADD MULTIPLE ITEMS TO CART\nPUT /AddToCart/<CartId>\n        headers {Token for authentication}\n        Body \n        {\n            ItemId: string\n            ItemCount: int\n            Timestamp: int\n        }\n\nResponse\n{\n   cartId\n   Status\n}\n\n5. PURCHASE CART\nPOST /Purchase\n        headers {Token for authentication}\n        Body \n        {\n            cartId: string\n            paymentDetails: <>\n        }\n\nResponse\n{\n   transactionId\n   Status\n}\n\nData Flow for use-cases \n\n1. Customers view an item \n    1. Client make a GET request to Catalog Service, which searches the item in the database and return the response.\n    2. Asynchronously, it can write <item_id>:<count> to the distributed cache\n\n2. Customer searches for an item\n   1. Client make a GET request to Search Service.\n   2. Whenever an item is added to the database, the name and description is propagated to Elastic search database \n       in an eventual consistent manner via Capture Data Change (Kinesis + Event Bridge + SQS)\n\n3. User1 and User3 adds the same item to the cart - \n    1. We can have 2 strategies - (1) Maintaining total Items count and user cart reservation status in database or (2) maintaining\n         the same in cache and then asynchronously writing to the database.\n    2. Let's evaluate contention - \n          a. If we only use database and <total_item> for a product is 1 and 2 users hit 'Add to Cart', we can use optimistic/pessimistic locking \n              (database transaction/version control) to lock the row and first read the total item for the product and if it is > 1, then update the \n              User's Cart with itemId, quantity and status: Reserved. \n          b. The 2nd user will be waiting as the current row is locked. Once the row is unlocked, the 2nd user will also check if the total item > 1\n              and in his case, it will return as false and it will return \"Try again\".\n          c. On the other hand, if we use Redis as a distributed_lock, we can have <total_items>: 1 as a key/value pair. The client can make \n              an atomic call to check if the total_items > 1 and if yes, create a new key/value pair <reserve_userId_itemId>: 1. Now if the 2nd user\n              is waiting for the Redis to accept the call, it will see <total_items> as 0 and hence return \"Try again\".\n          d. So, once a request is successful by Redis, the server should asynchronously write to the database.\n          e. So, contention can be resolved using database as well as distributed lock.\n    3. Let's evaluate explicit deletion -\n         a. If we use database, multiple users wants to delete their cart having the same item. In such scenarios, the client can write transaction\n             with optimistic locking to delete the user's cart, lock the Item row and update the totalItems += cart.quantity. In this way, every call will\n             wait for the row to be unlocked.\n         b. Similarly, if we use Redis as distributed_lock, we have to remove the reservation_key, update the \"total_items\" and then repeat Step #a.\n         c. So, in terms of distributed lock, there is an extra step.\n     4. Let's evaluate cart reservation expiry -\n         a. For database, we need something like TTL notification feature (DynamoDB has the feature) for which if the customer hasn't acted for like \n             10 minutes, we will follow the procedure of \"Explicit Deletion\".\n         b. On the other hand, Redis has TTL notification feature, firing of which, the server can listen to and follow the procedure of \"Explicit Deletion\"\n    5. Let's evaluate cart confirmation - \n        a. If we use database, we mark the status of USER's CART as confirmed and thats it. We don't need to modify TotalItems in ITEM.\n        b. If we use cache, we can explicitly delete the \"<reserve_userId_itemId>\" key and then proceed to update the database with Step #a.\n    6. Now, the only reason I can think of having distributed_lock over database is throughput. If the number of calls to \"Add Item to Cart\"\n        is exceeding like 30K/40K TPS, we need cache to avoid database getting bottlnecked.\n\n4. GET call for Catalog Service will modify if we proceed with Redis as distributed lock.\n    a. Consider throughput is the challenge and we spin up a Redis as distributed lock. \n    b. Since we require strong consistency in viewing the inventory, the CatalogService will first need to query the database to retrieve\n        the item metadata from the ITEM table and then cross-verify from totalItems metadata from the cache and then return to the user.\n\n\n\nSharding of Cache - \n     1. We should proceed to shard the cache by 'item_id'. Because all the reservation from all the users regarding the \"same item\" lives in the same \n          cache instance. \n        a. In case, all the users decides to abandon the cart because of the \"same item\", the TTL notification from the cache will require to update that cache only.\n        b. If few users decides to abandon their cart, multiple instances of the cache will get invalidated but notification from every cache instance will go\n            to its own individual purchase service instance, which would directly update the same cache instance. Cache Instance to Purchase Service instance (1:1)\n     2. If we shard by user_id, we won't have any idea where total count of item_id resides. Hence not a good idea.\n    \n   ",
       "autoResize": true,
       "lineHeight": 1.25
     },
     {
       "id": "CZvpCfLmI-WBVlw0wAhqm",
       "type": "ellipse",
-      "x": 144.25850161752714,
-      "y": 2544.0313414755574,
+      "x": 91.73017907896792,
+      "y": 3236.6722456467946,
       "width": 83.83838383838383,
       "height": 205,
       "angle": 0,
@@ -62,8 +62,8 @@
         "type": 2
       },
       "seed": 1365619681,
-      "version": 262,
-      "versionNonce": 1209937844,
+      "version": 305,
+      "versionNonce": 1684778069,
       "isDeleted": false,
       "boundElements": [
         {
@@ -75,15 +75,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1763948462749,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "IJ-OD0d6tGnRNei1pn8YZ",
       "type": "text",
-      "x": 164.90301546262137,
-      "y": 2621.5528964039363,
+      "x": 112.37469292406215,
+      "y": 3314.1938005751736,
       "width": 42.266666412353516,
       "height": 50,
       "angle": 0,
@@ -99,11 +99,11 @@
       "index": "b3mV",
       "roundness": null,
       "seed": 196541807,
-      "version": 231,
-      "versionNonce": 1235622196,
+      "version": 274,
+      "versionNonce": 1329420725,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763948462749,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "User\n1",
@@ -119,8 +119,8 @@
     {
       "id": "GFD_jyYTdwEQtEYpeNfxS",
       "type": "ellipse",
-      "x": 145.72727272727275,
-      "y": 2758.878787878781,
+      "x": 93.19895018871352,
+      "y": 3451.5196920500184,
       "width": 83.83838383838383,
       "height": 205,
       "angle": 0,
@@ -138,8 +138,8 @@
         "type": 2
       },
       "seed": 1677974721,
-      "version": 144,
-      "versionNonce": 1493749516,
+      "version": 187,
+      "versionNonce": 1110596373,
       "isDeleted": false,
       "boundElements": [
         {
@@ -151,15 +151,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1763947529618,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "n_IOhfrznARfLW9L3pldN",
       "type": "text",
-      "x": 166.37178657236697,
-      "y": 2836.40034280716,
+      "x": 113.84346403380775,
+      "y": 3529.0412469783973,
       "width": 42.266666412353516,
       "height": 50,
       "angle": 0,
@@ -175,11 +175,11 @@
       "index": "b3nV",
       "roundness": null,
       "seed": 399178127,
-      "version": 17,
-      "versionNonce": 1457921932,
+      "version": 60,
+      "versionNonce": 96481397,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "User\n2",
@@ -195,8 +195,8 @@
     {
       "id": "t5svsxDYywuqMvwGiClyZ",
       "type": "ellipse",
-      "x": 146.73737373737373,
-      "y": 3013.4242424242366,
+      "x": 94.2090511988145,
+      "y": 3706.065146595474,
       "width": 83.83838383838383,
       "height": 205,
       "angle": 0,
@@ -214,8 +214,8 @@
         "type": 2
       },
       "seed": 799500257,
-      "version": 179,
-      "versionNonce": 1432165044,
+      "version": 222,
+      "versionNonce": 934042069,
       "isDeleted": false,
       "boundElements": [
         {
@@ -227,15 +227,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1763947529619,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "7TVvhEMBRM1ib0hekDSxx",
       "type": "text",
-      "x": 164.7652207886447,
-      "y": 3090.9457973526155,
+      "x": 112.23689825008549,
+      "y": 3783.5867015238528,
       "width": 47.5,
       "height": 50,
       "angle": 0,
@@ -251,11 +251,11 @@
       "index": "b3p",
       "roundness": null,
       "seed": 1147104577,
-      "version": 18,
-      "versionNonce": 1024092340,
+      "version": 61,
+      "versionNonce": 554456885,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "User \n3",
@@ -271,8 +271,8 @@
     {
       "id": "sQGHSkPttisKgdQ68geCQ",
       "type": "rectangle",
-      "x": 337.1414141414141,
-      "y": 2695.7474747474694,
+      "x": 284.61309160285487,
+      "y": 3388.3883789187066,
       "width": 89.89898989898987,
       "height": 209.090909090909,
       "angle": 0,
@@ -290,8 +290,8 @@
         "type": 3
       },
       "seed": 1820766959,
-      "version": 131,
-      "versionNonce": 1937972815,
+      "version": 174,
+      "versionNonce": 1279633557,
       "isDeleted": false,
       "boundElements": [
         {
@@ -327,15 +327,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1739696798737,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "GMXkAz3xwPxZrzlVC-inL",
       "type": "text",
-      "x": 346.5742426785555,
-      "y": 2775.292929292924,
+      "x": 294.04592013999627,
+      "y": 3467.933833464161,
       "width": 71.03333282470703,
       "height": 50,
       "angle": 0,
@@ -351,11 +351,11 @@
       "index": "b3r",
       "roundness": null,
       "seed": 756333569,
-      "version": 98,
-      "versionNonce": 1845967628,
+      "version": 141,
+      "versionNonce": 1527631349,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "Routing\nService",
@@ -371,8 +371,8 @@
     {
       "id": "bwXleVDja9GvLl3HOUloz",
       "type": "rectangle",
-      "x": 867.4444444444445,
-      "y": 2873.525252525247,
+      "x": 814.9161219058852,
+      "y": 3566.1661566964844,
       "width": 196.969696969697,
       "height": 145,
       "angle": 0,
@@ -390,8 +390,8 @@
         "type": 3
       },
       "seed": 1568187169,
-      "version": 541,
-      "versionNonce": 1411257740,
+      "version": 585,
+      "versionNonce": 1934905179,
       "isDeleted": false,
       "boundElements": [
         {
@@ -401,17 +401,21 @@
         {
           "id": "xLkkoiDPxQB97_Mtu3Lnk",
           "type": "arrow"
+        },
+        {
+          "id": "dfIMPI20FUDstdWIT2XiA",
+          "type": "arrow"
         }
       ],
-      "updated": 1763951315195,
+      "updated": 1771972588758,
       "link": null,
       "locked": false
     },
     {
       "id": "3fjWHTt_NHMHXcimkVz3u",
       "type": "text",
-      "x": 887.7959616304648,
-      "y": 2921.025252525247,
+      "x": 835.2676390919056,
+      "y": 3613.6661566964844,
       "width": 156.26666259765625,
       "height": 50,
       "angle": 0,
@@ -427,11 +431,11 @@
       "index": "b3t",
       "roundness": null,
       "seed": 926500303,
-      "version": 442,
-      "versionNonce": 1266365748,
+      "version": 485,
+      "versionNonce": 1655739573,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "Add Item to Cart \nService",
@@ -447,8 +451,8 @@
     {
       "id": "rMM0uMmaIbX80ue-zvKwA",
       "type": "rectangle",
-      "x": 881.0808080808081,
-      "y": 3076.050505050504,
+      "x": 828.5524855422489,
+      "y": 3768.691409221741,
       "width": 196.969696969697,
       "height": 100,
       "angle": 0,
@@ -466,8 +470,8 @@
         "type": 3
       },
       "seed": 464159521,
-      "version": 606,
-      "versionNonce": 1750904116,
+      "version": 650,
+      "versionNonce": 1087481467,
       "isDeleted": false,
       "boundElements": [
         {
@@ -481,17 +485,21 @@
         {
           "id": "cGmr-3at9EXPR7d_Y1Tz4",
           "type": "arrow"
+        },
+        {
+          "id": "iiMrD9nL1swNsI14zO1u7",
+          "type": "arrow"
         }
       ],
-      "updated": 1763951318959,
+      "updated": 1771972596941,
       "link": null,
       "locked": false
     },
     {
       "id": "i0tlMrNt47Dlz-LMwnA-R",
       "type": "text",
-      "x": 938.1656550397777,
-      "y": 3101.050505050504,
+      "x": 885.6373325012185,
+      "y": 3793.691409221741,
       "width": 82.80000305175781,
       "height": 50,
       "angle": 0,
@@ -507,11 +515,11 @@
       "index": "b3v",
       "roundness": null,
       "seed": 1351579393,
-      "version": 509,
-      "versionNonce": 178521740,
+      "version": 552,
+      "versionNonce": 467708789,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "Purchase\nService",
@@ -527,8 +535,8 @@
     {
       "id": "-5MkNVJMigN4fqjOMHt_I",
       "type": "rectangle",
-      "x": 887.141414141414,
-      "y": 3265.9494949494956,
+      "x": 834.6130916028548,
+      "y": 3958.590399120733,
       "width": 196.969696969697,
       "height": 91.91919191919169,
       "angle": 0,
@@ -546,8 +554,8 @@
         "type": 3
       },
       "seed": 1144226625,
-      "version": 403,
-      "versionNonce": 898621313,
+      "version": 446,
+      "versionNonce": 1241871573,
       "isDeleted": false,
       "boundElements": [
         {
@@ -559,15 +567,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1739693882228,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "yA02wpOQdTbEImkFcPI-h",
       "type": "text",
-      "x": 956.392929038616,
-      "y": 3299.4090909090914,
+      "x": 903.8646065000568,
+      "y": 3992.0499950803287,
       "width": 58.46666717529297,
       "height": 25,
       "angle": 0,
@@ -583,11 +591,11 @@
       "index": "b3x",
       "roundness": null,
       "seed": 1547924257,
-      "version": 316,
-      "versionNonce": 454776865,
+      "version": 359,
+      "versionNonce": 1602884149,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1739693870245,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "Stripe",
@@ -603,8 +611,8 @@
     {
       "id": "I8EDAAebRglEBhV-C6FrC",
       "type": "ellipse",
-      "x": 1531.4276127256085,
-      "y": 3000.508056554975,
+      "x": 1478.8992901870492,
+      "y": 3693.1489607262124,
       "width": 168.87758253479743,
       "height": 140.03431113162287,
       "angle": 0,
@@ -622,8 +630,8 @@
         "type": 2
       },
       "seed": 981245519,
-      "version": 597,
-      "versionNonce": 1666314292,
+      "version": 640,
+      "versionNonce": 156500885,
       "isDeleted": false,
       "boundElements": [
         {
@@ -643,15 +651,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1763951318959,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "5GFPAfKtfXvcJ8yyo0fiD",
       "type": "text",
-      "x": 1588.0424952988108,
-      "y": 3058.015606620808,
+      "x": 1535.5141727602515,
+      "y": 3750.656510792045,
       "width": 55.233333587646484,
       "height": 25,
       "angle": 0,
@@ -667,11 +675,11 @@
       "index": "b3z",
       "roundness": null,
       "seed": 1208697455,
-      "version": 535,
-      "versionNonce": 1949508236,
+      "version": 578,
+      "versionNonce": 999868661,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763950567453,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "Cache",
@@ -687,8 +695,8 @@
     {
       "id": "eyB8-dFn7udGduCysuadj",
       "type": "rectangle",
-      "x": 868.959595959596,
-      "y": 2653.8282828282845,
+      "x": 816.4312734210367,
+      "y": 3346.4691869995218,
       "width": 196.969696969697,
       "height": 100,
       "angle": 0,
@@ -706,8 +714,8 @@
         "type": 3
       },
       "seed": 1952257455,
-      "version": 751,
-      "versionNonce": 399583628,
+      "version": 794,
+      "versionNonce": 1205723733,
       "isDeleted": false,
       "boundElements": [
         {
@@ -723,15 +731,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1763951310300,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "XgwSRC6HVhUV5Ye3iKjOh",
       "type": "text",
-      "x": 896.6277787950304,
-      "y": 2691.3282828282845,
+      "x": 844.0994562564712,
+      "y": 3383.9691869995218,
       "width": 141.63333129882812,
       "height": 25,
       "angle": 0,
@@ -747,11 +755,11 @@
       "index": "b41",
       "roundness": null,
       "seed": 1655474127,
-      "version": 664,
-      "versionNonce": 1612349964,
+      "version": 707,
+      "versionNonce": 855166901,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "Catalog Service",
@@ -767,8 +775,8 @@
     {
       "id": "7f6kK0Qu2E8TByhHrzlsB",
       "type": "rectangle",
-      "x": 869.969696969697,
-      "y": 2350.7979797979847,
+      "x": 817.4413744311378,
+      "y": 3043.438883969222,
       "width": 196.969696969697,
       "height": 100,
       "angle": 0,
@@ -786,8 +794,8 @@
         "type": 3
       },
       "seed": 1080691247,
-      "version": 831,
-      "versionNonce": 1111003060,
+      "version": 874,
+      "versionNonce": 1259278613,
       "isDeleted": false,
       "boundElements": [
         {
@@ -799,15 +807,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1763947529619,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "e3ujWtubJJs2pGag4r-CG",
       "type": "text",
-      "x": 902.1378798051314,
-      "y": 2388.2979797979847,
+      "x": 849.6095572665722,
+      "y": 3080.938883969222,
       "width": 132.63333129882812,
       "height": 25,
       "angle": 0,
@@ -823,11 +831,11 @@
       "index": "b43",
       "roundness": null,
       "seed": 2049371215,
-      "version": 756,
-      "versionNonce": 996589108,
+      "version": 799,
+      "versionNonce": 2106992245,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "Search Service",
@@ -843,8 +851,8 @@
     {
       "id": "PYrCcVCswz_vx9g8zynit",
       "type": "arrow",
-      "x": 981.5858585858587,
-      "y": 3170.494949494954,
+      "x": 929.0575360472994,
+      "y": 3863.1358536661915,
       "width": 3.0303030303030027,
       "height": 96.969696969697,
       "angle": 0,
@@ -862,11 +870,11 @@
         "type": 2
       },
       "seed": 2052821263,
-      "version": 58,
-      "versionNonce": 1320024993,
+      "version": 101,
+      "versionNonce": 1834192853,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1739693882227,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -881,16 +889,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "inside",
         "elementId": "rMM0uMmaIbX80ue-zvKwA",
+        "mode": "inside",
         "fixedPoint": [
           0.5102564102564106,
           0.9444444444445026
         ]
       },
       "endBinding": {
-        "mode": "inside",
         "elementId": "-5MkNVJMigN4fqjOMHt_I",
+        "mode": "inside",
         "fixedPoint": [
           0.4948717948717959,
           0.0164835164835609
@@ -903,8 +911,8 @@
     {
       "id": "Hn-1NBp8j3RGYp0Ti-XTz",
       "type": "rectangle",
-      "x": 829.5656565656565,
-      "y": 2334.636363636368,
+      "x": 777.0373340270972,
+      "y": 3027.2772678076053,
       "width": 207.07070707070716,
       "height": 81.81818181818198,
       "angle": 0,
@@ -922,19 +930,19 @@
         "type": 3
       },
       "seed": 1634822817,
-      "version": 479,
-      "versionNonce": 1558998881,
+      "version": 522,
+      "versionNonce": 1214041397,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1739694134013,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "DXZ9_mY9631g2g5alDNVi",
       "type": "ellipse",
-      "x": 1519.969696969697,
-      "y": 2602.8181818181856,
+      "x": 1467.4413744311378,
+      "y": 3295.459085989423,
       "width": 158.58585858585843,
       "height": 175.75757575757552,
       "angle": 0,
@@ -952,8 +960,8 @@
         "type": 2
       },
       "seed": 672045647,
-      "version": 214,
-      "versionNonce": 1004408628,
+      "version": 259,
+      "versionNonce": 951326171,
       "isDeleted": false,
       "boundElements": [
         {
@@ -967,17 +975,25 @@
         {
           "id": "IqsPs71rHtnlHMB-8qTQ9",
           "type": "arrow"
+        },
+        {
+          "id": "dfIMPI20FUDstdWIT2XiA",
+          "type": "arrow"
+        },
+        {
+          "id": "iiMrD9nL1swNsI14zO1u7",
+          "type": "arrow"
         }
       ],
-      "updated": 1763950548988,
+      "updated": 1771972598536,
       "link": null,
       "locked": false
     },
     {
       "id": "OIeQ59mP9XpLTc1FelZRw",
       "type": "text",
-      "x": 1556.1107261976829,
-      "y": 2678.0572828654285,
+      "x": 1503.5824036591237,
+      "y": 3370.698187036666,
       "width": 86.16666412353516,
       "height": 25,
       "angle": 0,
@@ -993,11 +1009,11 @@
       "index": "b4A",
       "roundness": null,
       "seed": 172044783,
-      "version": 84,
-      "versionNonce": 914926988,
+      "version": 127,
+      "versionNonce": 1966654453,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "Database",
@@ -1013,8 +1029,8 @@
     {
       "id": "6ovMeioOw7K3bH6L56Vml",
       "type": "rectangle",
-      "x": 742.1919191919192,
-      "y": 2315.949494949499,
+      "x": 689.66359665336,
+      "y": 3008.590399120736,
       "width": 54.54545454545462,
       "height": 136.3636363636365,
       "angle": 0,
@@ -1032,8 +1048,8 @@
         "type": 3
       },
       "seed": 1706116833,
-      "version": 103,
-      "versionNonce": 1493982319,
+      "version": 146,
+      "versionNonce": 1640398165,
       "isDeleted": false,
       "boundElements": [
         {
@@ -1057,15 +1073,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1739696754414,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "ZVyLgdtfSGO1zbaRAXkEq",
       "type": "text",
-      "x": 757.1979800522929,
-      "y": 2371.6313131313173,
+      "x": 704.6696575137337,
+      "y": 3064.2722173025545,
       "width": 24.53333282470703,
       "height": 25,
       "angle": 0,
@@ -1081,11 +1097,11 @@
       "index": "b4C",
       "roundness": null,
       "seed": 1184104097,
-      "version": 44,
-      "versionNonce": 1051032244,
+      "version": 87,
+      "versionNonce": 1528171189,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "LB",
@@ -1101,8 +1117,8 @@
     {
       "id": "7A9rBIsVSY7QBzT4CkNnY",
       "type": "rectangle",
-      "x": 748.2525252525253,
-      "y": 2623.5252525252563,
+      "x": 695.7242027139661,
+      "y": 3316.1661566964935,
       "width": 54.54545454545462,
       "height": 136.3636363636365,
       "angle": 0,
@@ -1120,8 +1136,8 @@
         "type": 3
       },
       "seed": 30116559,
-      "version": 114,
-      "versionNonce": 506201263,
+      "version": 157,
+      "versionNonce": 298642453,
       "isDeleted": false,
       "boundElements": [
         {
@@ -1129,15 +1145,15 @@
           "id": "QWf9Mrqhu1OnuFds8nSWk"
         }
       ],
-      "updated": 1739693946567,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "QWf9Mrqhu1OnuFds8nSWk",
       "type": "text",
-      "x": 763.2585861128991,
-      "y": 2679.2070707070743,
+      "x": 710.7302635743399,
+      "y": 3371.8479748783116,
       "width": 24.53333282470703,
       "height": 25,
       "angle": 0,
@@ -1153,11 +1169,11 @@
       "index": "b4E",
       "roundness": null,
       "seed": 1624201455,
-      "version": 60,
-      "versionNonce": 583829772,
+      "version": 103,
+      "versionNonce": 98607477,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "LB",
@@ -1173,8 +1189,8 @@
     {
       "id": "VwxeBMPCtn1FPJfV5TBNO",
       "type": "rectangle",
-      "x": 748.2525252525251,
-      "y": 2623.5252525252563,
+      "x": 695.7242027139658,
+      "y": 3316.1661566964935,
       "width": 54.54545454545462,
       "height": 136.3636363636365,
       "angle": 0,
@@ -1192,8 +1208,8 @@
         "type": 3
       },
       "seed": 1470238049,
-      "version": 119,
-      "versionNonce": 343276545,
+      "version": 162,
+      "versionNonce": 479636181,
       "isDeleted": false,
       "boundElements": [
         {
@@ -1209,15 +1225,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1739694027991,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "oTQ3yNB5iyU3wX_-IxhuZ",
       "type": "text",
-      "x": 763.2585861128989,
-      "y": 2679.2070707070743,
+      "x": 710.7302635743397,
+      "y": 3371.8479748783116,
       "width": 24.53333282470703,
       "height": 25,
       "angle": 0,
@@ -1233,11 +1249,11 @@
       "index": "b4G",
       "roundness": null,
       "seed": 832289089,
-      "version": 64,
-      "versionNonce": 559384372,
+      "version": 107,
+      "versionNonce": 1988397109,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "LB",
@@ -1253,8 +1269,8 @@
     {
       "id": "HFDeMTFxZSYPL0I91KXIF",
       "type": "rectangle",
-      "x": 748.2525252525254,
-      "y": 2846.757575757579,
+      "x": 695.7242027139662,
+      "y": 3539.3984799288164,
       "width": 54.54545454545462,
       "height": 136.3636363636365,
       "angle": 0,
@@ -1272,8 +1288,8 @@
         "type": 3
       },
       "seed": 167384193,
-      "version": 186,
-      "versionNonce": 358591919,
+      "version": 229,
+      "versionNonce": 93305237,
       "isDeleted": false,
       "boundElements": [
         {
@@ -1289,15 +1305,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1739694320525,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "DJv9W3dbTAco5QmLLqK4I",
       "type": "text",
-      "x": 763.2585861128991,
-      "y": 2902.4393939393976,
+      "x": 710.7302635743399,
+      "y": 3595.080298110635,
       "width": 24.53333282470703,
       "height": 25,
       "angle": 0,
@@ -1313,11 +1329,11 @@
       "index": "b4I",
       "roundness": null,
       "seed": 1705368673,
-      "version": 132,
-      "versionNonce": 1048843404,
+      "version": 175,
+      "versionNonce": 1659748085,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "LB",
@@ -1333,8 +1349,8 @@
     {
       "id": "dpqAs4PLgmMORdLKw8nRL",
       "type": "rectangle",
-      "x": 752.2929292929292,
-      "y": 3048.7777777777824,
+      "x": 699.76460675437,
+      "y": 3741.4186819490196,
       "width": 54.54545454545462,
       "height": 136.3636363636365,
       "angle": 0,
@@ -1352,8 +1368,8 @@
         "type": 3
       },
       "seed": 1214795681,
-      "version": 263,
-      "versionNonce": 956215471,
+      "version": 306,
+      "versionNonce": 1696864341,
       "isDeleted": false,
       "boundElements": [
         {
@@ -1369,15 +1385,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1739696165106,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "XpkTACtCjYqRGkbEU9pxi",
       "type": "text",
-      "x": 767.2989901533031,
-      "y": 3104.459595959601,
+      "x": 714.7706676147438,
+      "y": 3797.100500130838,
       "width": 24.53333282470703,
       "height": 25,
       "angle": 0,
@@ -1393,11 +1409,11 @@
       "index": "b4K",
       "roundness": null,
       "seed": 752857985,
-      "version": 210,
-      "versionNonce": 41870260,
+      "version": 253,
+      "versionNonce": 1980253621,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "LB",
@@ -1413,8 +1429,8 @@
     {
       "id": "Jemsd-egNRtp5UpEmuA42",
       "type": "arrow",
-      "x": 796.7373737373738,
-      "y": 2388.6767676767718,
+      "x": 744.2090511988146,
+      "y": 3081.317671848009,
       "width": 69.69696969696986,
       "height": 2.0202020202018502,
       "angle": 0,
@@ -1432,11 +1448,11 @@
         "type": 2
       },
       "seed": 1320244239,
-      "version": 206,
-      "versionNonce": 861341569,
+      "version": 249,
+      "versionNonce": 683656981,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1739694134013,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -1451,8 +1467,8 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "6ovMeioOw7K3bH6L56Vml",
+        "mode": "orbit",
         "fixedPoint": [
           0.5386819484240677,
           0.5386819484240709
@@ -1466,8 +1482,8 @@
     {
       "id": "BcR0FGUwJzURydOJpM7JC",
       "type": "arrow",
-      "x": 802.7979797979798,
-      "y": 2696.7575757575796,
+      "x": 750.2696572594206,
+      "y": 3389.398479928817,
       "width": 61.61616161616155,
       "height": 2.0202020202018502,
       "angle": 0,
@@ -1485,11 +1501,11 @@
         "type": 2
       },
       "seed": 369155553,
-      "version": 60,
-      "versionNonce": 1120881420,
+      "version": 103,
+      "versionNonce": 264248437,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763948422503,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -1504,8 +1520,8 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "VwxeBMPCtn1FPJfV5TBNO",
+        "mode": "orbit",
         "fixedPoint": [
           0.5308847053033117,
           0.5308847053033094
@@ -1519,8 +1535,8 @@
     {
       "id": "qLk_cnpV0D38aWDHXFas5",
       "type": "arrow",
-      "x": 803.79797979798,
-      "y": 2916.102742597294,
+      "x": 751.2696572594208,
+      "y": 3608.743646768531,
       "width": 37.89898989898961,
       "height": 0.20253088218532866,
       "angle": 0,
@@ -1538,11 +1554,11 @@
         "type": 2
       },
       "seed": 692223535,
-      "version": 126,
-      "versionNonce": 2137145780,
+      "version": 169,
+      "versionNonce": 1389282773,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763948424282,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -1557,8 +1573,8 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "HFDeMTFxZSYPL0I91KXIF",
+        "mode": "orbit",
         "fixedPoint": [
           0.5074391431871539,
           0.5074391431871483
@@ -1572,8 +1588,8 @@
     {
       "id": "5R0u2IAgTIOfPVD1Bi0E7",
       "type": "arrow",
-      "x": 806.8383838383838,
-      "y": 3135.141414141418,
+      "x": 754.3100612998246,
+      "y": 3827.782318312655,
       "width": 74.74747474747483,
       "height": 2.020202020202305,
       "angle": 0,
@@ -1591,11 +1607,11 @@
         "type": 2
       },
       "seed": 1099679425,
-      "version": 48,
-      "versionNonce": 1502638220,
+      "version": 91,
+      "versionNonce": 83968821,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763948425574,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -1610,8 +1626,8 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "dpqAs4PLgmMORdLKw8nRL",
+        "mode": "orbit",
         "fixedPoint": [
           0.637254901960777,
           0.6372549019607744
@@ -1625,8 +1641,8 @@
     {
       "id": "Pk8zzyCyltZnZPROnAzMR",
       "type": "arrow",
-      "x": 427.0404040404046,
-      "y": 2712.919191919197,
+      "x": 374.5120815018454,
+      "y": 3405.5600960904344,
       "width": 318.18181818181824,
       "height": 2.020202020202305,
       "angle": 0,
@@ -1644,11 +1660,11 @@
         "type": 2
       },
       "seed": 1518274721,
-      "version": 133,
-      "versionNonce": 322807841,
+      "version": 176,
+      "versionNonce": 985470101,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1739694027991,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -1663,16 +1679,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "sQGHSkPttisKgdQ68geCQ",
+        "mode": "orbit",
         "fixedPoint": [
           0.9176495917080087,
           0.08235040829199379
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "VwxeBMPCtn1FPJfV5TBNO",
+        "mode": "orbit",
         "fixedPoint": [
           0.3603154395643195,
           0.6396845604356829
@@ -1685,8 +1701,8 @@
     {
       "id": "li5a8YI7q0p1AeBhAeug2",
       "type": "text",
-      "x": 1719.9696969696975,
-      "y": 2607.8686868686927,
+      "x": 1667.4413744311382,
+      "y": 3300.50959103993,
       "width": 118.63333129882812,
       "height": 150,
       "angle": 0,
@@ -1702,11 +1718,11 @@
       "index": "b4Q",
       "roundness": null,
       "seed": 1135349665,
-      "version": 184,
-      "versionNonce": 1095114164,
+      "version": 227,
+      "versionNonce": 1605876213,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947706899,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "Item\n   id\n   name \n   Description\n    imageURL\n    count",
@@ -1722,8 +1738,8 @@
     {
       "id": "2wsoOzVV7-QYFdu6OBDh1",
       "type": "arrow",
-      "x": 1068.454545454546,
-      "y": 2705.84848484849,
+      "x": 1015.9262229159867,
+      "y": 3398.4893890197272,
       "width": 449.49494949494965,
       "height": 9.090909090909008,
       "angle": 0,
@@ -1741,11 +1757,11 @@
         "type": 2
       },
       "seed": 1943983585,
-      "version": 74,
-      "versionNonce": 1043900783,
+      "version": 117,
+      "versionNonce": 1291236181,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1739694118516,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -1760,16 +1776,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "eyB8-dFn7udGduCysuadj",
+        "mode": "orbit",
         "fixedPoint": [
           0.5390744378956908,
           0.539074437895697
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "DXZ9_mY9631g2g5alDNVi",
+        "mode": "orbit",
         "fixedPoint": [
           0.5001,
           0.5251259201859848
@@ -1782,8 +1798,8 @@
     {
       "id": "X1URyddSWmXbh-MgAQobi",
       "type": "ellipse",
-      "x": 1506.3333333333344,
-      "y": 2292.7171717171755,
+      "x": 1453.8050107947752,
+      "y": 2985.3580758884127,
       "width": 158.58585858585843,
       "height": 269,
       "angle": 0,
@@ -1801,8 +1817,8 @@
         "type": 2
       },
       "seed": 647400321,
-      "version": 494,
-      "versionNonce": 738185484,
+      "version": 537,
+      "versionNonce": 516915381,
       "isDeleted": false,
       "boundElements": [
         {
@@ -1818,15 +1834,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1763948450798,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "yie79-be_wGJi4GnrNusk",
       "type": "text",
-      "x": 1554.7576953860273,
-      "y": 2402.1113096475847,
+      "x": 1502.229372847468,
+      "y": 3094.752213818822,
       "width": 61.599998474121094,
       "height": 50,
       "angle": 0,
@@ -1842,11 +1858,11 @@
       "index": "b4W",
       "roundness": null,
       "seed": 1167815521,
-      "version": 382,
-      "versionNonce": 802089484,
+      "version": 425,
+      "versionNonce": 1256694293,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "Elastic\nSearch",
@@ -1862,8 +1878,8 @@
     {
       "id": "dv_jL7PjRFhn1k4c2BR1X",
       "type": "arrow",
-      "x": 1068.4545454545469,
-      "y": 2386.6565656565685,
+      "x": 1015.9262229159876,
+      "y": 3079.297469827806,
       "width": 436.36363636363626,
       "height": 9.090909090909008,
       "angle": 0,
@@ -1881,11 +1897,11 @@
         "type": 2
       },
       "seed": 374470831,
-      "version": 70,
-      "versionNonce": 903266625,
+      "version": 113,
+      "versionNonce": 1983158133,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1739694291824,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -1900,16 +1916,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "7f6kK0Qu2E8TByhHrzlsB",
+        "mode": "orbit",
         "fixedPoint": [
           0.6257406188281938,
           0.3742593811718098
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "X1URyddSWmXbh-MgAQobi",
+        "mode": "orbit",
         "fixedPoint": [
           0.5001,
           0.30916350618952587
@@ -1922,8 +1938,8 @@
     {
       "id": "LtwAVr4_llGGJGTJoxLAQ",
       "type": "arrow",
-      "x": 399.767676767678,
-      "y": 2694.7373737373764,
+      "x": 347.23935422911876,
+      "y": 3387.3782779086137,
       "width": 337.37373737373736,
       "height": 266.6666666666665,
       "angle": 0,
@@ -1941,11 +1957,11 @@
         "type": 2
       },
       "seed": 682321807,
-      "version": 71,
-      "versionNonce": 645288495,
+      "version": 114,
+      "versionNonce": 184279253,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1739694297211,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -1960,16 +1976,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "sQGHSkPttisKgdQ68geCQ",
+        "mode": "orbit",
         "fixedPoint": [
           0.1730897942440487,
           0.17308979424404586
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "6ovMeioOw7K3bH6L56Vml",
+        "mode": "orbit",
         "fixedPoint": [
           0.30278264253746384,
           0.6972173574625373
@@ -1982,8 +1998,8 @@
     {
       "id": "Ylbg2wuA0Z4GU5IixVJq-",
       "type": "arrow",
-      "x": 428.05050505050633,
-      "y": 2847.2626262626254,
+      "x": 375.5221825119471,
+      "y": 3539.9035304338627,
       "width": 318.18181818181813,
       "height": 80.80808080808083,
       "angle": 0,
@@ -2001,11 +2017,11 @@
         "type": 2
       },
       "seed": 1982265953,
-      "version": 84,
-      "versionNonce": 16217999,
+      "version": 127,
+      "versionNonce": 248708661,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1739694320525,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -2020,16 +2036,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "sQGHSkPttisKgdQ68geCQ",
+        "mode": "orbit",
         "fixedPoint": [
           0.6895067573384062,
           0.6895067573384078
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "HFDeMTFxZSYPL0I91KXIF",
+        "mode": "orbit",
         "fixedPoint": [
           0.36305902444233984,
           0.6369409755576584
@@ -2042,8 +2058,8 @@
     {
       "id": "_KJYRWimbZfSOXbAs8EHj",
       "type": "text",
-      "x": 1903.8080808080817,
-      "y": 2593.7272727272757,
+      "x": 1851.2797582695225,
+      "y": 3286.368176898513,
       "width": 72.80000305175781,
       "height": 100,
       "angle": 0,
@@ -2059,11 +2075,11 @@
       "index": "b4c",
       "roundness": null,
       "seed": 244147663,
-      "version": 43,
-      "versionNonce": 593031092,
+      "version": 86,
+      "versionNonce": 949972885,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "User\n    id\n    name\n    cartId",
@@ -2079,10 +2095,10 @@
     {
       "id": "MQ35XQ1zkIq5-u6vsV9kv",
       "type": "text",
-      "x": 1737.5279301958876,
-      "y": 2777.0462455818006,
+      "x": 1684.9996076573284,
+      "y": 3469.687149753038,
       "width": 117.26667022705078,
-      "height": 125,
+      "height": 150,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "#ffffff",
@@ -2096,28 +2112,28 @@
       "index": "b4d",
       "roundness": null,
       "seed": 15231087,
-      "version": 272,
-      "versionNonce": 627859764,
+      "version": 327,
+      "versionNonce": 1184281845,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763951124882,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
-      "text": "Cart\n   id\n   itemId\n    timestamp\n    status",
+      "text": "Cart\n   id\n   itemId\n   quantity\n    timestamp\n    status",
       "fontSize": 20,
       "fontFamily": 6,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "Cart\n   id\n   itemId\n    timestamp\n    status",
+      "originalText": "Cart\n   id\n   itemId\n   quantity\n    timestamp\n    status",
       "autoResize": true,
       "lineHeight": 1.25
     },
     {
       "id": "n2eowhm-VOk9lWyHskG7W",
       "type": "arrow",
-      "x": 430.499575124114,
-      "y": 2848.0692468226543,
+      "x": 377.9712525855548,
+      "y": 3540.7101509938916,
       "width": 317.17658466519174,
       "height": 252.6084942154921,
       "angle": 0,
@@ -2135,11 +2151,11 @@
         "type": 2
       },
       "seed": 2068390465,
-      "version": 66,
-      "versionNonce": 351984271,
+      "version": 109,
+      "versionNonce": 339627605,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1739696165106,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -2154,16 +2170,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "sQGHSkPttisKgdQ68geCQ",
+        "mode": "orbit",
         "fixedPoint": [
           0.5670745944714556,
           0.5670745944714596
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "dpqAs4PLgmMORdLKw8nRL",
+        "mode": "orbit",
         "fixedPoint": [
           0.4493015123974218,
           0.5506984876025809
@@ -2176,8 +2192,8 @@
     {
       "id": "q-qTz3N91UTNxiyRZTLWA",
       "type": "rectangle",
-      "x": 386.32140797432,
-      "y": 2319.0640145417733,
+      "x": 333.79308543576076,
+      "y": 3011.7049187130106,
       "width": 83.82524023294367,
       "height": 190,
       "angle": 0,
@@ -2195,8 +2211,8 @@
         "type": 3
       },
       "seed": 1172398625,
-      "version": 222,
-      "versionNonce": 1763619764,
+      "version": 265,
+      "versionNonce": 1886108597,
       "isDeleted": false,
       "boundElements": [
         {
@@ -2212,15 +2228,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1763947529619,
+      "updated": 1771972259925,
       "link": null,
       "locked": false
     },
     {
       "id": "G1W9KLKJ6SE_TQrxweFpI",
       "type": "text",
-      "x": 396.8840277093221,
-      "y": 2389.0640145417733,
+      "x": 344.35570517076286,
+      "y": 3081.7049187130106,
       "width": 62.70000076293945,
       "height": 50,
       "angle": 0,
@@ -2236,11 +2252,11 @@
       "index": "b4nV",
       "roundness": null,
       "seed": 1594585711,
-      "version": 131,
-      "versionNonce": 1234793908,
+      "version": 174,
+      "versionNonce": 860126485,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "Rate\nLimiter",
@@ -2256,8 +2272,8 @@
     {
       "id": "WWMkF-MVbnDX8AwFsl8RH",
       "type": "rectangle",
-      "x": 517.7231359070423,
-      "y": 2179.7328719924203,
+      "x": 463.97322447223735,
+      "y": 2791.7489090114505,
       "width": 209.56310058235889,
       "height": 190,
       "angle": 0,
@@ -2275,32 +2291,24 @@
         "type": 3
       },
       "seed": 1017671055,
-      "version": 318,
-      "versionNonce": 150511244,
+      "version": 381,
+      "versionNonce": 439757621,
       "isDeleted": false,
       "boundElements": [
         {
           "type": "text",
           "id": "cAMnr_OS26n6W2qOETocH"
-        },
-        {
-          "id": "3N5Q2yf1O0uHpvBbe4lgb",
-          "type": "arrow"
-        },
-        {
-          "id": "5KnzcK8SJOT2dQ5_Xkly8",
-          "type": "arrow"
         }
       ],
-      "updated": 1763947529619,
+      "updated": 1771972342280,
       "link": null,
       "locked": false
     },
     {
       "id": "cAMnr_OS26n6W2qOETocH",
       "type": "text",
-      "x": 538.0713518476358,
-      "y": 2249.7328719924203,
+      "x": 484.32144041283084,
+      "y": 2861.7489090114505,
       "width": 168.86666870117188,
       "height": 50,
       "angle": 0,
@@ -2316,11 +2324,11 @@
       "index": "b4p",
       "roundness": null,
       "seed": 1828425071,
-      "version": 43,
-      "versionNonce": 1845173772,
+      "version": 104,
+      "versionNonce": 689241237,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972342280,
       "link": null,
       "locked": false,
       "text": "Message Broker to\nthrottle traffic",
@@ -2336,8 +2344,8 @@
     {
       "id": "3N5Q2yf1O0uHpvBbe4lgb",
       "type": "arrow",
-      "x": 430.4995751241146,
-      "y": 2320.1967880584343,
+      "x": 377.97125258555536,
+      "y": 3012.8376922296716,
       "width": 89.48910781625045,
       "height": 78.16137264963663,
       "angle": 0,
@@ -2355,8 +2363,8 @@
         "type": 2
       },
       "seed": 1366147681,
-      "version": 62,
-      "versionNonce": 530552737,
+      "version": 106,
+      "versionNonce": 339612277,
       "isDeleted": false,
       "boundElements": [
         {
@@ -2364,7 +2372,7 @@
           "id": "GlMN5dJtNCU6i-P3sz1GL"
         }
       ],
-      "updated": 1739696763476,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -2379,21 +2387,14 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "inside",
         "elementId": "q-qTz3N91UTNxiyRZTLWA",
+        "mode": "inside",
         "fixedPoint": [
           0.5270270270270266,
           0.005961965877163254
         ]
       },
-      "endBinding": {
-        "mode": "inside",
-        "elementId": "WWMkF-MVbnDX8AwFsl8RH",
-        "fixedPoint": [
-          0.010810810810810428,
-          0.32790812324409147
-        ]
-      },
+      "endBinding": null,
       "startArrowhead": null,
       "endArrowhead": "arrow",
       "elbowed": false
@@ -2438,8 +2439,8 @@
     {
       "id": "cPYNWq1kcmwlz6dDJP0Q2",
       "type": "arrow",
-      "x": 471.279421723925,
-      "y": 2383.6321049914727,
+      "x": 418.7510991853658,
+      "y": 3076.27300916271,
       "width": 271.8656439987359,
       "height": 9.062188133291329,
       "angle": 0,
@@ -2457,8 +2458,8 @@
         "type": 2
       },
       "seed": 943299105,
-      "version": 77,
-      "versionNonce": 1358880719,
+      "version": 120,
+      "versionNonce": 1075706837,
       "isDeleted": false,
       "boundElements": [
         {
@@ -2466,7 +2467,7 @@
           "id": "KWZMZi8bwwTXCNYPzpdEM"
         }
       ],
-      "updated": 1739696759982,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -2481,16 +2482,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "q-qTz3N91UTNxiyRZTLWA",
+        "mode": "orbit",
         "fixedPoint": [
           0.65489402130214,
           0.34510597869786197
         ]
       },
       "endBinding": {
-        "mode": "inside",
         "elementId": "6ovMeioOw7K3bH6L56Vml",
+        "mode": "inside",
         "fixedPoint": [
           0.017474353063598163,
           0.42988309399700536
@@ -2540,8 +2541,8 @@
     {
       "id": "5KnzcK8SJOT2dQ5_Xkly8",
       "type": "arrow",
-      "x": 723.887915939417,
-      "y": 2277.151394425301,
+      "x": 671.3595934008578,
+      "y": 2969.7922985965383,
       "width": 37.38152604982611,
       "height": 40.7798465998103,
       "angle": 0,
@@ -2559,11 +2560,11 @@
         "type": 2
       },
       "seed": 1720660879,
-      "version": 41,
-      "versionNonce": 37944911,
+      "version": 85,
+      "versionNonce": 788117813,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1739696754414,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -2577,17 +2578,10 @@
         ]
       ],
       "lastCommittedPoint": null,
-      "startBinding": {
-        "mode": "inside",
-        "elementId": "WWMkF-MVbnDX8AwFsl8RH",
-        "fixedPoint": [
-          0.9837837837837837,
-          0.5127290654362145
-        ]
-      },
+      "startBinding": null,
       "endBinding": {
-        "mode": "inside",
         "elementId": "6ovMeioOw7K3bH6L56Vml",
+        "mode": "inside",
         "fixedPoint": [
           0.3497545846176048,
           0.014532804554492322
@@ -2600,8 +2594,8 @@
     {
       "id": "n8CUy7huvjoQ5VbHSr5dn",
       "type": "text",
-      "x": 549.6831144319002,
-      "y": 2121.9614226426897,
+      "x": 495.93320299709524,
+      "y": 2733.97745966172,
       "width": 130.91708781604513,
       "height": 50,
       "angle": 0,
@@ -2617,11 +2611,11 @@
       "index": "b4t",
       "roundness": null,
       "seed": 770571137,
-      "version": 162,
-      "versionNonce": 1929027252,
+      "version": 223,
+      "versionNonce": 181576181,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763947531201,
+      "updated": 1771972342280,
       "link": null,
       "locked": false,
       "text": "429 to notify\nclients",
@@ -2637,8 +2631,8 @@
     {
       "id": "uxi7lsChcludDLdPKDhqg",
       "type": "arrow",
-      "x": 227.76121952381484,
-      "y": 2612.9286942785984,
+      "x": 175.23289698525562,
+      "y": 3305.5695984498357,
       "width": 108.38019461759924,
       "height": 137.31616708549882,
       "angle": 0,
@@ -2656,11 +2650,11 @@
         "type": 2
       },
       "seed": 649277217,
-      "version": 302,
-      "versionNonce": 2049989684,
+      "version": 345,
+      "versionNonce": 976669333,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763948462783,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -2675,16 +2669,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "CZvpCfLmI-WBVlw0wAhqm",
+        "mode": "orbit",
         "fixedPoint": [
           0.5001,
           0.07908105392124992
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "sQGHSkPttisKgdQ68geCQ",
+        "mode": "orbit",
         "fixedPoint": [
           0.4747074284415752,
           0.5252925715584289
@@ -2697,8 +2691,8 @@
     {
       "id": "LWPeSaTqWKUGqRmtN3ZXF",
       "type": "arrow",
-      "x": 234.52975674169275,
-      "y": 2814.0860413228056,
+      "x": 182.00143420313353,
+      "y": 3506.726945494043,
       "width": 103.0823900161873,
       "height": 62.302543416377375,
       "angle": 0,
@@ -2716,11 +2710,11 @@
         "type": 2
       },
       "seed": 1309037217,
-      "version": 54,
-      "versionNonce": 453678959,
+      "version": 97,
+      "versionNonce": 1921691637,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1739696793579,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -2735,16 +2729,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "GFD_jyYTdwEQtEYpeNfxS",
+        "mode": "orbit",
         "fixedPoint": [
           0.5001,
           0.4075283371023189
         ]
       },
       "endBinding": {
-        "mode": "inside",
         "elementId": "sQGHSkPttisKgdQ68geCQ",
+        "mode": "inside",
         "fixedPoint": [
           0.005236239216868614,
           0.2679983716298034
@@ -2757,8 +2751,8 @@
     {
       "id": "v5x1iYxEoucSpzsti_YET",
       "type": "arrow",
-      "x": 227.73311564172428,
-      "y": 3062.1634414716523,
+      "x": 175.20479310316506,
+      "y": 3754.8043456428895,
       "width": 103.08239001618733,
       "height": 291.12279378197945,
       "angle": 0,
@@ -2776,11 +2770,11 @@
         "type": 2
       },
       "seed": 1652821697,
-      "version": 68,
-      "versionNonce": 769948719,
+      "version": 111,
+      "versionNonce": 905636181,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1739696798737,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -2795,16 +2789,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "t5svsxDYywuqMvwGiClyZ",
+        "mode": "orbit",
         "fixedPoint": [
           0.7390387724394331,
           0.5001
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "sQGHSkPttisKgdQ68geCQ",
+        "mode": "orbit",
         "fixedPoint": [
           0.12403886489823979,
           0.12403886489823816
@@ -2817,8 +2811,8 @@
     {
       "id": "IqsPs71rHtnlHMB-8qTQ9",
       "type": "arrow",
-      "x": 1662.3593619209264,
-      "y": 2632.411982367622,
+      "x": 1609.8310393823672,
+      "y": 3325.052886538859,
       "width": 102.44801012146581,
       "height": 207.87994286782805,
       "angle": 0,
@@ -2836,8 +2830,8 @@
         "type": 2
       },
       "seed": 359253940,
-      "version": 128,
-      "versionNonce": 2128250508,
+      "version": 171,
+      "versionNonce": 98367157,
       "isDeleted": false,
       "boundElements": [
         {
@@ -2845,7 +2839,7 @@
           "id": "fM8RupoM_2MDX5Pr9HUQo"
         }
       ],
-      "updated": 1763948460266,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -2864,16 +2858,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "DXZ9_mY9631g2g5alDNVi",
+        "mode": "orbit",
         "fixedPoint": [
           0.5598752213272487,
           0.5001
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "X1URyddSWmXbh-MgAQobi",
+        "mode": "orbit",
         "fixedPoint": [
           0.5001,
           0.20256266364552153
@@ -2923,8 +2917,8 @@
     {
       "id": "wvcY80J9bxJmgjTgWxSxr",
       "type": "text",
-      "x": 1731.0173864385858,
-      "y": 3022.7415367287376,
+      "x": 1678.4890639000266,
+      "y": 3715.382440899975,
       "width": 320.8333435058594,
       "height": 50,
       "angle": 0,
@@ -2940,11 +2934,11 @@
       "index": "b4z",
       "roundness": null,
       "seed": 1107142324,
-      "version": 81,
-      "versionNonce": 1494787212,
+      "version": 124,
+      "versionNonce": 483809301,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763950746042,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "text": "<item_id>:<count>\n<reserve_user_id_item_id>:<count>",
@@ -2960,8 +2954,8 @@
     {
       "id": "IseylWyel1D8ZJ4gbD9kD",
       "type": "arrow",
-      "x": 1067.5641186914477,
-      "y": 2708.0046888650318,
+      "x": 1015.0357961528885,
+      "y": 3400.645593036269,
       "width": 477.42761998352853,
       "height": 327.2368478637104,
       "angle": 0,
@@ -2979,11 +2973,11 @@
         "type": 2
       },
       "seed": 548802228,
-      "version": 60,
-      "versionNonce": 697047052,
+      "version": 103,
+      "versionNonce": 1155304821,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763951310300,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -2998,16 +2992,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "eyB8-dFn7udGduCysuadj",
+        "mode": "orbit",
         "fixedPoint": [
           0.7742364087784124,
           0.2257635912215892
         ]
       },
       "endBinding": {
-        "mode": "inside",
         "elementId": "I8EDAAebRglEBhV-C6FrC",
+        "mode": "inside",
         "fixedPoint": [
           0.08031928066339315,
           0.2480354985366399
@@ -3020,8 +3014,8 @@
     {
       "id": "xLkkoiDPxQB97_Mtu3Lnk",
       "type": "arrow",
-      "x": 1067.5641186914477,
-      "y": 2938.761371857071,
+      "x": 1015.0357961528885,
+      "y": 3631.4022760283083,
       "width": 470.4651338587687,
       "height": 103.44265099643098,
       "angle": 0,
@@ -3039,11 +3033,11 @@
         "type": 2
       },
       "seed": 824363828,
-      "version": 102,
-      "versionNonce": 626754572,
+      "version": 145,
+      "versionNonce": 1832195797,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763951315196,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -3058,16 +3052,16 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "orbit",
         "elementId": "bwXleVDja9GvLl3HOUloz",
+        "mode": "orbit",
         "fixedPoint": [
           0.657245551368531,
           0.34275444863146576
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "I8EDAAebRglEBhV-C6FrC",
+        "mode": "orbit",
         "fixedPoint": [
           0.5001,
           0.4199704022982653
@@ -3080,8 +3074,8 @@
     {
       "id": "cGmr-3at9EXPR7d_Y1Tz4",
       "type": "arrow",
-      "x": 1073.5319639412419,
-      "y": 3143.6573921000017,
+      "x": 1021.0036414026827,
+      "y": 3836.298296271239,
       "width": 455.5455207342834,
       "height": 103.44265099643144,
       "angle": 0,
@@ -3099,11 +3093,11 @@
         "type": 2
       },
       "seed": 551591732,
-      "version": 103,
-      "versionNonce": 674817716,
+      "version": 146,
+      "versionNonce": 7697461,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1763951318959,
+      "updated": 1771972259925,
       "link": null,
       "locked": false,
       "points": [
@@ -3118,19 +3112,137 @@
       ],
       "lastCommittedPoint": null,
       "startBinding": {
-        "mode": "inside",
         "elementId": "rMM0uMmaIbX80ue-zvKwA",
+        "mode": "inside",
         "fixedPoint": [
           0.977059714368356,
           0.676068870494978
         ]
       },
       "endBinding": {
-        "mode": "orbit",
         "elementId": "I8EDAAebRglEBhV-C6FrC",
+        "mode": "orbit",
         "fixedPoint": [
           0.5001,
           0.14281612025206286
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "dfIMPI20FUDstdWIT2XiA",
+      "type": "arrow",
+      "x": 1017.8858188755822,
+      "y": 3635.3178368960407,
+      "width": 443.60987598642157,
+      "height": 248.63001243989174,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b53",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 846578043,
+      "version": 130,
+      "versionNonce": 1149053467,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771972592863,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          443.60987598642157,
+          -248.63001243989174
+        ]
+      ],
+      "startBinding": {
+        "elementId": "bwXleVDja9GvLl3HOUloz",
+        "mode": "orbit",
+        "fixedPoint": [
+          1,
+          0.5001
+        ]
+      },
+      "endBinding": {
+        "elementId": "DXZ9_mY9631g2g5alDNVi",
+        "mode": "orbit",
+        "fixedPoint": [
+          0,
+          0.5001
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "iiMrD9nL1swNsI14zO1u7",
+      "type": "arrow",
+      "x": 1031.5221825119456,
+      "y": 3812.7906549360277,
+      "width": 430.0804180419534,
+      "height": 423.68327902387364,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b54",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 732284059,
+      "version": 98,
+      "versionNonce": 1348498747,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771972598536,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          430.0804180419534,
+          -423.68327902387364
+        ]
+      ],
+      "startBinding": {
+        "elementId": "rMM0uMmaIbX80ue-zvKwA",
+        "mode": "orbit",
+        "fixedPoint": [
+          1,
+          0.5001
+        ]
+      },
+      "endBinding": {
+        "elementId": "DXZ9_mY9631g2g5alDNVi",
+        "mode": "orbit",
+        "fixedPoint": [
+          0,
+          0.5001
         ]
       },
       "startArrowhead": null,

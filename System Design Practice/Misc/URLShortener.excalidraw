@@ -1837,10 +1837,10 @@
     {
       "id": "tjqJyTlFMc0wCjsF7n2Up",
       "type": "text",
-      "x": 447.0887283488747,
-      "y": -1045.352748282555,
-      "width": 1413.8333740234375,
-      "height": 2125,
+      "x": 370.0208907290163,
+      "y": -1737.768436665624,
+      "width": 1411,
+      "height": 2575,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -1854,20 +1854,20 @@
       "index": "b1A",
       "roundness": null,
       "seed": 1330675121,
-      "version": 6627,
-      "versionNonce": 1625773937,
+      "version": 9549,
+      "versionNonce": 1090785883,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1766717846310,
+      "updated": 1771969998600,
       "link": null,
       "locked": false,
-      "text": "URL Shortener\n\n Functional Requirements -\n    1. User should be able to create a shortened URL for their given URL.\n    2. User should be able to get redirected to their original URL via tiny link.\n\nNon-Functional Requirements - \n    1. The System should not be tolerant to data loss.\n    2. The system should vend out just 1 shortened URL for a given URL (It needs to be idempotent)\n    3. The system should return the shortened URL or redirect in real time (near 100 ms)\n    4. The system should be able to store 1 billion tiny links.\n    5. The system should be readily available.\n\n\nAPI Contracts \n\n1. POST /shorten/ --> Return shortened URL\n     {\n          url:\n          timestamp\n          userId\n     }\n\n2. GET /shortenedURL? --> Redirect 302 to actual URL\n    \n\nHigh Level Design\n\n1. User should be able to create a shortened URL and get redirected for their given URL\n      a. User1's browser make a request to Create Shortened URL micro-service which will generate a shortened\n          version of the URL and persist it in the Database and return it to the User1's browser.\n      b. Shortened URL - tiny.meta.com/abcdfe49 and Actual URL could be instagram.com/profile/abc...\n      c. Now, when User1 clicks on the shortened URL, the browser sends a request to DNS provider which \n          maps to the service's API Gateway (based on meta.com) and API Gateway maps <tiny> to Redirect Shortened URL.\n      d. The micro-service retrieves the actual URL from the DB and then returns to the browser with status code 302\n      e. As soon as User1's browser receives the status code 302, it redirects to the actual URL.\n\n\n2. The system should vend out just 1 shortened URL for a given URL (It needs to be idempotent)\n      a. When a User makes a request to Create Shortened URL microservice, it checks whether the URL already exists in the database\n          by querying userId and actualURL. If the database returns the shortened URL, the microservice will return it to the user.\n      b. In this way, the micro-service will not create any new shortened URL for the same URL.\n      c. Now, if 2 users wants to shorten the same URL, the micro-service will create 2 different URL's as it will query the DB\n         with the composite Index of <UserID, actual URL>\n\n3. The system should return the shortened URL or redirect in real time (near 100 ms)\n       a. Every micro-service has to call to the database to fetch the URL. First, we will monitor the speed and if it is more than 100ms,\n           we will proceed with optimizations.\n       b. Since once the URL is shortened, we can persist in the memory and return it to the user. As soon as we return to the user,\n           we need to persist to the Database as the system should be tolerant to data loss.\n       c. I would like to proceed with in-memory cache instead of a distributed cache to see how the service is behaving. In no way, multiple \n           instances of the server will require acess to the shortened URL created by another server of 'Create Shortened URL' micro-service. \n       d. However, a distributed cache would be very helpful for the other microservice 'Redirect Shortened URL'.\n\nWorkflow for Create\n       1. 'Create' micro-service will receive the request.\n       2. Check if the shortened URL exists by querying <user_ID> and <actual URL>. If yes, then return it.\n       2. If not, create a shortened version of the URL via SHA_1(userID, actualURL, timestamp) and then returning the shortened version of it.\n       3. Persist in the cache for TTL of 1 hour with composite key <shortenedURL>:<Actual URL>\n       4. Return it to the user.\n       5. Persist in the database with expired timestamp of 3 days\n       6. I have no data points to make persisting in database asynchronous. Because there will be maintainence issues if cache and database are not in sync.\n       7. Follow the 'write-through-cache' policy.\n\n\nWorkflow for Redirect:\n     1. 'Redirect Microservice' will query the cache based on key <shortenedURL> and retrieve the actual URL\n     2. Proceed to send to the browser with 302 redirect.\n     3. Update the TTL to live 1 hour from now.\n\n4. The system should be able to store 1 billion tiny links.\n    1. We can proceed to shard the database and cache based on UserID.\n    2. If there is a surge of requests for shortened URL service across all users, it should be able to distribute the load if the load is not skewed towards 1 user.\n    3. We can also proceed to shard the server instances using Load Balancer's least connection algorithm so th\n\n  5. The system should be readily available:\n        a. We want our system to reply even there is huge surge. So, we need to be ready to reply even through we are not able to spawn any further instances.\n        b. We can have a rate limiter based on our game day TPS that the micro-services can handle.\n        c. If the rate limiter exceeds the limit/threshold, lets send 429 or put them in a message queue to process them later.\n       d. But our requirements suggest that we reply them back within 100ms. Hence, we will not proceed with message queue.\n         \n \nCreation of short URL - Base 62\n\n",
+      "text": "URL Shortener\n\n Functional Requirements -\n    1. User should be able to create a shortened URL for their given URL.\n    2. User should be able to get redirected to their original URL via tiny link.\n\nNon-Functional Requirements - \n    1. The System should not be tolerant to data loss.\n    2. The system should vend out just 1 shortened URL for a given URL (It needs to be idempotent)\n    3. The system should return the shortened URL or redirect in real time (near 100 ms)\n    4. The system should be able to store 1 billion tiny links.\n    5. The system should be readily available.\n\n\nAPI Contracts \n\n1. POST /shorten/ --> Return shortened URL\n     {\n          url:\n          timestamp\n          userId\n     }\n\n2. GET /shortenedURL? --> Redirect 302 to actual URL\n    \n\nHigh Level Design\n\n1. User should be able to create a shortened URL and get redirected for their given URL\n      a. User1's browser make a request to Create Shortened URL micro-service which will generate a shortened\n          version of the URL and persist it in the Database and return it to the User1's browser.\n      b. Shortened URL - tiny.meta.com/abcdfe49 and Actual URL could be instagram.com/profile/abc...\n      c. Now, when User1 clicks on the shortened URL, the browser sends a request to DNS provider which \n          maps to the service's API Gateway (based on meta.com) and API Gateway maps <tiny> to Redirect Shortened URL.\n      d. The micro-service retrieves the actual URL from the DB and then returns to the browser with status code 302\n      e. As soon as User1's browser receives the status code 302, it redirects to the actual URL.\n\n2. The system should vend out just 1 shortened URL for a given URL (It needs to be idempotent)\n      a. When a User makes a request to Create Shortened URL microservice, it checks whether the URL already exists in the database\n          by querying userId and actualURL. If the database returns the shortened URL, the microservice will return it to the user.\n      b. In this way, the micro-service will not create any new shortened URL for the same URL for the same user.\n      c. Now, if 2 users wants to shorten the same URL, the micro-service will create 2 different URL's as it will query the DB\n         with the composite Index of <UserID, actual URL>\n\nHow do we shorten the URL ?\n     1. We will have 2 strategies - (1) Use a single threaded Redis Counter or (2) In-memory tracking in each server.\n     2.. Using a single threaded Redis Counter - \n           a. Every server will make a request to retrieve the counter and a retrieval would simply increment\n               the counter in a single thread and return the value.\n           b. Once the counter is retrieved, we can encode the counter via base62 encoding and persist as shortened URL.\n           c. Now, if the user makes a call to 'Request Shortened URL', it just searches the database using UserID and shortened URL\n               and then return the long URL via status code 302 for browser to redirect.\n           d. We can either persist the base62 encoded values of auto-incremented counters. The only logical difference is storage optimization\n               where counters would be 8 bytes (2^64) but base62 storage ranges from 1-11 chars (with 11 chars = 2^64 -1 value)\n    3. Using in-memory tracking in each server -\n         a. Instead of having a counter of 64 bits (8 bytes), we can have timestamp(41 bits)_server(10 bits)_sequence(13 bits) in every server.\n         b. The max servers that can be spawned is 2^10 - 1 and for every millisecond timestamp, we will have counters ranging from 0 to 2^13-1.\n         c. Lastly, the timestamp will range from 0 to 2^41 - 1 which is around 69 years\n         d. So, when a user makes a request to shorten the URL, we will generate a counter using the process, encode it via base62 and persist in the \n             database and the retrieval would be same as above.\n    4. The only con for (1) is spinning for a new infra and (2) is maintenance and finite life span.\n\n\n3. The system should return the shortened URL or redirect in real time (near 100 ms)\n       a. Every micro-service has to call to the database to fetch the URL. First, we will monitor the speed and if it is more than 100ms,\n           we will proceed with optimizations.\n       b. Since once the URL is shortened, we can persist in the memory and return it to the user. As soon as we return to the user,\n           we need to persist to the Database as the system should be tolerant to data loss.\n       c. I would like to proceed with in-memory cache instead of a distributed cache to see how the service is behaving. In no way, multiple \n           instances of the server will require acess to the shortened URL created by another server of 'Create Shortened URL' micro-service. \n       d. However, a distributed cache would be very helpful for the other microservice 'Redirect Shortened URL'.\n\nWorkflow for Create\n       1. 'Create' micro-service will receive the request.\n       2. Check if the shortened URL exists by querying <user_ID> and <actual URL>. If yes, then return it.\n       2. If not, create a shortened version of the URL via SHA_1(userID, actualURL, timestamp) and then returning the shortened version of it.\n       3. Persist in the cache for TTL of 1 hour with composite key <shortenedURL>:<Actual URL>\n       4. Return it to the user.\n       5. Persist in the database with expired timestamp of 3 days\n       6. I have no data points to make persisting in database asynchronous. Because there will be maintainence issues if cache and database are not in sync.\n       7. Follow the 'write-through-cache' policy.\n\nWorkflow for Redirect:\n     1. 'Redirect Microservice' will query the cache based on key <shortenedURL> and retrieve the actual URL\n     2. Proceed to send to the browser with 302 redirect.\n     3. Update the TTL to live 1 hour from now.\n\n4. The system should be able to store 1 billion tiny links.\n    1. We can proceed to shard the database and cache based on UserID.\n    2. Create Shortened URL and Redirect Shortened URL can scale horizontally. If we proceed with in-memory counters, (we can span till 2^10-1)\n    3. If we proceed with Redis, there is no limit to scaling servers. A single Redis can generate counters till 2^64 - 1. If there are 1 Billion links \n        generated per day, I can survive (2^64-1)/(1 Billion * 365 days) ~= 50.5 billion years.\n\n  5. The system should be readily available:\n        a. We want our system to reply even there is huge surge. So, we need to be ready to reply even through we are not able to spawn any further instances.\n        b. We can have a rate limiter based on our game day TPS that the micro-services can handle.\n        c. If the rate limiter exceeds the limit/threshold, lets send 429 or put them in a message queue to process them later.\n       d. But our requirements suggest that we reply them back within 100ms. Hence, we will not proceed with message queue.\n         \n \n\n\n",
       "fontSize": 20,
       "fontFamily": 6,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "URL Shortener\n\n Functional Requirements -\n    1. User should be able to create a shortened URL for their given URL.\n    2. User should be able to get redirected to their original URL via tiny link.\n\nNon-Functional Requirements - \n    1. The System should not be tolerant to data loss.\n    2. The system should vend out just 1 shortened URL for a given URL (It needs to be idempotent)\n    3. The system should return the shortened URL or redirect in real time (near 100 ms)\n    4. The system should be able to store 1 billion tiny links.\n    5. The system should be readily available.\n\n\nAPI Contracts \n\n1. POST /shorten/ --> Return shortened URL\n     {\n          url:\n          timestamp\n          userId\n     }\n\n2. GET /shortenedURL? --> Redirect 302 to actual URL\n    \n\nHigh Level Design\n\n1. User should be able to create a shortened URL and get redirected for their given URL\n      a. User1's browser make a request to Create Shortened URL micro-service which will generate a shortened\n          version of the URL and persist it in the Database and return it to the User1's browser.\n      b. Shortened URL - tiny.meta.com/abcdfe49 and Actual URL could be instagram.com/profile/abc...\n      c. Now, when User1 clicks on the shortened URL, the browser sends a request to DNS provider which \n          maps to the service's API Gateway (based on meta.com) and API Gateway maps <tiny> to Redirect Shortened URL.\n      d. The micro-service retrieves the actual URL from the DB and then returns to the browser with status code 302\n      e. As soon as User1's browser receives the status code 302, it redirects to the actual URL.\n\n\n2. The system should vend out just 1 shortened URL for a given URL (It needs to be idempotent)\n      a. When a User makes a request to Create Shortened URL microservice, it checks whether the URL already exists in the database\n          by querying userId and actualURL. If the database returns the shortened URL, the microservice will return it to the user.\n      b. In this way, the micro-service will not create any new shortened URL for the same URL.\n      c. Now, if 2 users wants to shorten the same URL, the micro-service will create 2 different URL's as it will query the DB\n         with the composite Index of <UserID, actual URL>\n\n3. The system should return the shortened URL or redirect in real time (near 100 ms)\n       a. Every micro-service has to call to the database to fetch the URL. First, we will monitor the speed and if it is more than 100ms,\n           we will proceed with optimizations.\n       b. Since once the URL is shortened, we can persist in the memory and return it to the user. As soon as we return to the user,\n           we need to persist to the Database as the system should be tolerant to data loss.\n       c. I would like to proceed with in-memory cache instead of a distributed cache to see how the service is behaving. In no way, multiple \n           instances of the server will require acess to the shortened URL created by another server of 'Create Shortened URL' micro-service. \n       d. However, a distributed cache would be very helpful for the other microservice 'Redirect Shortened URL'.\n\nWorkflow for Create\n       1. 'Create' micro-service will receive the request.\n       2. Check if the shortened URL exists by querying <user_ID> and <actual URL>. If yes, then return it.\n       2. If not, create a shortened version of the URL via SHA_1(userID, actualURL, timestamp) and then returning the shortened version of it.\n       3. Persist in the cache for TTL of 1 hour with composite key <shortenedURL>:<Actual URL>\n       4. Return it to the user.\n       5. Persist in the database with expired timestamp of 3 days\n       6. I have no data points to make persisting in database asynchronous. Because there will be maintainence issues if cache and database are not in sync.\n       7. Follow the 'write-through-cache' policy.\n\n\nWorkflow for Redirect:\n     1. 'Redirect Microservice' will query the cache based on key <shortenedURL> and retrieve the actual URL\n     2. Proceed to send to the browser with 302 redirect.\n     3. Update the TTL to live 1 hour from now.\n\n4. The system should be able to store 1 billion tiny links.\n    1. We can proceed to shard the database and cache based on UserID.\n    2. If there is a surge of requests for shortened URL service across all users, it should be able to distribute the load if the load is not skewed towards 1 user.\n    3. We can also proceed to shard the server instances using Load Balancer's least connection algorithm so th\n\n  5. The system should be readily available:\n        a. We want our system to reply even there is huge surge. So, we need to be ready to reply even through we are not able to spawn any further instances.\n        b. We can have a rate limiter based on our game day TPS that the micro-services can handle.\n        c. If the rate limiter exceeds the limit/threshold, lets send 429 or put them in a message queue to process them later.\n       d. But our requirements suggest that we reply them back within 100ms. Hence, we will not proceed with message queue.\n         \n \nCreation of short URL - Base 62\n\n",
+      "originalText": "URL Shortener\n\n Functional Requirements -\n    1. User should be able to create a shortened URL for their given URL.\n    2. User should be able to get redirected to their original URL via tiny link.\n\nNon-Functional Requirements - \n    1. The System should not be tolerant to data loss.\n    2. The system should vend out just 1 shortened URL for a given URL (It needs to be idempotent)\n    3. The system should return the shortened URL or redirect in real time (near 100 ms)\n    4. The system should be able to store 1 billion tiny links.\n    5. The system should be readily available.\n\n\nAPI Contracts \n\n1. POST /shorten/ --> Return shortened URL\n     {\n          url:\n          timestamp\n          userId\n     }\n\n2. GET /shortenedURL? --> Redirect 302 to actual URL\n    \n\nHigh Level Design\n\n1. User should be able to create a shortened URL and get redirected for their given URL\n      a. User1's browser make a request to Create Shortened URL micro-service which will generate a shortened\n          version of the URL and persist it in the Database and return it to the User1's browser.\n      b. Shortened URL - tiny.meta.com/abcdfe49 and Actual URL could be instagram.com/profile/abc...\n      c. Now, when User1 clicks on the shortened URL, the browser sends a request to DNS provider which \n          maps to the service's API Gateway (based on meta.com) and API Gateway maps <tiny> to Redirect Shortened URL.\n      d. The micro-service retrieves the actual URL from the DB and then returns to the browser with status code 302\n      e. As soon as User1's browser receives the status code 302, it redirects to the actual URL.\n\n2. The system should vend out just 1 shortened URL for a given URL (It needs to be idempotent)\n      a. When a User makes a request to Create Shortened URL microservice, it checks whether the URL already exists in the database\n          by querying userId and actualURL. If the database returns the shortened URL, the microservice will return it to the user.\n      b. In this way, the micro-service will not create any new shortened URL for the same URL for the same user.\n      c. Now, if 2 users wants to shorten the same URL, the micro-service will create 2 different URL's as it will query the DB\n         with the composite Index of <UserID, actual URL>\n\nHow do we shorten the URL ?\n     1. We will have 2 strategies - (1) Use a single threaded Redis Counter or (2) In-memory tracking in each server.\n     2.. Using a single threaded Redis Counter - \n           a. Every server will make a request to retrieve the counter and a retrieval would simply increment\n               the counter in a single thread and return the value.\n           b. Once the counter is retrieved, we can encode the counter via base62 encoding and persist as shortened URL.\n           c. Now, if the user makes a call to 'Request Shortened URL', it just searches the database using UserID and shortened URL\n               and then return the long URL via status code 302 for browser to redirect.\n           d. We can either persist the base62 encoded values of auto-incremented counters. The only logical difference is storage optimization\n               where counters would be 8 bytes (2^64) but base62 storage ranges from 1-11 chars (with 11 chars = 2^64 -1 value)\n    3. Using in-memory tracking in each server -\n         a. Instead of having a counter of 64 bits (8 bytes), we can have timestamp(41 bits)_server(10 bits)_sequence(13 bits) in every server.\n         b. The max servers that can be spawned is 2^10 - 1 and for every millisecond timestamp, we will have counters ranging from 0 to 2^13-1.\n         c. Lastly, the timestamp will range from 0 to 2^41 - 1 which is around 69 years\n         d. So, when a user makes a request to shorten the URL, we will generate a counter using the process, encode it via base62 and persist in the \n             database and the retrieval would be same as above.\n    4. The only con for (1) is spinning for a new infra and (2) is maintenance and finite life span.\n\n\n3. The system should return the shortened URL or redirect in real time (near 100 ms)\n       a. Every micro-service has to call to the database to fetch the URL. First, we will monitor the speed and if it is more than 100ms,\n           we will proceed with optimizations.\n       b. Since once the URL is shortened, we can persist in the memory and return it to the user. As soon as we return to the user,\n           we need to persist to the Database as the system should be tolerant to data loss.\n       c. I would like to proceed with in-memory cache instead of a distributed cache to see how the service is behaving. In no way, multiple \n           instances of the server will require acess to the shortened URL created by another server of 'Create Shortened URL' micro-service. \n       d. However, a distributed cache would be very helpful for the other microservice 'Redirect Shortened URL'.\n\nWorkflow for Create\n       1. 'Create' micro-service will receive the request.\n       2. Check if the shortened URL exists by querying <user_ID> and <actual URL>. If yes, then return it.\n       2. If not, create a shortened version of the URL via SHA_1(userID, actualURL, timestamp) and then returning the shortened version of it.\n       3. Persist in the cache for TTL of 1 hour with composite key <shortenedURL>:<Actual URL>\n       4. Return it to the user.\n       5. Persist in the database with expired timestamp of 3 days\n       6. I have no data points to make persisting in database asynchronous. Because there will be maintainence issues if cache and database are not in sync.\n       7. Follow the 'write-through-cache' policy.\n\nWorkflow for Redirect:\n     1. 'Redirect Microservice' will query the cache based on key <shortenedURL> and retrieve the actual URL\n     2. Proceed to send to the browser with 302 redirect.\n     3. Update the TTL to live 1 hour from now.\n\n4. The system should be able to store 1 billion tiny links.\n    1. We can proceed to shard the database and cache based on UserID.\n    2. Create Shortened URL and Redirect Shortened URL can scale horizontally. If we proceed with in-memory counters, (we can span till 2^10-1)\n    3. If we proceed with Redis, there is no limit to scaling servers. A single Redis can generate counters till 2^64 - 1. If there are 1 Billion links \n        generated per day, I can survive (2^64-1)/(1 Billion * 365 days) ~= 50.5 billion years.\n\n  5. The system should be readily available:\n        a. We want our system to reply even there is huge surge. So, we need to be ready to reply even through we are not able to spawn any further instances.\n        b. We can have a rate limiter based on our game day TPS that the micro-services can handle.\n        c. If the rate limiter exceeds the limit/threshold, lets send 429 or put them in a message queue to process them later.\n       d. But our requirements suggest that we reply them back within 100ms. Hence, we will not proceed with message queue.\n         \n \n\n\n",
       "autoResize": true,
       "lineHeight": 1.25
     },
@@ -2154,7 +2154,7 @@
       "id": "D8do9EvdkR26llNlVedqI",
       "type": "rectangle",
       "x": 963.5,
-      "y": 1137,
+      "y": 1136.5,
       "width": 163,
       "height": 82,
       "angle": 0,
@@ -2170,8 +2170,8 @@
       "index": "b1I",
       "roundness": null,
       "seed": 289717169,
-      "version": 501,
-      "versionNonce": 1487393663,
+      "version": 505,
+      "versionNonce": 1542872859,
       "isDeleted": false,
       "boundElements": [
         {
@@ -2189,9 +2189,13 @@
         {
           "id": "dMu8tDFb7s_MDE2D4qSt9",
           "type": "arrow"
+        },
+        {
+          "id": "b6mdomjGAqufW2J4WGnwv",
+          "type": "arrow"
         }
       ],
-      "updated": 1766697241940,
+      "updated": 1771969597836,
       "link": null,
       "locked": false
     },
@@ -2199,7 +2203,7 @@
       "id": "FkySLYq18ysNHaKp39Nuv",
       "type": "text",
       "x": 975.6500015258789,
-      "y": 1153,
+      "y": 1152.5,
       "width": 138.6999969482422,
       "height": 50,
       "angle": 0,
@@ -2215,11 +2219,11 @@
       "index": "b1J",
       "roundness": null,
       "seed": 184222591,
-      "version": 304,
-      "versionNonce": 856762751,
+      "version": 305,
+      "versionNonce": 1844269595,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1766695560512,
+      "updated": 1771967791857,
       "link": null,
       "locked": false,
       "text": "Create\nShortened URL",
@@ -2627,10 +2631,10 @@
     {
       "id": "kx9phCOqkK6I7OwnOWVF3",
       "type": "arrow",
-      "x": 861,
-      "y": 1182.7122199118842,
-      "width": 103.5,
-      "height": 0.7877800881158237,
+      "x": 855.9999999999999,
+      "y": 1182.5866576858452,
+      "width": 108.50000000000011,
+      "height": 0.41334231415476097,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -2644,11 +2648,11 @@
       "index": "b1S",
       "roundness": null,
       "seed": 1305006897,
-      "version": 252,
-      "versionNonce": 1330487711,
+      "version": 253,
+      "versionNonce": 1314019003,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1766695560513,
+      "updated": 1771967791859,
       "link": null,
       "locked": false,
       "points": [
@@ -2657,8 +2661,8 @@
           0
         ],
         [
-          103.5,
-          0.7877800881158237
+          108.50000000000011,
+          0.41334231415476097
         ]
       ],
       "startBinding": {
@@ -2685,10 +2689,10 @@
     {
       "id": "WlWI0KRiFA4v6BDDdGtPg",
       "type": "arrow",
-      "x": 1137.0000000000002,
-      "y": 1176.0291557047406,
-      "width": 129.49999999999977,
-      "height": 0.4708442952594396,
+      "x": 1132,
+      "y": 1175.7002156369458,
+      "width": 134.5,
+      "height": 0.7997843630541865,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -2702,11 +2706,11 @@
       "index": "b1T",
       "roundness": null,
       "seed": 1507748273,
-      "version": 111,
-      "versionNonce": 1634329585,
+      "version": 112,
+      "versionNonce": 820889435,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1766695565075,
+      "updated": 1771967791859,
       "link": null,
       "locked": false,
       "points": [
@@ -2715,8 +2719,8 @@
           0
         ],
         [
-          129.49999999999977,
-          0.4708442952594396
+          134.5,
+          0.7997843630541865
         ]
       ],
       "startBinding": {
@@ -2737,7 +2741,8 @@
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
-      "elbowed": false
+      "elbowed": false,
+      "moveMidPointsWithElement": false
     },
     {
       "id": "3415rnpsszrGp8eAghKrQ",
@@ -3167,10 +3172,10 @@
     {
       "id": "dMu8tDFb7s_MDE2D4qSt9",
       "type": "arrow",
-      "x": 1137.0000000000002,
-      "y": 1177.4921557599596,
-      "width": 158.02082370169387,
-      "height": 173.11340252662376,
+      "x": 1131.9999999999998,
+      "y": 1171.5648452494763,
+      "width": 163.02082370169433,
+      "height": 179.04071303710703,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -3184,11 +3189,11 @@
       "index": "b1d",
       "roundness": null,
       "seed": 616895263,
-      "version": 71,
-      "versionNonce": 351631327,
+      "version": 72,
+      "versionNonce": 1544692731,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1766697242821,
+      "updated": 1771967791860,
       "link": null,
       "locked": false,
       "points": [
@@ -3197,8 +3202,8 @@
           0
         ],
         [
-          158.02082370169387,
-          173.11340252662376
+          163.02082370169433,
+          179.04071303710703
         ]
       ],
       "startBinding": {
@@ -3219,7 +3224,276 @@
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
-      "elbowed": false
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "Tl9ukpXekZAoWT-X_kv-o",
+      "type": "ellipse",
+      "x": 997.5031227417805,
+      "y": 982.6373344608209,
+      "width": 88.66736864115659,
+      "height": 85,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b1e",
+      "roundness": null,
+      "seed": 633148507,
+      "version": 630,
+      "versionNonce": 1142691259,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "k9KKcy55mFe_npV5LKGmF"
+        },
+        {
+          "id": "b6mdomjGAqufW2J4WGnwv",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1771969600236,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "k9KKcy55mFe_npV5LKGmF",
+      "type": "text",
+      "x": 1016.9714918319407,
+      "y": 1012.5852962603926,
+      "width": 50.03333282470703,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b1f",
+      "roundness": null,
+      "seed": 1936707835,
+      "version": 500,
+      "versionNonce": 1697097307,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1771969600236,
+      "link": null,
+      "locked": false,
+      "text": "Redis",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "Tl9ukpXekZAoWT-X_kv-o",
+      "originalText": "Redis",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "gSDaTqXJ3dHi9r_3qDl2x",
+      "type": "arrow",
+      "x": 1042.8366399698748,
+      "y": 1131,
+      "width": 34.66948908016536,
+      "height": 87.48253732484818,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b1g",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 625134517,
+      "version": 350,
+      "versionNonce": 738729403,
+      "isDeleted": true,
+      "boundElements": null,
+      "updated": 1771969591549,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -34.66948908016536,
+          -87.48253732484818
+        ]
+      ],
+      "startBinding": {
+        "elementId": "D8do9EvdkR26llNlVedqI",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5001,
+          0
+        ]
+      },
+      "endBinding": {
+        "elementId": "Tl9ukpXekZAoWT-X_kv-o",
+        "mode": "orbit",
+        "fixedPoint": [
+          0,
+          0.5001
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "b6mdomjGAqufW2J4WGnwv",
+      "type": "arrow",
+      "x": 1044.7630648984,
+      "y": 1131.0000000000002,
+      "width": 2.6641865586300355,
+      "height": 57.863329293104016,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b1h",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1448720699,
+      "version": 72,
+      "versionNonce": 1270358779,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771969600236,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -2.6641865586300355,
+          -57.863329293104016
+        ]
+      ],
+      "startBinding": {
+        "elementId": "D8do9EvdkR26llNlVedqI",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5001,
+          0
+        ]
+      },
+      "endBinding": {
+        "elementId": "Tl9ukpXekZAoWT-X_kv-o",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5001,
+          1.0000000000000013
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "t7xvZI8FY7jIoAupg0P0c",
+      "type": "text",
+      "x": 1125.7750333072433,
+      "y": 1016.2954803520298,
+      "width": 8,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b1i",
+      "roundness": null,
+      "seed": 1285002485,
+      "version": 3,
+      "versionNonce": 2054249749,
+      "isDeleted": true,
+      "boundElements": null,
+      "updated": 1771969603062,
+      "link": null,
+      "locked": false,
+      "text": "",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "co6AOcUfWPzqULivA2nAy",
+      "type": "text",
+      "x": 1097.0986286114821,
+      "y": 1011.5160795694029,
+      "width": 71.76667022705078,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b1j",
+      "roundness": null,
+      "seed": 160619477,
+      "version": 11,
+      "versionNonce": 1517811099,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1771969607408,
+      "link": null,
+      "locked": false,
+      "text": "Counter",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "Counter",
+      "autoResize": true,
+      "lineHeight": 1.25
     }
   ],
   "appState": {

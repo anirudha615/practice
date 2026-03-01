@@ -4,23 +4,10 @@
 using namespace std;
 
 /**
- * Approach - 
- *      a. Mark the result matrix as -1 except the 0s.
- *      b. Enqueue all 0s from input matrix into the queue.
- *      c. At Level 1, all the -1s which are neighbors of 0s in the queue, update the distance to 1 and add them to the queue.
- *      d. At Level 2, all the -1s which are neighbors of 1s in the queue, update the distance to 2 and add them to the queue.
- *      e. And So on.
- * 
- * 
- * Mistake I made - I enqueue a single 1 and perform BFS on that. If there are m*n 1s, worst case would be m^2 * n^2 BFS calls.
- * This is because I need to remember the distance between that single 1 and any 0.
- * 
- * With the above approach, I don't have to remember the distance between 0 and specific 1. As soon as I reach any -1,
- * I will update the distance with the level where that -1 is being found.
- * 
- * In summary, the approach helps to update the distance as soon as level traversal is over. With my approach,
- * I had to collect the distance with level traversal and then backtrack from where it started.
- * 
+ * Instead of finding the distance from every 1 to nearest 0, try to find the distance from 0 to nearest 1.
+ *     1. For simplicity, convert all 1s to -1s
+ *     2. Push all 0s to do BFS and as soon as find -1, increment the distance+1 and then add new updated rows,column to queue.
+ *     3. Repeat to find new -1 and increment the distance+1 
  */
 vector<vector<int>> updateMatrix(vector<vector<int>> matrix) {
     if (matrix.empty()) {
