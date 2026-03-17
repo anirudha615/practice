@@ -119,17 +119,14 @@ public:
         }
 
         while (!bfs_queue.empty()) {
-            int levelSize = bfs_queue.size();
-            for (int index = 0; index < levelSize; index++) {
-                char node = bfs_queue.front();
-                visited_nodes.push_back(node);
-                bfs_queue.pop();
+            char node = bfs_queue.front();
+            visited_nodes.push_back(node);
+            bfs_queue.pop();
 
-                for (auto neighbor : localCopyAdjacencyList[node]) {
-                    localCopyInboundEdge[neighbor]--;
-                    if (!localCopyInboundEdge[neighbor]) {
-                        bfs_queue.push(neighbor);
-                    }
+            for (auto neighbor : localCopyAdjacencyList[node]) {
+                localCopyInboundEdge[neighbor]--;
+                if (!localCopyInboundEdge[neighbor]) {
+                    bfs_queue.push(neighbor);
                 }
             }
         }

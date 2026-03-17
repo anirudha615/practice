@@ -7,14 +7,12 @@ std::vector<std::tuple<int, int, int>>  threeSum(vector<int>& arr, int target) {
     // -2 because of 2 pointers doing
     for (int firstPointer = 0 ; firstPointer < arr.size() - 2; firstPointer++) {
         // Not counting duplicates
-        if (firstPointer - 1 >=0 && arr.at(firstPointer - 1) == arr.at(firstPointer))
-        {
+        if (firstPointer - 1 >=0 && arr.at(firstPointer - 1) == arr.at(firstPointer)) {
             continue;
         }
         int leftPointer = firstPointer + 1;
         int rightPointer = arr.size() - 1;
-        while (leftPointer < rightPointer)
-        {
+        while (leftPointer < rightPointer) {
             // Not counting duplicates
             if (leftPointer - 1 != firstPointer && arr.at(leftPointer - 1) == arr.at(leftPointer))
             {

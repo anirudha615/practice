@@ -5,42 +5,6 @@
 using namespace std;
 
 /**
- * NON-OPTIMIZED APPROACH - O(N2)
- * 1. Filter ths starting index to be where gas_filled[index] >= gas_utilized[index]
- * 2. For every potential candidates, try a simulation to complete the circuit by updating fuel
- */
-int canCompleteCircuitNonOptimized(vector<int>& gas_filled, vector<int>& gas_utilized) {
-    
-    for (int station = 0; station < gas_filled.size(); station++) {
-        if (gas_filled.at(station) >= gas_utilized.at(station)) {
-            // start simulation whether starting at that station can complete the circuit
-            int currentStation = station;
-            int fuel = 0;
-            do {
-                // Check gas to move to the next station
-                fuel += gas_filled.at(currentStation) - gas_utilized.at(currentStation);
-                // If fuel is greater or equal to 0, we moved to the next station and hence increase current station
-                if (fuel < 0) {
-                    // If fuel is less than 0, break as the station does not help to complete the circuit.
-                    break;
-                }
-                currentStation++;
-                if (currentStation == gas_filled.size()) {
-                    currentStation = 0;
-                }
-            } while (currentStation != station);
-            // circuit completed
-            if (currentStation == station && fuel >=0) {
-                return station;
-            }
-        }
-    }
-
-    // If nothing found, return -1
-    return -1;
-}
-
-/**
  * OPTIMIZED APPROACH - O(N)
  * 1. Calculate the sum of gas filled and gas utilized. If gas filled > gas utilized, there is a solution else no solution.
  * 2. Since there is a solution, mark the starting stattion as index 0 and loop through every station, if gas_filled[index] >= gas_utilized[index], update the fuel.
@@ -64,7 +28,7 @@ int canCompleteCircuitOptimized(vector<int>& gas_filled, vector<int>& gas_utiliz
             startingStation = currentStation + 1;
             fuel = 0;
         } else {
-            fuel += gas_filled.at(currentStation) - gas_utilized.at(currentStation);
+            fuel += (gas_filled.at(currentStation) - gas_utilized.at(currentStation));
         }
     }
 

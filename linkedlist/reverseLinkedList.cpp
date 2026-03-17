@@ -10,6 +10,11 @@ struct ListNode
     ListNode(int _data) : data(_data), next(nullptr) {}
 };
 
+/**
+ * Using prev, curr and next to reverse the linked list.
+ * 1. Keep next as placeholder for the next current for the next loop
+ * 2. Keep curr as prev for the next loop
+ */
 ListNode* reverseLinkedList(ListNode* head) {
     ListNode* prev = nullptr;
     ListNode* curr = head;

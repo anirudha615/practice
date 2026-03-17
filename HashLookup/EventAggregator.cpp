@@ -10,8 +10,12 @@ bool evaluateFrequencyBreach(std::multiset<int>& timestamp) {
         // If at any time, access attempts >=3, break and return true.
         for (auto itr = timestamp.begin(); itr != timestamp.end(); ++itr) {
             auto lowerBoundItr = timestamp.lower_bound(*itr - hourWindow);
-            // distance is inclusive of FIRST but exclusive of LAST, so +1.
-            int frequency = (int)std::distance<std::set<int>::const_iterator>(lowerBoundItr, itr) + 1;
+            // distance is inclusive of FIRST but exclusive of LAST, so starting with 1.
+            int frequency = 1;
+            while (lowerBoundItr != itr) {
+                ++frequency;
+                ++lowerBoundItr;
+            }
             if (frequency >= 3) {
                 return true;
             }
@@ -21,6 +25,12 @@ bool evaluateFrequencyBreach(std::multiset<int>& timestamp) {
 
 /**
  * https://www.hellointerview.com/community/questions/high-access-employees/cm5eguhai049v838o1wpr6reg?level=STAFF
+ * 
+ * 1. Collect all the timestamps in the map
+ * 2. For every timestamp, go an hour ago and check if the distance between hour ago timestamp and current iterated timestamp
+ *    is >=3. If yes, that employee has accessed 3 times within an hour.
+ * 
+ * NOTE: It is better to iterate from reverse.
  */
 vector<string> findHighAccessEmployees(vector<vector<string>>& access_times) {
     std::unordered_map<string, std::multiset<int>> m_employeeToTimestamp; // <Employee, TimeStamp>

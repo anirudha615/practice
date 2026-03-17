@@ -84,8 +84,8 @@ public:
  * Logic is compare the START and END of traces and see if their duration is above a minute.
  *  1. Since all the traces are in chronological order, keep adding to the stack if function name don't match.
  *  2. If function name and operation name both matched, push to the stack as they could be recursive in nature.
- *  3. IF function name matched but operation name didn't, pop the front element and compare the timestamp and add both 
- *     of them to filtered traces list.
+ *  3. If function name matched but operation name didn't (START != END), pop the front element and compare the 
+ *     timestamp and add both of them to filtered traces list.
  */
 class EliminateNoisyFilter : public IFilter {
 private:

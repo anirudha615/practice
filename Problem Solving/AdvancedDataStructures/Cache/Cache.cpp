@@ -306,8 +306,8 @@ public:
  */
 class LeastFrequentlyUsedCache : public ICache {
 private:
-    std::unordered_map<int, DoublyLinkedListNode*> m_cache;
-    std::unordered_map<int, std::pair<DoublyLinkedListNode*, DoublyLinkedListNode*>> m_frequencyDLL;
+    std::unordered_map<int, DoublyLinkedListNode*> m_cache; // Key --> Node Frequency/Value
+    std::unordered_map<int, std::pair<DoublyLinkedListNode*, DoublyLinkedListNode*>> m_frequencyDLL; // Frequency --> Node's DLL
     int m_totalCapacity;
     int m_currentCapacity = 0;
     int minFrequency = INT32_MAX;
@@ -676,12 +676,19 @@ private:
                 // Pop from heap - O(LogN)
                 m_minHeap.pop();
             } else if (!node->m_isDead && node->m_expirationtime < currentTime) {
-                // Remove node from map -- O(1)
-                m_cache.erase(node->m_key);
-                // Remove node from DLL -- O(1)
-                removeNodeFromDLL(node);
-                // Decrement capacity
-                --m_currentCapacity;
+                // This code block is also for duplicate entries whose expiration timestamp is updated.
+                // Check in the map whether the node's expiration time == map's node expiration time
+                // We don't want to remove the updated node whose expiration time is updated
+                // as we push duplicate entires to the minHeap
+                std::shared_ptr<Node> verificationNode = m_cache[node->m_key];
+                if (verificationNode && verificationNode->m_expirationtime == node->m_expirationtime) {
+                    // Remove node from map -- O(1)
+                    m_cache.erase(node->m_key);
+                    // Remove node from DLL -- O(1)
+                    removeNodeFromDLL(node);
+                    // Decrement capacity
+                    --m_currentCapacity;
+                }
                 // Pop from heap - O(LogN)
                 m_minHeap.pop();
             } else if (node->m_expirationtime > currentTime) {
@@ -730,10 +737,21 @@ public:
             node->m_expirationtime = expirationTime;
             // update DLL
             addNodeToDLL(node); // O(1)
-            // Insert into minHeap
+            // Insert into minHeap (Duplicate entries for the same node is allowed as cleanup would take care)
             m_minHeap.push(node); // O(LogN)
         } else {
-            // If key does not exist
+            // If key does not exist, proactively check if the current capacity will exceed total capacity
+            if (m_currentCapacity + 1 > m_totalCapacity) {
+                // Mark node as dead
+                m_head->m_isDead = true;
+                // Remove node from map -- O(1)
+                m_cache.erase(m_head->m_key);
+                // Remove node from DLL -- O(1)
+                removeNodeFromDLL(m_head);
+                // Decrement capacity
+                --m_currentCapacity;
+            }
+
             ++m_currentCapacity;
             node = std::make_shared<Node>(key, value, expirationTime);
             // Insert into Map
@@ -744,17 +762,7 @@ public:
             m_minHeap.push(node); // O(LogN)
         }
 
-        if (m_currentCapacity > m_totalCapacity) {
-            // Mark node as dead
-            m_head->m_isDead = true;
-            // Remove node from map -- O(1)
-            m_cache.erase(m_head->m_key);
-            // Remove node from DLL -- O(1)
-            removeNodeFromDLL(m_head);
-            // Decrement capacity
-            --m_currentCapacity;
-        }
-
+        
         //lazy cleanup - should be async
         cleanup();
     }

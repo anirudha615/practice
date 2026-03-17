@@ -29,16 +29,17 @@ std::vector<std::vector<int>> getTripletsOfSides(std::vector<int>& sides)
             {
                 // Since the above condition is satisfied, all the elements between first pointer and second pointer
                 // will also satify the conditon.
-                for (int i = firstPointer; i < secondPointer; i++)
-                {
+                for (int i = firstPointer; i < secondPointer; i++) {
                     results.push_back({sides.at(i), sides.at(secondPointer), sides.at(fixedPointer)});
                 }
-                // As per two point sum technique, if the value is greater, we will look for a smaller number and hence decrement the second pointer
+                // As per two point sum technique, if the value is greater, we will look for a smaller number and 
+                // hence decrement the second pointer
                 --secondPointer;
             } 
             else 
             {
-                // As per two point sum technique, if the value is lesser, we will look for a bigger number and hence increment the second pointer
+                // As per two point sum technique, if the value is lesser, we will look for a bigger number and 
+                // hence increment the first pointer
                 ++firstPointer;
             }   
         }

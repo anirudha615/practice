@@ -14,18 +14,15 @@ int maxArea(const std::vector<int>& heights)
     int maxArea = 0;
     int leftPointer = 0;
     int rightPointer = heights.size() - 1;
-    while (leftPointer <= rightPointer)
-    {
+    while (leftPointer <= rightPointer) {
         int area = min(heights.at(leftPointer), heights.at(rightPointer)) * (rightPointer - leftPointer); // height * breadth
         maxArea = max(maxArea, area);
         // If leftPointer <= rightPointer, lets increment leftPointer in hoping to get a bigger wall
-        if (heights.at(leftPointer) <= heights.at(rightPointer))
-        {
+        if (heights.at(leftPointer) <= heights.at(rightPointer)) {
             ++leftPointer;
         } 
         // If leftPointer > rightPointer, lets decrement rightPointer in hoping to get a bigger wall
-        else if (heights.at(leftPointer) > heights.at(rightPointer))
-        {
+        else if (heights.at(leftPointer) > heights.at(rightPointer)) {
             --rightPointer;
         }
     }

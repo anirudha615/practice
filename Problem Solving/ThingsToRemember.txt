@@ -99,6 +99,9 @@ Signature things to remember
             return hasher(std::to_string(key)) % RING_SIZE;
         }
 
+    10. Convert Int Char to Int --> char - '0' ('7' - '0' ==> 7)
+        Convert Char to Alphabetical Index --> char - 'a' ('c' - 'a' ==> 2)
+
 
 
 GENERAL KNOWLEDGE
@@ -142,4 +145,28 @@ GENERAL KNOWLEDGE
    c. Weak - Not an owner but an observer to the object. 
       If all owners dies, the object is scrapped so the observer can also see that object is scrapped.
       std::shared_ptr locked = weak_ptr.lock() --> if locked exists, that means a new owner is created from an observer.
+
+6. VECTOR - 
+    a. Increasing Capacity via push_back/resize --> requests a new, larger heap block, 
+        moves/copies the existing size objects into it, destroys the old ones, and frees the old block.
+    b. Increasing size --> Constructs new objects in the already-allocated heap block.
+
+7. UNORDERED MAP/SET --
+    a. They follow bucket modulo algorithm where 1 bucket should contain atmost 1 element (Key or Key/Value) to satisfy O(1)
+       The worst case could be a linked list which makes retrieval as O(N)
+    b. LOAD FACTOR = total elements/total buckets -> If it exceeds 0.75 or 1, it leads to rehash. That means the keys are rehashed again
+       with the new bucket size and gets re-distributed.
+    c. Remember every rehash requests resizing bucket list which is a new memory allocation in heap 
+        1. Chain Collision uses linked list as 1 bucket in a list of buckets. During rehashing, all those linked list 
+           needs to be re-linked.
+        2. Open Addressing Collision uses index as 1 bucket in a list of buckets (it is contiguous memory block).
+        3. Open addressing is often faster than chaining because it stores entries in one contiguous array, 
+           which leads to much better cache locality and fewer heap allocations, 
+           whereas chaining uses scattered nodes that cause more cache misses
+
+8. ORDERED MAP/SET --
+    a. They both uses Balanced BST (RBT/AVL)
+    b. Every operation - find/insert -- all are O(LogN)
+    c. There is no global resize; insertion allocates one new node on the heap and links it into the balanced BST; deletion frees one node.
+    d. Nodes are individually heap-allocated; only pointers change when rebalancing, existing nodes are not moved.
 ​

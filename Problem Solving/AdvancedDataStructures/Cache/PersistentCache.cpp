@@ -19,7 +19,7 @@ struct Node {
     string m_key;
     int m_value;
     std::mutex m_KeyMtx; // No concurrent request on the object
-    int m_recentVersion; // For Pessimistic locking
+    int m_recentVersion; // For Optimistic locking
     bool m_tombstoneFlag; // For soft deletion.
     Node(string key, int value, int recentVersion, bool tombstoneFlag) 
     : m_key(key), m_value(value), m_recentVersion(recentVersion), m_tombstoneFlag(tombstoneFlag) {}
@@ -42,7 +42,7 @@ struct Node {
  *   1. We are using a readers-writer lock in the map to prevent readers accessing old references if new writes leads to rehashing in the map.
  *      a. Remember, re-hashing is consistent hash ring where ring size == nodes spawned. If we add new nodes, all the neighbors redistribute.
  *      b. So, when a writer gets a lock, all readers are removed so that re-hashing can happen and then multiple readers can read at the same time.
- *   2. If multiple readers are reading at the same time, anyone of them would be able to modify as we have fine-grained locking.
+ *   2. If multiple readers are reading at the same time, anyone of them would be able to modify as we have optimistic locking.
  *   3. On top of that, the update would be valid if the lastReadVersion matches the the recentVersion. Example - if 2 readers read at the same time 
  *      and both of them update it and proceed to queue it up for writing, it will lead to overwrite. So, we want the 2nd reader to request for a
  *      write based on lastReaderVersion.

@@ -5,44 +5,15 @@ using namespace std;
 /**
  * Contiguous Sub-arrays with target sum
  * 
- * 1. We will loop through the array and calculate the prefix sum and store the mapping of prefix sum to the index list.
- * 2. While looping through the array, we will calculate prefix-targetSum and check if the value exists in the map. 
- * 3. If present, we will get the contiguous sub array from [index + 1, current index of the loop]
+ * 1. We will create a Map of <PrefixSum>:<Index>
+ * 2. Similar to Fixed/Sliding window concepty, at every index, we will calculate RunningSum and 
+ *     then subtract RunningSum - targetSum and check if that value is present in the above map.
+ * 3. If it is present, we found a left boundary window and then we will process the fixed window
+ * 
  */
-std::vector<std::vector<int>> getContiguousSubArraysWithTargetsum(const std::vector<int>& array, int targetSum)
-{
-    if (array.empty())
-    {
-        return {};
-    }
-
+void getContiguousSubArraysWithTargetsum(const std::vector<int>& array, int targetSum) {
     std::vector<std::vector<int>> results;
-    // This will map prefixSum to the index
-    std::unordered_map<int, std::vector<int>> prefixSumMap;
-    int prefixSum = 0;
-    prefixSumMap[prefixSum].push_back(-1); // prefix Sum protocol
-
-    for (int i = 0; i < array.size(); i++)
-    {
-        prefixSum = prefixSum + array.at(i);
-        // append the prefixSumMap as you loop
-        prefixSumMap[prefixSum].push_back(i);
-
-        // find whether (prefixSum - targetSum) ~== `prefixSum exists in the prefixSumMap 
-        // Get the list of indexes from the `prefixSum and the sub-array would be the [indexList of `prefixSum + 1, currentIndex Of loop]
-        // The basic math here is prefixSum - `prefixSum -  ==> prefixSum of the current loop - [(prefixSum - targetSum) of the index found in the map] ==> targetSum
-        auto indexList = prefixSumMap[prefixSum - targetSum];
-        for (auto index : indexList)
-        {
-            std::vector<int> result (array.begin() + index + 1, array.begin() + i + 1); //[inclusive, exclusive)
-            results.push_back(result);
-        }
-    }
-    return results;
-}
-
-std::vector<std::vector<int>> getContiguousSubArraysWithTargetsumRev2(const std::vector<int>& array, int targetSum) {
-    std::vector<std::vector<int>> results;
+    int maxSubArraySize = INT_MIN;
     std::unordered_map<int, std::vector<int>> prefixToIndexMap;
     int prefixSum = 0;
     prefixToIndexMap[prefixSum].push_back(-1);
@@ -53,56 +24,45 @@ std::vector<std::vector<int>> getContiguousSubArraysWithTargetsumRev2(const std:
         prefixToIndexMap[prefixSum].push_back(i);
     }
 
-    prefixSum = 0;
+    int runningSum = 0;
     for (int rightWindowBoundaryIndex = 0; rightWindowBoundaryIndex < array.size(); rightWindowBoundaryIndex++) {
-        prefixSum += array.at(rightWindowBoundaryIndex);
+        runningSum += array.at(rightWindowBoundaryIndex);
 
         // Now we have prefixToIndexMap, we will recalculate prefixSum at every index and subtract with targetSum. 
         // If the result is present in prefixToIndexMap, that result is literally left boundary of subarray window whose sum is equal to targetSum.
         // Add the left boundary + 1, current index (right boundary) to the list of windows.
-        int leftWindowBoundary = prefixSum - targetSum;
+        int leftWindowBoundary = runningSum - targetSum;
         if (prefixToIndexMap.count(leftWindowBoundary)) {
             // A window has been found whose sum of the elements is equal to targetSum
             std::vector<int> indexOfLeftBoundaryList = prefixToIndexMap[leftWindowBoundary];
             for (auto index : indexOfLeftBoundaryList) {
                 if (index + 1 <= rightWindowBoundaryIndex) {
-                    results.push_back({index + 1, rightWindowBoundaryIndex});
+                    results.push_back({index + 1, rightWindowBoundaryIndex}); // this is capturing the range
+                    maxSubArraySize = std::max(maxSubArraySize, rightWindowBoundaryIndex - index);
                 }
             }   
         } else {
             // No window was found continue
         }
-    } 
+    }
 
-    return results;
+    std::cout << "total subarray : " << results.size() << std::endl;
+    for (std::vector<int> res : results) {
+        for (int index = res.at(0); index <= res.at(1); index++) {
+            std::cout << array.at(index) << ", ";
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "longest subarray of size : " << maxSubArraySize << std::endl;
+    
 }
 
 
 int main ()
 {
     std::vector<int> array {-1,-1,1};
-    auto results = getContiguousSubArraysWithTargetsumRev2(array, 0);
-    int longestSubArraySize = 0;
-    std::vector<int> longestSubArray;
-    for (auto result : results)
-    {
-        longestSubArraySize = max(longestSubArraySize, static_cast<int>(result.size()));
-        if (longestSubArraySize == result.size())
-        {
-            longestSubArray = result;
-        }
-        for (auto res: result)
-        {
-            std::cout << res << " to " ;
-        }
-        std::cout << std::endl;
-    }
-    
-    std::cout << "longest subarray of size : " << longestSubArraySize << std::endl;
-    for (auto res: longestSubArray)
-    {
-        std::cout << res << " to " ;
-    }
+    getContiguousSubArraysWithTargetsum(array, 0);
 }
 
 /**

@@ -73,7 +73,6 @@ using namespace std;
    * 
    * REVISE - 
    *     a. Allow asynchronous requests between clients and make bucket update synchronous for each client.
-   *     b. 
    */
 
 // Decorated Input for Rate Limiting Interface
@@ -153,8 +152,8 @@ private:
             : tokens(initialTokens), lastRefillTime(time) {}
     };
 
-    // Prevent multiple threads to update the cache via coarse-grained locking
-    std::mutex limiter_mutex; 
+    // Prevent multiple threads to update the cache via fine-grained locking
+    std::mutex cache_mutex; 
 
     // This cache holds <UserId, RespectiveTokenBucket>, <IPAddress, RespectiveTokenBucket>
     // Extending to <APIEndpoint, RespectiveTokenBucket>
@@ -173,7 +172,7 @@ public:
     }
     
     std::shared_ptr<TokenBucket> getOrCreateTokenBucket(const std::string& key) {
-        std::lock_guard<std::mutex> lock(limiter_mutex);
+        std::lock_guard<std::mutex> lock(cache_mutex);
         if (m_cache.count(key)) {
             return m_cache[key];
         }

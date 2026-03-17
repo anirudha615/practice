@@ -42,6 +42,7 @@ private:
      * However, all the threads will converge on the receiving node where we need mutex of receiving node to update the frequency counter.
      */
     void sendFrequencyCounterToReceivingNode(int index) {
+        // this needs to be protected by mutex
         std::shared_ptr<Node> sendingNode = m_nodeList[index];
         std::shared_ptr<Node> receivingNode = m_nodeList[m_receivingNodeIndex];
 
@@ -52,18 +53,18 @@ private:
         }
 
         /** Calculate time Taken to read */
-        sendingNode->timeTakenToRead = sendingNode->timeTakenToRead + (frequencyCounterPerNode.size() * 2 * 4 * TIME_TAKEN_TO_READ_1_BYTE);
+        sendingNode->timeTakenToRead += (frequencyCounterPerNode.size() * 2 * 4 * TIME_TAKEN_TO_READ_1_BYTE);
 
         /** Calculate time Taken to send */
         if (index != m_receivingNodeIndex) {
-            sendingNode->timeTakenToSend = sendingNode->timeTakenToSend + (frequencyCounterPerNode.size() * 2 * 4 * TIME_TAKEN_TO_SEND_1_BYTE);
+            sendingNode->timeTakenToSend += (frequencyCounterPerNode.size() * 2 * 4 * TIME_TAKEN_TO_SEND_1_BYTE);
         }
 
         /** Send the frequency counter to the receiving node*/
         {
             std::lock_guard<std::mutex> lock(receivingNode->getMutex());
             for (auto& pair : frequencyCounterPerNode) {
-                receivingNode->m_frequencyCounter[pair.first] = receivingNode->m_frequencyCounter[pair.first] + frequencyCounterPerNode[pair.first];
+                receivingNode->m_frequencyCounter[pair.first] += frequencyCounterPerNode[pair.first];
             }
         }
     }
@@ -105,7 +106,7 @@ public:
         for (auto& pair : processingNode->m_frequencyCounter) {
             maxFrequency = std::max(maxFrequency, pair.second);
             if (maxFrequency == pair.second) {
-                distributedModeStatistics = pair.first;
+                distributedModeStatistics = pair.first; // Node with highest frequency
             }
             totalCount = totalCount + pair.second;
             cumulativeCount[pair.first] = totalCount;

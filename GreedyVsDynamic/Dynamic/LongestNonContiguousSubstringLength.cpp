@@ -14,7 +14,7 @@ using namespace std;
  */
 int longestSubArrayNotContiguous(vector<int>& nums) {
     std::vector<int> dp (nums.size(), 0);
-    int maxPreviousBranchLength = 1;
+    int maxBranchLength = 1;
 
     // Base case
     dp[0] = 1;
@@ -30,7 +30,7 @@ int longestSubArrayNotContiguous(vector<int>& nums) {
         // If we found the maxPreviousBranchLengthForCurrentIndex 
         if (maxPreviousBranchLengthForCurrentIndex != -1) {
             dp[i] = maxPreviousBranchLengthForCurrentIndex + 1;
-            maxPreviousBranchLength = std::max(dp[i], maxPreviousBranchLength);
+            maxBranchLength = std::max(dp[i], maxBranchLength);
         } else {
             // If we didn't find maxPreviousBranchLengthForCurrentIndex that means current index is smaller or equal to previous index, 
             // in that case, just have 1 as branch length
@@ -38,7 +38,7 @@ int longestSubArrayNotContiguous(vector<int>& nums) {
         }
     }
 
-    return maxPreviousBranchLength;
+    return maxBranchLength;
 }
 
 

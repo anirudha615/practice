@@ -24,7 +24,7 @@ private:
     // state
     int m_totalCapacity = 0;
     int m_currentCapacity = 0;
-    int m_head = 0, m_tail = 0;
+    int m_head = 0, m_tail = 0; // head to retrieve and tail to insert - moves clockwise in a circular array
     std::vector<string> m_queue;
 public:
     Orchestrator(int totalCapacity): m_totalCapacity(totalCapacity) {

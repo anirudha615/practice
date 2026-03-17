@@ -60,8 +60,7 @@ public:
         for (auto position : dataSourceTotalPosition) {
             std::shared_ptr<DataSource> dataSource = std::make_shared<DataSource>(position);
             dataSourceList.push_back(dataSource);
-            std::thread activeWorker (&AsyncIterator::incrementDataSource, this, dataSource);
-            activeWorkerThreads.push_back(std::move(activeWorker));
+            activeWorkerThreads.push_back(std::thread(&AsyncIterator::incrementDataSource, this, dataSource));
         }
     }
     

@@ -21,12 +21,15 @@ bool validWordAbbreviation(string word, string abbr) {
     for (abbreviationPtr = 0; abbreviationPtr < abbr.size(); abbreviationPtr++) {
         char abbrChar = abbr.at(abbreviationPtr);
         if (isdigit(abbrChar)) {
-            if (currentNumber.empty() && abbrChar == '0') return false;
+            if (currentNumber.empty() && abbrChar == '0') {
+                return false;
+            }
             currentNumber += abbrChar;
             continue;
         }
 
         wordPointer = currentNumber.empty() ? ++wordPointer : wordPointer + std::stoi(currentNumber) + 1;
+        // validation of incrementing the word pointer
         if (wordPointer >= (int)word.size()) {
             return false;
         }
