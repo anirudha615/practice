@@ -102,6 +102,14 @@ Signature things to remember
     10. Convert Int Char to Int --> char - '0' ('7' - '0' ==> 7)
         Convert Char to Alphabetical Index --> char - 'a' ('c' - 'a' ==> 2)
 
+    11. TypeIndex and ANY -->
+         a. Primitive datatypes (int, string, etc) can be inserted as ANY.
+         b. While retrieving the datatype of the object stored, we have to convert ANY to its 'type_info' using '.type()'.
+            'type_info' is a metadata object that DESCRIBES the datatype of the object stored. Wrap 'type_info' under ''type_index' for hash table comparison.
+         c. While retrieving the value of the object, we have to convert ANY to exact value of the container using 'any_cast<int>'
+         d. Datatype value can also be stored as ANY as 'type_index(typeid(string))'.
+         e. To retrieving the actual value and not datatype of the above object, we have to convert ANY to exact value of the container
+            using 'any_cast<type_index>'
 
 
 GENERAL KNOWLEDGE

@@ -63,28 +63,7 @@
       "version": 245,
       "versionNonce": 524140719,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "kAfB7WfZFboq29oYDJ38L"
-        },
-        {
-          "id": "UrVxVKIhb80NW84ol6qnv",
-          "type": "arrow"
-        },
-        {
-          "id": "kx9phCOqkK6I7OwnOWVF3",
-          "type": "arrow"
-        },
-        {
-          "id": "grmXF7ve3KCLG6OcNBewB",
-          "type": "arrow"
-        },
-        {
-          "id": "RdVj64RrOkLCKjtobTwSw",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1766719152280,
       "link": null,
       "locked": false
@@ -149,16 +128,7 @@
       "version": 220,
       "versionNonce": 1648349903,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "9lXPf1Qy3omb8bxu3-0Om"
-        },
-        {
-          "id": "UrVxVKIhb80NW84ol6qnv",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1766719152280,
       "link": null,
       "locked": false
@@ -223,16 +193,7 @@
       "version": 279,
       "versionNonce": 997892335,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "ONqcReTixWyRAmxZxEkY2"
-        },
-        {
-          "id": "RdVj64RrOkLCKjtobTwSw",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1766719152280,
       "link": null,
       "locked": false
@@ -297,24 +258,7 @@
       "version": 502,
       "versionNonce": 1551280911,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "FkySLYq18ysNHaKp39Nuv"
-        },
-        {
-          "id": "kx9phCOqkK6I7OwnOWVF3",
-          "type": "arrow"
-        },
-        {
-          "id": "WlWI0KRiFA4v6BDDdGtPg",
-          "type": "arrow"
-        },
-        {
-          "id": "dMu8tDFb7s_MDE2D4qSt9",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1766719152280,
       "link": null,
       "locked": false
@@ -379,20 +323,7 @@
       "version": 220,
       "versionNonce": 833384751,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "PMjPbYvyKv60MjCQhbduO"
-        },
-        {
-          "id": "WlWI0KRiFA4v6BDDdGtPg",
-          "type": "arrow"
-        },
-        {
-          "id": "bZAjoUuREuIVaFcLFsPc1",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1766719152280,
       "link": null,
       "locked": false
@@ -666,24 +597,7 @@
       "version": 568,
       "versionNonce": 627911567,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "noB83ES5uG0ukDO3fTrLH"
-        },
-        {
-          "id": "bZAjoUuREuIVaFcLFsPc1",
-          "type": "arrow"
-        },
-        {
-          "id": "grmXF7ve3KCLG6OcNBewB",
-          "type": "arrow"
-        },
-        {
-          "id": "KaOg6bGQWh45uGzx4iMwN",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1766719152280,
       "link": null,
       "locked": false
@@ -919,20 +833,7 @@
       "version": 282,
       "versionNonce": 1611551905,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "auqy2tVE1hr417taQgoCo"
-        },
-        {
-          "id": "KaOg6bGQWh45uGzx4iMwN",
-          "type": "arrow"
-        },
-        {
-          "id": "dMu8tDFb7s_MDE2D4qSt9",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1766719152280,
       "link": null,
       "locked": false
@@ -1128,10 +1029,10 @@
     {
       "id": "R41XMcV-TF_lfo5U2xPHu",
       "type": "text",
-      "x": 472.7154919746433,
-      "y": -1691.2157834408815,
+      "x": 467.84762416159356,
+      "y": -1902.9680333085364,
       "width": 1745.86669921875,
-      "height": 2975,
+      "height": 2950,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -1145,20 +1046,20 @@
       "index": "b1e",
       "roundness": null,
       "seed": 1182956577,
-      "version": 11007,
-      "versionNonce": 742169793,
+      "version": 13298,
+      "versionNonce": 568643463,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1766727696770,
+      "boundElements": [],
+      "updated": 1774314366106,
       "link": null,
       "locked": false,
-      "text": "Web Crawler\n\nFunctional Requirements - \n    1. Crawl the web starting from a given set of seed URLs.\n    2. Extract text data from each web page and store the text for later processing.\n\nNon-Functional Requirements - \n    1. The system should prioritize availability over strong consistency\n    2. The system should be fault tolerant\n    3. The system should retry max of 3 times if it is unable to crawl.\n    4. The system should not keep on hitting the web over required TPS of that web. \n         Consider average TPS of every page to be 1 request/sec.\n    5. Consider, we need to crawl 10 billion pages under 5 days, we need to crawl  \n        23K pages/sec.\n\n\nData Flow - \n     1. Fetch a URL from the given list\n     2. Query the IP Address from the DNS Provider \n     3. Extract the URL and text data from the HTML content of the web page downloaded.\n     4. Put the text data extracted from the web page in a S3 Link for later processing \n     5. Update the database with the web page and S3 Link so that we don't process it again\n     6. Add the extracted URL to the list itself to be crawled further\n\n\nHigh Level Design \n\n1. Crawl the web starting from a given set of seed URLs and Extract text data from each web page and store the text for later processing.\n       a. The Crawler Service will query seed URL from the queue.\n       b. It will obtain the IP address from the DNS Provider and ping the IP Address to download the HTML Content of the web page\n       c. Once downloaded, it will extract the text data and put them into S3 Link.\n       d. Once the S3 upload is successful, it will persist the information in the Database.\n       e. It will extract any other URL from the downloaded HTML content and add it back to the Queue.\n\n\nBased on the data flow, Crawler service has long-running tasks. If the service instance crashes, it has to start from the beginning\n \n1. Spin up infrastructure to offload work from Crawler Service\n      a. Let Crawler Service own the responsibility of extracting from the Queue, checking in the database if the URL has been crawled\n         If not, query the DNS Provider and download the HTML content of the webpage.\n      b. Parsing is a computationally expensive task and should not block the crawling of other web pages. So, lets offload the work of \n          crawling to Message Broker.\n      c. Since Message Broker has a message limit of 1KB, it is not recommended to provide text data as a message object. Hence, we \n          will use S3 to upload the downloaded HTML content and upload the S3 link to the SQS.\n      d. Once Lambda retrieves the message, it can query the S3 Link to retrieve the downloaded HTML content, parse it, extract text data\n          into another S3 Link, persist that information in the database and add it to the main queue\n\n\n2. How can you ensure the system retries URLs that failed to download?\n      a. Since we have a retry mechanism of 3 times, the crawler service will not send an acknowledgement to the SQS queue to delete it.\n      b. On querying the DNS provider and pinging the IP address, if there is no response, we will return that URL back to the queue with retry attempt of 1.\n      c. We should be careful in not retrying the same URL again and again with an intent to not breach the 1 TPS/sec threshold. Hence, we will add some\n          exponential back-off with jitter.\n      d. The jitter is really important to prevent thundering herd problem. Because it may happen that all the initial requests fail at the same time and Crawler\n           Service needs to retry all of the requests at the same time.\n      e. If I am not wrong, SQS queue has a max retry count and retry mechansism of exponential backoff with jitter.\n      f. IF all the three attempts are done (which meets our non-functional requirement), consider the IP address to be bad and put that URL in a dead letter Queue.\n\n\n3. Can you walk me through the specific exponential backoff formula you would use and explain how you would tune the \n     initial delay, maximum delay, and jitter range to balance between retry speed and avoiding overwhelming a recovering server?\n          a. The exponential backoff formula would be 2 ^ N where N is retry attempt. \n          b. If the Initial attempt was X sec, then 1st retry attempt would be at X + 2^1 sec, then 2nd retry attempt would be X + 2^2 sec and 3rd would be X + 2^3 sec.\n          c. Now the requests could be all of the requests fails at X sec, then all the requests will be attempted at X + 2^1, X + 2^2, X + 2^3. This is called thundering herd problem.\n          d. To tackle this problem, we can introduce some jitter which is randomness.\n          e. 1st retry attempt would be at rand(minDelay, X + 2^1 sec), then 2nd retry attempt would be rand(minDelay, X + 2^2 sec) and 3rd would be rand(minDelay, X + 2^1 sec)\n          f. I would like to use minDelay as 1 sec to prevent the crawler to crawl immediately after a failure. In this way, it is guaranteed to not retry immediately.\n\n\nHow can you ensure politeness on a domain ?\n      a. Since now the crawler service is stateless after offloading all the heavy work to SQS and Lambda, we can scale crawler service infinitely.\n      b. Additional, we have a requirement of 1 TPS/sec on a web page but we also need to rate limit hitting the same domain for different URL multiple times.\n      c. We are safe from breaching the rate limit of 1 TPS/sec on a web page because at any given moment, only single crawler instance would be able to crawl\n          because of SQS visibility timeout.\n      d. However, multiple crawler instances can crawl web pages from the same domain.\n      e. To tackle this, when we receive a new URL from the QUEUE, check whether the domain exists in the database.\n      f. If domain does not exist, ping 'domain.com/robots.txt' to retrieve 'crawl-delay' and persist in the database.\n      g. Post that, crawler should set up a distributed rate limiter with <Domain>:<AllowedRequest> with TTL of crawlDelay.\n      h. So, now, if the Domain exists in the database but not in the rate limiter, then it is safe to crawl.\n      i. If it exists in the rate limiter and the allowedRequest is not 0, safe to crawl. Else return it back to the queue and try a new one.\n\nHow can you avoid crawling duplicate content across different URLs?\n     a.. If the URLs are different and the domains are different, the crawler service will need to crawl, do all of the DNS provider politeness checks, and upload it to S3, so that it can upload to SQS.\n     b. Post that Lambda can hash the page content (using MD5 or SHA-256) to create a unique fingerprint and persist in the Database for lookups\n     c. Such that, when a similar content is downloaded, before parsing, it can create a unique fingerprint and check if it is present in Database. If it is not, then proceed to parse.\n\n\nHow to crawl 23K pages/sec ?\n      1. Since Parsing and Extracting data is an asynchronous work, we will focus on how to scale Crawler Service effectively.\n      2. Crawler Service Responsibilities - \n                a. Check if the URL exists in the database. If no, check if the domain exists. (10 ms)\n                b. If domain does not exist, download robots.txt to set up crawl-delay in Rate Limiter (5 + 5 = 10ms)\n                c. Query DNS Provider to get the IP Address (1ms)\n                d. Ping and Download the HTML Content (1ms)\n                e. Upload to S3 (200ms)\n                f. Upload to SQS (100ms)\n      3. Roughly, a crawler instance takes 400ms to crawl 1 web page. If we need to crawl 23K pages/sec, then we need 23K * 0.4 =\n           9200 crawler instances running concurrently. Roughly, assume 10K crawler instances\n      4. Can a database handle 10K requests/sec ? Ideally yes, but we can proceed to shard with domain_id if the number of days reduced.\n      5. Can a cache handle 10K requests/sec ? Definitely yes.\n      6. S3 and SQS can also be sharded by domain_id \n      7. As per internet, DNS Provider can handle 10K requests/sec\n\n\nHow would you modify the system to ensure the extracted text data remains up-to-date? Consider that we now require the data to be fresh and regularly updated.\n    1. If we are allowing the URL to be crawled again, we will put in the QUEUE. But if the crawler service picks up again, we will remove the check to see\n        if it exists in the database.\n    2. Every WebPage has a Last-Modified-Timestamp. So, once it is crawled, the Crawler Service will update the LastCrawlTime, LastModifiedTimestamp and frequencyToCheck\n        in the WebPages database. \n    3. Since, the web pages can be crawled again, The crawler service can take the responsibility of updating the queue with the same URL.\n    4. During the 2nd crawl, if the Last-Modified-Timestamp hasn't changed, simply change the frequency to 1.\n    5. There might be no point in sending to the SQS again because we have a selective pattern to retry. For such cases, we can leverage another standard SQS Queue.\n         The Crawler service can set the timer of the message to be visible as LastCrawlTime+2^frequencyToCheck and create a CRON job per message.\n    6. If the CRON job is fired at their dedicated time, it will publish the message to SQS meant for Repeated Crawls. \n    7. Once consumed, Crawler Service will check again if the LastModifiedTimestamp is changed. Ig not, it will again set the new time to fire and trigger a new CRON job for the message\n         If the modified timestamp changes, we will crawl and reset the frequencyToCheck to 0 and update the LastCrawlTime.\n\n\n",
+      "text": "Web Crawler\n\nFunctional Requirements - \n    1. Crawl the web starting from a given set of seed URLs.\n    2. Extract text data from each web page and store the text for later processing.\n\nNon-Functional Requirements - \n    1. The system should prioritize availability over strong consistency\n    2. The system should be fault tolerant\n    3. The system should retry max of 3 times if it is unable to crawl.\n    4. The system should not keep on hitting the web over required TPS of that web. \n         Consider average TPS of every page to be 1 request/sec.\n    5. Consider, we need to crawl 10 billion pages under 5 days, we need to crawl  \n        23K pages/sec.\n\n\nData Flow - \n     1. Fetch a URL from the given list\n     2. Query the IP Address from the DNS Provider (This is an optimization - CURL does DNS Lookup to convert URL to IPAddress and then download static HTML content)\n     3. Extract the URL and text data from the HTML content of the web page downloaded.\n     4. Put the text data extracted from the web page in a document and upload to S3 for later processing \n     5. Update the database with the web page and S3 Link. Let's use uniqueId so that we don't process the same URL again.\n     6. Add the extracted URL to the list itself to be crawled further\n\n\nHigh Level Design \n\n1. Crawl the web starting from a given set of seed URLs and Extract text data from each web page and store the text for later processing.\n       a. The Crawler Service will query seed URL from the queue.\n       b. CURL the URL which will perform a DNS lookup and download the static HTML Content of the web page. \n           We can do a proactive optimization of resolving the URL to IPAddress using DNS Provider and then CURL but it is not required.\n            In a high throughput system, DNS Caching is preferred because CURL's highest resourcing is towards DNS lookup. \n       c. Once downloaded, it will extract the text data and put them into S3 Link.\n       d. Once the S3 upload is successful, it will persist the information in the Database.\n       e. It will extract any other URL from the downloaded HTML content and add it back to the Queue.\n\n\nBased on the data flow, Crawler service has long-running tasks. If the service instance crashes, it has to start from the beginning\n \n1. Spin up infrastructure to offload work from Crawler Service\n      a. Let Crawler Service own the responsibility of extracting from the Queue, checking in the database if the URL has been crawled\n         If not, CURL the URL and download the HTML content of the webpage.\n      b. Let's generate a uniqueID per URL (HashID of URL) which will acts as a VISITED_URL (BFS)\n      c. Parsing is a computationally expensive task and should not block the crawling of other web pages. So, lets offload the work of \n          crawling to Message Broker.\n      d. Since Message Broker has a message limit of 1KB, it is not recommended to provide text data as a message object. Hence, we \n          will use S3 to upload the downloaded HTML content and insert the S3 link to the SQS.\n      e. Once Lambda retrieves the message, it can query the S3 Link to retrieve the downloaded HTML content, parse it, extract text data in a document \n          and upload the document to S3. Persist the information of crawl status in the database.\n      f. Extract the new URLs, hash the new URL to generate the unique ID and validate if it exists in the database. If not, add it to the main queue.  \n\n\n2. How can you ensure the system retries URLs that failed to download?\n      a. Since we have a retry mechanism of 3 times, the crawler service will not send an acknowledgement to the SQS queue to delete it.\n      b. If there is no response from CURL, we will return that URL back to the queue with retry attempt of 1.\n      c. We should be careful in not retrying the same URL again and again with an intent to not breach the 1 TPS/sec threshold. Hence, we will add some\n          exponential back-off with jitter.\n      d. The jitter is really important to prevent thundering herd problem. Because it may happen that all the initial requests fail at the same time and Crawler\n           Service needs to retry all of the requests at the same time.\n      e. SQS queue has a max retry count and retry mechanism of exponential backoff with jitter.\n      f. If all the three attempts are done (which meets our non-functional requirement), consider the IP address to be bad and put that URL in a dead letter Queue.\n\n\n3. Can you walk me through the specific exponential backoff formula you would use and explain how you would tune the \n     initial delay, maximum delay, and jitter range to balance between retry speed and avoiding overwhelming a recovering server?\n          a. The exponential backoff formula would be 2 ^ N where N is retry attempt. \n          b. If the Initial attempt was X sec, then 1st retry attempt would be at X + 2^1 sec, then 2nd retry attempt would be X + 2^2 sec and 3rd would be X + 2^3 sec.\n          c. Now the requests could be all of the requests fails at X sec, then all the requests will be attempted at X + 2^1, X + 2^2, X + 2^3. This is called thundering herd problem.\n          d. To tackle this problem, we can introduce some jitter which is randomness.\n          e. 1st retry attempt would be at rand(minDelay, X + 2^1 sec), then 2nd retry attempt would be rand(minDelay, X + 2^2 sec) and 3rd would be rand(minDelay, X + 2^1 sec)\n          f. I would like to use minDelay as 1 sec to prevent the crawler to crawl immediately after a failure. In this way, it is guaranteed to not retry immediately.\n\n\nHow can you ensure politeness on a domain ?\n      a. Since now the crawler service is stateless after offloading all the heavy work to SQS and Lambda, we can scale crawler service infinitely.\n      b. Additional, we have a requirement of 1 TPS/sec on a web page but we also need to rate limit hitting the same domain for different URL multiple times.\n      c. We are safe from breaching the rate limit of 1 TPS/sec on a web page because at any given moment, only single crawler instance would be able to crawl\n          because of SQS visibility timeout.\n      d. However, multiple crawler instances can crawl web pages from the same domain.\n      e. To tackle this, when we receive a new URL from the QUEUE, check whether the domain exists in the database.\n      f. If domain does not exist, ping 'domain.com/robots.txt' to retrieve 'crawl-delay' and persist in the database.\n      g. Post that, crawler should set up a distributed rate limiter with <Domain>:<AllowedRequest> which refills every 'CrawlDelay' sec (Token Based RL)\n      h. So, now, if the Domain exists in the database but not in the rate limiter, then it is safe to crawl.\n      i. If it exists in the rate limiter and the allowedRequest is not 0, safe to crawl. Else return it back to the queue and try a new one.\n\nHow can you avoid crawling duplicate content across different URLs?\n     a. Lambda can hash the page content (using MD5 or SHA-256) to create a unique fingerprint and persist in the Database for lookups. \n     b. Such that, when a similar content is downloaded, before parsing, it can create a unique fingerprint and check if it is present in Database. If it is not, then proceed to parse.\n\n\nHow to crawl 23K pages/sec ?\n      1. Since Parsing and Extracting data is an asynchronous work, we will focus on how to scale Crawler Service effectively.\n      2. Crawler Service Responsibilities - \n                a. Check if the URL exists in the database. If no, check if the domain exists. (10 ms)\n                b. If domain does not exist, download robots.txt to set up crawl-delay in Rate Limiter (5 + 5 = 10ms)\n                c. Query DNS Provider to get the IP Address (1ms)\n                d. Ping and Download the HTML Content (1ms)\n                e. Upload to S3 (200ms)\n                f. Upload to SQS (100ms)\n      3. Roughly, a crawler instance takes 400ms to crawl 1 web page. If we need to crawl 23K pages/sec, then we need 23K * 0.4 =\n           9200 crawler instances running concurrently. Roughly, assume 10K crawler instances\n      4. Can a database handle 10K requests/sec ? Ideally yes, but we can proceed to shard with domain_id if the number of days reduced.\n      5. Can a cache handle 10K requests/sec ? Definitely yes.\n      6. S3 and SQS can also be sharded by domain_id \n      7. As per internet, DNS Provider can handle 10K requests/sec\n\n\nHow would you modify the system to ensure the extracted text data remains up-to-date? Consider that we now require the data to be fresh and regularly updated.\n    1. If we are allowing the URL to be crawled again, we will put in the QUEUE. But if the crawler service picks up again, we won't validate against 'uniqueId'.\n    2. Every WebPage has a Last-Content-Modified-Timestamp. So, once it is crawled, the Crawler Service will update the LastCrawlTime, LastContentModifiedTimestamp and \n        frequencyToCheck as 1 in the WebPages database. \n    3. During the 2nd crawl, the crawler service will make a CURL request and see if the 'Last-Content-Modified-Timestamp' hasn't changed. \n        If it does not, it will update the 'LastCrawlTime' and 'frequencyToCheck' to 2 and schedule the URL to be inserted into the queue at (LastCrawlTime+2^frequencyToCheck)\n    4. If the scheduled job is fired, the URL will be added to the Queue and Crawler Service again makes a CURL request. If at this time, 'Last-Content-Modified-Timestamp' , \n        persist in the SQS for parsing and reset the frequencyToCheck as 1.\n\n\n",
       "fontSize": 20,
       "fontFamily": 6,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "Web Crawler\n\nFunctional Requirements - \n    1. Crawl the web starting from a given set of seed URLs.\n    2. Extract text data from each web page and store the text for later processing.\n\nNon-Functional Requirements - \n    1. The system should prioritize availability over strong consistency\n    2. The system should be fault tolerant\n    3. The system should retry max of 3 times if it is unable to crawl.\n    4. The system should not keep on hitting the web over required TPS of that web. \n         Consider average TPS of every page to be 1 request/sec.\n    5. Consider, we need to crawl 10 billion pages under 5 days, we need to crawl  \n        23K pages/sec.\n\n\nData Flow - \n     1. Fetch a URL from the given list\n     2. Query the IP Address from the DNS Provider \n     3. Extract the URL and text data from the HTML content of the web page downloaded.\n     4. Put the text data extracted from the web page in a S3 Link for later processing \n     5. Update the database with the web page and S3 Link so that we don't process it again\n     6. Add the extracted URL to the list itself to be crawled further\n\n\nHigh Level Design \n\n1. Crawl the web starting from a given set of seed URLs and Extract text data from each web page and store the text for later processing.\n       a. The Crawler Service will query seed URL from the queue.\n       b. It will obtain the IP address from the DNS Provider and ping the IP Address to download the HTML Content of the web page\n       c. Once downloaded, it will extract the text data and put them into S3 Link.\n       d. Once the S3 upload is successful, it will persist the information in the Database.\n       e. It will extract any other URL from the downloaded HTML content and add it back to the Queue.\n\n\nBased on the data flow, Crawler service has long-running tasks. If the service instance crashes, it has to start from the beginning\n \n1. Spin up infrastructure to offload work from Crawler Service\n      a. Let Crawler Service own the responsibility of extracting from the Queue, checking in the database if the URL has been crawled\n         If not, query the DNS Provider and download the HTML content of the webpage.\n      b. Parsing is a computationally expensive task and should not block the crawling of other web pages. So, lets offload the work of \n          crawling to Message Broker.\n      c. Since Message Broker has a message limit of 1KB, it is not recommended to provide text data as a message object. Hence, we \n          will use S3 to upload the downloaded HTML content and upload the S3 link to the SQS.\n      d. Once Lambda retrieves the message, it can query the S3 Link to retrieve the downloaded HTML content, parse it, extract text data\n          into another S3 Link, persist that information in the database and add it to the main queue\n\n\n2. How can you ensure the system retries URLs that failed to download?\n      a. Since we have a retry mechanism of 3 times, the crawler service will not send an acknowledgement to the SQS queue to delete it.\n      b. On querying the DNS provider and pinging the IP address, if there is no response, we will return that URL back to the queue with retry attempt of 1.\n      c. We should be careful in not retrying the same URL again and again with an intent to not breach the 1 TPS/sec threshold. Hence, we will add some\n          exponential back-off with jitter.\n      d. The jitter is really important to prevent thundering herd problem. Because it may happen that all the initial requests fail at the same time and Crawler\n           Service needs to retry all of the requests at the same time.\n      e. If I am not wrong, SQS queue has a max retry count and retry mechansism of exponential backoff with jitter.\n      f. IF all the three attempts are done (which meets our non-functional requirement), consider the IP address to be bad and put that URL in a dead letter Queue.\n\n\n3. Can you walk me through the specific exponential backoff formula you would use and explain how you would tune the \n     initial delay, maximum delay, and jitter range to balance between retry speed and avoiding overwhelming a recovering server?\n          a. The exponential backoff formula would be 2 ^ N where N is retry attempt. \n          b. If the Initial attempt was X sec, then 1st retry attempt would be at X + 2^1 sec, then 2nd retry attempt would be X + 2^2 sec and 3rd would be X + 2^3 sec.\n          c. Now the requests could be all of the requests fails at X sec, then all the requests will be attempted at X + 2^1, X + 2^2, X + 2^3. This is called thundering herd problem.\n          d. To tackle this problem, we can introduce some jitter which is randomness.\n          e. 1st retry attempt would be at rand(minDelay, X + 2^1 sec), then 2nd retry attempt would be rand(minDelay, X + 2^2 sec) and 3rd would be rand(minDelay, X + 2^1 sec)\n          f. I would like to use minDelay as 1 sec to prevent the crawler to crawl immediately after a failure. In this way, it is guaranteed to not retry immediately.\n\n\nHow can you ensure politeness on a domain ?\n      a. Since now the crawler service is stateless after offloading all the heavy work to SQS and Lambda, we can scale crawler service infinitely.\n      b. Additional, we have a requirement of 1 TPS/sec on a web page but we also need to rate limit hitting the same domain for different URL multiple times.\n      c. We are safe from breaching the rate limit of 1 TPS/sec on a web page because at any given moment, only single crawler instance would be able to crawl\n          because of SQS visibility timeout.\n      d. However, multiple crawler instances can crawl web pages from the same domain.\n      e. To tackle this, when we receive a new URL from the QUEUE, check whether the domain exists in the database.\n      f. If domain does not exist, ping 'domain.com/robots.txt' to retrieve 'crawl-delay' and persist in the database.\n      g. Post that, crawler should set up a distributed rate limiter with <Domain>:<AllowedRequest> with TTL of crawlDelay.\n      h. So, now, if the Domain exists in the database but not in the rate limiter, then it is safe to crawl.\n      i. If it exists in the rate limiter and the allowedRequest is not 0, safe to crawl. Else return it back to the queue and try a new one.\n\nHow can you avoid crawling duplicate content across different URLs?\n     a.. If the URLs are different and the domains are different, the crawler service will need to crawl, do all of the DNS provider politeness checks, and upload it to S3, so that it can upload to SQS.\n     b. Post that Lambda can hash the page content (using MD5 or SHA-256) to create a unique fingerprint and persist in the Database for lookups\n     c. Such that, when a similar content is downloaded, before parsing, it can create a unique fingerprint and check if it is present in Database. If it is not, then proceed to parse.\n\n\nHow to crawl 23K pages/sec ?\n      1. Since Parsing and Extracting data is an asynchronous work, we will focus on how to scale Crawler Service effectively.\n      2. Crawler Service Responsibilities - \n                a. Check if the URL exists in the database. If no, check if the domain exists. (10 ms)\n                b. If domain does not exist, download robots.txt to set up crawl-delay in Rate Limiter (5 + 5 = 10ms)\n                c. Query DNS Provider to get the IP Address (1ms)\n                d. Ping and Download the HTML Content (1ms)\n                e. Upload to S3 (200ms)\n                f. Upload to SQS (100ms)\n      3. Roughly, a crawler instance takes 400ms to crawl 1 web page. If we need to crawl 23K pages/sec, then we need 23K * 0.4 =\n           9200 crawler instances running concurrently. Roughly, assume 10K crawler instances\n      4. Can a database handle 10K requests/sec ? Ideally yes, but we can proceed to shard with domain_id if the number of days reduced.\n      5. Can a cache handle 10K requests/sec ? Definitely yes.\n      6. S3 and SQS can also be sharded by domain_id \n      7. As per internet, DNS Provider can handle 10K requests/sec\n\n\nHow would you modify the system to ensure the extracted text data remains up-to-date? Consider that we now require the data to be fresh and regularly updated.\n    1. If we are allowing the URL to be crawled again, we will put in the QUEUE. But if the crawler service picks up again, we will remove the check to see\n        if it exists in the database.\n    2. Every WebPage has a Last-Modified-Timestamp. So, once it is crawled, the Crawler Service will update the LastCrawlTime, LastModifiedTimestamp and frequencyToCheck\n        in the WebPages database. \n    3. Since, the web pages can be crawled again, The crawler service can take the responsibility of updating the queue with the same URL.\n    4. During the 2nd crawl, if the Last-Modified-Timestamp hasn't changed, simply change the frequency to 1.\n    5. There might be no point in sending to the SQS again because we have a selective pattern to retry. For such cases, we can leverage another standard SQS Queue.\n         The Crawler service can set the timer of the message to be visible as LastCrawlTime+2^frequencyToCheck and create a CRON job per message.\n    6. If the CRON job is fired at their dedicated time, it will publish the message to SQS meant for Repeated Crawls. \n    7. Once consumed, Crawler Service will check again if the LastModifiedTimestamp is changed. Ig not, it will again set the new time to fire and trigger a new CRON job for the message\n         If the modified timestamp changes, we will crawl and reset the frequencyToCheck to 0 and update the LastCrawlTime.\n\n\n",
+      "originalText": "Web Crawler\n\nFunctional Requirements - \n    1. Crawl the web starting from a given set of seed URLs.\n    2. Extract text data from each web page and store the text for later processing.\n\nNon-Functional Requirements - \n    1. The system should prioritize availability over strong consistency\n    2. The system should be fault tolerant\n    3. The system should retry max of 3 times if it is unable to crawl.\n    4. The system should not keep on hitting the web over required TPS of that web. \n         Consider average TPS of every page to be 1 request/sec.\n    5. Consider, we need to crawl 10 billion pages under 5 days, we need to crawl  \n        23K pages/sec.\n\n\nData Flow - \n     1. Fetch a URL from the given list\n     2. Query the IP Address from the DNS Provider (This is an optimization - CURL does DNS Lookup to convert URL to IPAddress and then download static HTML content)\n     3. Extract the URL and text data from the HTML content of the web page downloaded.\n     4. Put the text data extracted from the web page in a document and upload to S3 for later processing \n     5. Update the database with the web page and S3 Link. Let's use uniqueId so that we don't process the same URL again.\n     6. Add the extracted URL to the list itself to be crawled further\n\n\nHigh Level Design \n\n1. Crawl the web starting from a given set of seed URLs and Extract text data from each web page and store the text for later processing.\n       a. The Crawler Service will query seed URL from the queue.\n       b. CURL the URL which will perform a DNS lookup and download the static HTML Content of the web page. \n           We can do a proactive optimization of resolving the URL to IPAddress using DNS Provider and then CURL but it is not required.\n            In a high throughput system, DNS Caching is preferred because CURL's highest resourcing is towards DNS lookup. \n       c. Once downloaded, it will extract the text data and put them into S3 Link.\n       d. Once the S3 upload is successful, it will persist the information in the Database.\n       e. It will extract any other URL from the downloaded HTML content and add it back to the Queue.\n\n\nBased on the data flow, Crawler service has long-running tasks. If the service instance crashes, it has to start from the beginning\n \n1. Spin up infrastructure to offload work from Crawler Service\n      a. Let Crawler Service own the responsibility of extracting from the Queue, checking in the database if the URL has been crawled\n         If not, CURL the URL and download the HTML content of the webpage.\n      b. Let's generate a uniqueID per URL (HashID of URL) which will acts as a VISITED_URL (BFS)\n      c. Parsing is a computationally expensive task and should not block the crawling of other web pages. So, lets offload the work of \n          crawling to Message Broker.\n      d. Since Message Broker has a message limit of 1KB, it is not recommended to provide text data as a message object. Hence, we \n          will use S3 to upload the downloaded HTML content and insert the S3 link to the SQS.\n      e. Once Lambda retrieves the message, it can query the S3 Link to retrieve the downloaded HTML content, parse it, extract text data in a document \n          and upload the document to S3. Persist the information of crawl status in the database.\n      f. Extract the new URLs, hash the new URL to generate the unique ID and validate if it exists in the database. If not, add it to the main queue.  \n\n\n2. How can you ensure the system retries URLs that failed to download?\n      a. Since we have a retry mechanism of 3 times, the crawler service will not send an acknowledgement to the SQS queue to delete it.\n      b. If there is no response from CURL, we will return that URL back to the queue with retry attempt of 1.\n      c. We should be careful in not retrying the same URL again and again with an intent to not breach the 1 TPS/sec threshold. Hence, we will add some\n          exponential back-off with jitter.\n      d. The jitter is really important to prevent thundering herd problem. Because it may happen that all the initial requests fail at the same time and Crawler\n           Service needs to retry all of the requests at the same time.\n      e. SQS queue has a max retry count and retry mechanism of exponential backoff with jitter.\n      f. If all the three attempts are done (which meets our non-functional requirement), consider the IP address to be bad and put that URL in a dead letter Queue.\n\n\n3. Can you walk me through the specific exponential backoff formula you would use and explain how you would tune the \n     initial delay, maximum delay, and jitter range to balance between retry speed and avoiding overwhelming a recovering server?\n          a. The exponential backoff formula would be 2 ^ N where N is retry attempt. \n          b. If the Initial attempt was X sec, then 1st retry attempt would be at X + 2^1 sec, then 2nd retry attempt would be X + 2^2 sec and 3rd would be X + 2^3 sec.\n          c. Now the requests could be all of the requests fails at X sec, then all the requests will be attempted at X + 2^1, X + 2^2, X + 2^3. This is called thundering herd problem.\n          d. To tackle this problem, we can introduce some jitter which is randomness.\n          e. 1st retry attempt would be at rand(minDelay, X + 2^1 sec), then 2nd retry attempt would be rand(minDelay, X + 2^2 sec) and 3rd would be rand(minDelay, X + 2^1 sec)\n          f. I would like to use minDelay as 1 sec to prevent the crawler to crawl immediately after a failure. In this way, it is guaranteed to not retry immediately.\n\n\nHow can you ensure politeness on a domain ?\n      a. Since now the crawler service is stateless after offloading all the heavy work to SQS and Lambda, we can scale crawler service infinitely.\n      b. Additional, we have a requirement of 1 TPS/sec on a web page but we also need to rate limit hitting the same domain for different URL multiple times.\n      c. We are safe from breaching the rate limit of 1 TPS/sec on a web page because at any given moment, only single crawler instance would be able to crawl\n          because of SQS visibility timeout.\n      d. However, multiple crawler instances can crawl web pages from the same domain.\n      e. To tackle this, when we receive a new URL from the QUEUE, check whether the domain exists in the database.\n      f. If domain does not exist, ping 'domain.com/robots.txt' to retrieve 'crawl-delay' and persist in the database.\n      g. Post that, crawler should set up a distributed rate limiter with <Domain>:<AllowedRequest> which refills every 'CrawlDelay' sec (Token Based RL)\n      h. So, now, if the Domain exists in the database but not in the rate limiter, then it is safe to crawl.\n      i. If it exists in the rate limiter and the allowedRequest is not 0, safe to crawl. Else return it back to the queue and try a new one.\n\nHow can you avoid crawling duplicate content across different URLs?\n     a. Lambda can hash the page content (using MD5 or SHA-256) to create a unique fingerprint and persist in the Database for lookups. \n     b. Such that, when a similar content is downloaded, before parsing, it can create a unique fingerprint and check if it is present in Database. If it is not, then proceed to parse.\n\n\nHow to crawl 23K pages/sec ?\n      1. Since Parsing and Extracting data is an asynchronous work, we will focus on how to scale Crawler Service effectively.\n      2. Crawler Service Responsibilities - \n                a. Check if the URL exists in the database. If no, check if the domain exists. (10 ms)\n                b. If domain does not exist, download robots.txt to set up crawl-delay in Rate Limiter (5 + 5 = 10ms)\n                c. Query DNS Provider to get the IP Address (1ms)\n                d. Ping and Download the HTML Content (1ms)\n                e. Upload to S3 (200ms)\n                f. Upload to SQS (100ms)\n      3. Roughly, a crawler instance takes 400ms to crawl 1 web page. If we need to crawl 23K pages/sec, then we need 23K * 0.4 =\n           9200 crawler instances running concurrently. Roughly, assume 10K crawler instances\n      4. Can a database handle 10K requests/sec ? Ideally yes, but we can proceed to shard with domain_id if the number of days reduced.\n      5. Can a cache handle 10K requests/sec ? Definitely yes.\n      6. S3 and SQS can also be sharded by domain_id \n      7. As per internet, DNS Provider can handle 10K requests/sec\n\n\nHow would you modify the system to ensure the extracted text data remains up-to-date? Consider that we now require the data to be fresh and regularly updated.\n    1. If we are allowing the URL to be crawled again, we will put in the QUEUE. But if the crawler service picks up again, we won't validate against 'uniqueId'.\n    2. Every WebPage has a Last-Content-Modified-Timestamp. So, once it is crawled, the Crawler Service will update the LastCrawlTime, LastContentModifiedTimestamp and \n        frequencyToCheck as 1 in the WebPages database. \n    3. During the 2nd crawl, the crawler service will make a CURL request and see if the 'Last-Content-Modified-Timestamp' hasn't changed. \n        If it does not, it will update the 'LastCrawlTime' and 'frequencyToCheck' to 2 and schedule the URL to be inserted into the queue at (LastCrawlTime+2^frequencyToCheck)\n    4. If the scheduled job is fired, the URL will be added to the Queue and Crawler Service again makes a CURL request. If at this time, 'Last-Content-Modified-Timestamp' , \n        persist in the SQS for parsing and reset the frequencyToCheck as 1.\n\n\n",
       "autoResize": false,
       "lineHeight": 1.25
     },
@@ -1184,8 +1085,8 @@
         "type": 3
       },
       "seed": 1520264559,
-      "version": 242,
-      "versionNonce": 1895932193,
+      "version": 243,
+      "versionNonce": 386691495,
       "isDeleted": false,
       "boundElements": [
         {
@@ -1199,9 +1100,13 @@
         {
           "id": "pDceONj68jHV02vEztZXs",
           "type": "arrow"
+        },
+        {
+          "id": "XvbK0Ac1orYIIHrdwjmDU",
+          "type": "arrow"
         }
       ],
-      "updated": 1766721343541,
+      "updated": 1774313861606,
       "link": null,
       "locked": false
     },
@@ -1228,7 +1133,7 @@
       "version": 110,
       "versionNonce": 1117741281,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1766721059217,
       "link": null,
       "locked": false,
@@ -1328,7 +1233,7 @@
       "version": 120,
       "versionNonce": 1184062625,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1766721059217,
       "link": null,
       "locked": false,
@@ -1367,12 +1272,7 @@
       "version": 88,
       "versionNonce": 1400339041,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "zbZt10t4nRPEkIivcjT_l"
-        }
-      ],
+      "boundElements": [],
       "updated": 1766720481639,
       "link": null,
       "locked": false
@@ -1417,10 +1317,10 @@
     {
       "id": "Xc4yN58EYmPJV0zH6bYiy",
       "type": "ellipse",
-      "x": 1107.39497590499,
-      "y": 1427.7569261830656,
+      "x": 1108.6119428582524,
+      "y": 1335.2674377351245,
       "width": 150.00000000000006,
-      "height": 128.00000000000003,
+      "height": 156,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -1436,8 +1336,8 @@
         "type": 2
       },
       "seed": 769112655,
-      "version": 405,
-      "versionNonce": 391228865,
+      "version": 434,
+      "versionNonce": 1498784393,
       "isDeleted": false,
       "boundElements": [
         {
@@ -1449,17 +1349,17 @@
           "type": "arrow"
         }
       ],
-      "updated": 1766724453604,
+      "updated": 1774311656568,
       "link": null,
       "locked": false
     },
     {
       "id": "5VW36X__tkYfnoNxhGt43",
       "type": "text",
-      "x": 1144.5953009036452,
-      "y": 1467.0020921871264,
-      "width": 75.53333282470703,
-      "height": 50,
+      "x": 1136.3622670939683,
+      "y": 1363.1131088025738,
+      "width": 94.43333435058594,
+      "height": 100,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -1473,20 +1373,20 @@
       "index": "b1m",
       "roundness": null,
       "seed": 683203969,
-      "version": 350,
-      "versionNonce": 792219041,
+      "version": 401,
+      "versionNonce": 1970432361,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1766724453604,
+      "boundElements": [],
+      "updated": 1774311656568,
       "link": null,
       "locked": false,
-      "text": "DNS\nProvider",
+      "text": "DNS\nProvider\n(Optimizat\nion)",
       "fontSize": 20,
       "fontFamily": 6,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "Xc4yN58EYmPJV0zH6bYiy",
-      "originalText": "DNS Provider",
+      "originalText": "DNS Provider (Optimization)",
       "autoResize": true,
       "lineHeight": 1.25
     },
@@ -1495,8 +1395,8 @@
       "type": "arrow",
       "x": 1192.0750881713434,
       "y": 1663.9817241479566,
-      "width": 7.8412534531337315,
-      "height": 98.79787082077996,
+      "width": 10.030132728026047,
+      "height": 168.93289428961702,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -1512,11 +1412,11 @@
         "type": 2
       },
       "seed": 169756161,
-      "version": 284,
-      "versionNonce": 1962930561,
+      "version": 313,
+      "versionNonce": 1142117449,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1766724453605,
+      "boundElements": [],
+      "updated": 1774311656568,
       "link": null,
       "locked": false,
       "points": [
@@ -1525,8 +1425,8 @@
           0
         ],
         [
-          7.8412534531337315,
-          -98.79787082077996
+          10.030132728026047,
+          -168.93289428961702
         ]
       ],
       "startBinding": {
@@ -1575,7 +1475,7 @@
       "version": 191,
       "versionNonce": 807874945,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1766721162214,
       "link": null,
       "locked": false,
@@ -1613,8 +1513,8 @@
     {
       "id": "QzB8xYDtBC7BEXq5nfCOa",
       "type": "ellipse",
-      "x": 1557.5260421545086,
-      "y": 1527.7965823217517,
+      "x": 1550.2242404349342,
+      "y": 1493.7215076304049,
       "width": 163.67205118562288,
       "height": 138.05924928252898,
       "angle": 0,
@@ -1632,8 +1532,8 @@
         "type": 2
       },
       "seed": 315566127,
-      "version": 205,
-      "versionNonce": 1616286561,
+      "version": 218,
+      "versionNonce": 1109911369,
       "isDeleted": false,
       "boundElements": [
         {
@@ -1649,15 +1549,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1766721293684,
+      "updated": 1774313413652,
       "link": null,
       "locked": false
     },
     {
       "id": "YHM0xgnf0LtWrXpEXtsKY",
       "type": "text",
-      "x": 1606.0452583423478,
-      "y": 1584.514891276416,
+      "x": 1598.7434566227735,
+      "y": 1550.4398165850691,
       "width": 66.9000015258789,
       "height": 25,
       "angle": 0,
@@ -1673,11 +1573,11 @@
       "index": "b1q",
       "roundness": null,
       "seed": 198683521,
-      "version": 108,
-      "versionNonce": 1199026145,
+      "version": 121,
+      "versionNonce": 1025381929,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1766721059217,
+      "boundElements": [],
+      "updated": 1774313413652,
       "link": null,
       "locked": false,
       "text": "S3 Link",
@@ -1712,8 +1612,8 @@
         "type": 2
       },
       "seed": 994396815,
-      "version": 125,
-      "versionNonce": 1392557903,
+      "version": 126,
+      "versionNonce": 1468929417,
       "isDeleted": false,
       "boundElements": [
         {
@@ -1727,9 +1627,13 @@
         {
           "id": "pSxYz5zgRStdZtzZaCMD8",
           "type": "arrow"
+        },
+        {
+          "id": "mtfuX7URXAIq6tNCGZ8Uc",
+          "type": "arrow"
         }
       ],
-      "updated": 1766726910801,
+      "updated": 1774313399598,
       "link": null,
       "locked": false
     },
@@ -1756,7 +1660,7 @@
       "version": 70,
       "versionNonce": 778698095,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1766726910801,
       "link": null,
       "locked": false,
@@ -1775,8 +1679,8 @@
       "type": "text",
       "x": 1781.9321754438308,
       "y": 1682.8282310544469,
-      "width": 281.5666809082031,
-      "height": 275,
+      "width": 795.8333129882812,
+      "height": 300,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -1790,30 +1694,30 @@
       "index": "b1t",
       "roundness": null,
       "seed": 1299042447,
-      "version": 369,
-      "versionNonce": 1317770383,
+      "version": 650,
+      "versionNonce": 23387465,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1766726822482,
+      "boundElements": [],
+      "updated": 1774314050981,
       "link": null,
       "locked": false,
-      "text": "Web Pages\n            uniqueId\n            LastCrawlTime\n            LastModifiedTimestamp\n            frequencyToCheck\n            S3Link\n            Domain_id\n            URL\n\n\n      ",
+      "text": "Web Pages\n            uniqueId (PK)\n            Status: CRAWLING|INGESTING|PARSING|EXTRACTING|PERSISTING|CRAWLED\n            LastContentModifiedTimestamp (From CURLing the website)\n            LastCrawlTime (System Time when last crawled)\n            frequencyToCheck (Kind of exponential backoff to crawl again - multiple crawls)\n            S3Link\n            Domain_id\n            URL\n\n\n      ",
       "fontSize": 20,
       "fontFamily": 6,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "Web Pages\n            uniqueId\n            LastCrawlTime\n            LastModifiedTimestamp\n            frequencyToCheck\n            S3Link\n            Domain_id\n            URL\n\n\n      ",
+      "originalText": "Web Pages\n            uniqueId (PK)\n            Status: CRAWLING|INGESTING|PARSING|EXTRACTING|PERSISTING|CRAWLED\n            LastContentModifiedTimestamp (From CURLing the website)\n            LastCrawlTime (System Time when last crawled)\n            frequencyToCheck (Kind of exponential backoff to crawl again - multiple crawls)\n            S3Link\n            Domain_id\n            URL\n\n\n      ",
       "autoResize": true,
       "lineHeight": 1.25
     },
     {
       "id": "SINOLfXcdi2S1kDoxQooM",
       "type": "arrow",
-      "x": 1407.2664339179314,
-      "y": 1707.301311656827,
-      "width": 157.7560380618729,
-      "height": 88.9228689460856,
+      "x": 1402.2664339179316,
+      "y": 1697.142329433335,
+      "width": 155.45423634229837,
+      "height": 112.8389614139403,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -1829,11 +1733,11 @@
         "type": 2
       },
       "seed": 2145194607,
-      "version": 185,
-      "versionNonce": 1646745953,
+      "version": 199,
+      "versionNonce": 455829769,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1766721162214,
+      "boundElements": [],
+      "updated": 1774313413652,
       "link": null,
       "locked": false,
       "points": [
@@ -1842,8 +1746,8 @@
           0
         ],
         [
-          157.7560380618729,
-          -88.9228689460856
+          155.45423634229837,
+          -112.8389614139403
         ]
       ],
       "startBinding": {
@@ -1892,7 +1796,7 @@
       "version": 153,
       "versionNonce": 1648785295,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1766726910806,
       "link": null,
       "locked": false,
@@ -1952,7 +1856,7 @@
       "version": 330,
       "versionNonce": 1351819489,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1766721164419,
       "link": null,
       "locked": false,
@@ -2188,7 +2092,7 @@
       "version": 52,
       "versionNonce": 1747046625,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1766723332107,
       "link": null,
       "locked": false,
@@ -2248,7 +2152,7 @@
       "version": 46,
       "versionNonce": 2056060111,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1766726823684,
       "link": null,
       "locked": false,
@@ -2288,8 +2192,8 @@
       "type": "arrow",
       "x": 1388.4000164772244,
       "y": 2086.262744542949,
-      "width": 170.72452924132836,
-      "height": 449.1825350203328,
+      "width": 166.48880435281558,
+      "height": 487.67856130967107,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -2305,11 +2209,11 @@
         "type": 2
       },
       "seed": 557768545,
-      "version": 97,
-      "versionNonce": 1687325423,
+      "version": 111,
+      "versionNonce": 902520809,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1766726823684,
+      "boundElements": [],
+      "updated": 1774313413652,
       "link": null,
       "locked": false,
       "points": [
@@ -2318,8 +2222,8 @@
           0
         ],
         [
-          170.72452924132836,
-          -449.1825350203328
+          166.48880435281558,
+          -487.67856130967107
         ]
       ],
       "startBinding": {
@@ -2368,7 +2272,7 @@
       "version": 84,
       "versionNonce": 1959701935,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1766726910806,
       "link": null,
       "locked": false,
@@ -2428,7 +2332,7 @@
       "version": 63,
       "versionNonce": 1901189935,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1766726823684,
       "link": null,
       "locked": false,
@@ -2466,9 +2370,9 @@
     {
       "id": "Keb-yL5uH6naRoOkXzDf0",
       "type": "text",
-      "x": 1800.483654571621,
-      "y": 1964.4465486712322,
-      "width": 128.6666717529297,
+      "x": 1811.4363571509818,
+      "y": 1938.8902426527225,
+      "width": 146.4499969482422,
       "height": 125,
       "angle": 0,
       "strokeColor": "#1e1e1e",
@@ -2483,20 +2387,20 @@
       "index": "b26",
       "roundness": null,
       "seed": 1172487905,
-      "version": 376,
-      "versionNonce": 1327916143,
+      "version": 599,
+      "versionNonce": 286621161,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1766726108431,
+      "updated": 1774313409151,
       "link": null,
       "locked": false,
-      "text": "Domain\n     id\n     url\n     crawlDelay\n       ",
+      "text": "Domain\n     id\n     domainName\n     crawlDelay\n       ",
       "fontSize": 20,
       "fontFamily": 6,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "Domain\n     id\n     url\n     crawlDelay\n       ",
+      "originalText": "Domain\n     id\n     domainName\n     crawlDelay\n       ",
       "autoResize": true,
       "lineHeight": 1.25
     },
@@ -2562,7 +2466,7 @@
       "version": 59,
       "versionNonce": 1757533729,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1766724455079,
       "link": null,
       "locked": false,
@@ -2579,9 +2483,9 @@
     {
       "id": "oTRxpGxy7lyPjviLhgZpZ",
       "type": "text",
-      "x": 1540.9346236678348,
-      "y": 1434.1306341559052,
-      "width": 334.5,
+      "x": 1347.4368780991156,
+      "y": 1363.5465508666869,
+      "width": 325.73333740234375,
       "height": 50,
       "angle": 0,
       "strokeColor": "#1e1e1e",
@@ -2596,20 +2500,20 @@
       "index": "b29",
       "roundness": null,
       "seed": 1674055937,
-      "version": 59,
-      "versionNonce": 822119873,
+      "version": 183,
+      "versionNonce": 1022591783,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1766723370731,
+      "boundElements": [],
+      "updated": 1774312822120,
       "link": null,
       "locked": false,
-      "text": "<Domain>:<AllowedRequests> with \n TTL of CrawlDelay",
+      "text": "<Domain>:<AllowedRequests> \n which refills every 'CrawlDelay' sec",
       "fontSize": 20,
       "fontFamily": 6,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "<Domain>:<AllowedRequests> with \n TTL of CrawlDelay",
+      "originalText": "<Domain>:<AllowedRequests> \n which refills every 'CrawlDelay' sec",
       "autoResize": true,
       "lineHeight": 1.25
     },
@@ -2638,7 +2542,7 @@
       "version": 97,
       "versionNonce": 1162111489,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1766724455079,
       "link": null,
       "locked": false,
@@ -2698,12 +2602,7 @@
       "version": 189,
       "versionNonce": 1999877359,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "yIaPfp_SXNHD8dwyPQ56Z"
-        }
-      ],
+      "boundElements": [],
       "updated": 1766723954186,
       "link": null,
       "locked": false
@@ -2767,20 +2666,16 @@
         "type": 3
       },
       "seed": 824286977,
-      "version": 449,
-      "versionNonce": 1709564801,
-      "isDeleted": false,
+      "version": 451,
+      "versionNonce": 49297993,
+      "isDeleted": true,
       "boundElements": [
         {
           "type": "text",
           "id": "rF63sYKzXvmpK10Bd6r3W"
-        },
-        {
-          "id": "C9Kth6MADAYNV_0E-wf4m",
-          "type": "arrow"
         }
       ],
-      "updated": 1766727738115,
+      "updated": 1774313847067,
       "link": null,
       "locked": false
     },
@@ -2804,11 +2699,11 @@
       "index": "b2E",
       "roundness": null,
       "seed": 74979041,
-      "version": 418,
-      "versionNonce": 2099672097,
-      "isDeleted": false,
+      "version": 419,
+      "versionNonce": 251538119,
+      "isDeleted": true,
       "boundElements": [],
-      "updated": 1766727717195,
+      "updated": 1774313847067,
       "link": null,
       "locked": false,
       "text": "SQS\n(For Repeated\nCrawls)",
@@ -2824,10 +2719,10 @@
     {
       "id": "cr9HWtOmcocSKnZw44tBy",
       "type": "arrow",
-      "x": 1119.8965277495176,
-      "y": 1671.421933925104,
-      "width": 147.31214371972135,
-      "height": 174.12287060575704,
+      "x": 1120.2664339179314,
+      "y": 1703.6718924083054,
+      "width": 171.68307851925715,
+      "height": 128.36538797424555,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -2843,8 +2738,8 @@
         "type": 2
       },
       "seed": 378419137,
-      "version": 251,
-      "versionNonce": 656498671,
+      "version": 314,
+      "versionNonce": 426957991,
       "isDeleted": false,
       "boundElements": [
         {
@@ -2852,7 +2747,7 @@
           "id": "f68cyhD3JzERRLSqea76k"
         }
       ],
-      "updated": 1766727733910,
+      "updated": 1774313854436,
       "link": null,
       "locked": false,
       "points": [
@@ -2861,8 +2756,8 @@
           0
         ],
         [
-          -147.31214371972135,
-          -174.12287060575704
+          -171.68307851925715,
+          -128.36538797424555
         ]
       ],
       "startBinding": {
@@ -2873,7 +2768,14 @@
           0.750930944986187
         ]
       },
-      "endBinding": null,
+      "endBinding": {
+        "elementId": "FS4fOP-jfQrTCCeZZjoDP",
+        "mode": "orbit",
+        "fixedPoint": [
+          1,
+          0.5001
+        ]
+      },
       "startArrowhead": null,
       "endArrowhead": "arrow",
       "elbowed": false,
@@ -2902,7 +2804,7 @@
       "version": 41,
       "versionNonce": 614286095,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1766727732413,
       "link": null,
       "locked": false,
@@ -2938,9 +2840,9 @@
         "type": 2
       },
       "seed": 2024923937,
-      "version": 120,
-      "versionNonce": 1988760737,
-      "isDeleted": false,
+      "version": 121,
+      "versionNonce": 301364681,
+      "isDeleted": true,
       "boundElements": [
         {
           "type": "text",
@@ -2951,7 +2853,7 @@
           "type": "arrow"
         }
       ],
-      "updated": 1766726840376,
+      "updated": 1774313394652,
       "link": null,
       "locked": false
     },
@@ -2975,11 +2877,11 @@
       "index": "b2I",
       "roundness": null,
       "seed": 1148427279,
-      "version": 25,
-      "versionNonce": 478206081,
-      "isDeleted": false,
-      "boundElements": null,
-      "updated": 1766726840376,
+      "version": 26,
+      "versionNonce": 120284999,
+      "isDeleted": true,
+      "boundElements": [],
+      "updated": 1774313394652,
       "link": null,
       "locked": false,
       "text": "Redis",
@@ -2995,10 +2897,10 @@
     {
       "id": "mtfuX7URXAIq6tNCGZ8Uc",
       "type": "arrow",
-      "x": 1393.0778973012964,
-      "y": 2101.6278775186215,
-      "width": 312.27412387467166,
-      "height": 52.29411234024519,
+      "x": 1388.0778973012962,
+      "y": 2099.986847745132,
+      "width": 255.31886825860397,
+      "height": 183.5153189114924,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -3014,8 +2916,8 @@
         "type": 2
       },
       "seed": 1747232079,
-      "version": 65,
-      "versionNonce": 45359201,
+      "version": 329,
+      "versionNonce": 735815017,
       "isDeleted": false,
       "boundElements": [
         {
@@ -3023,7 +2925,7 @@
           "id": "eNQc_hoLwzDki4dKdQnCp"
         }
       ],
-      "updated": 1766726840376,
+      "updated": 1774313404951,
       "link": null,
       "locked": false,
       "points": [
@@ -3032,24 +2934,24 @@
           0
         ],
         [
-          312.27412387467166,
-          52.29411234024519
+          255.31886825860397,
+          -183.5153189114924
         ]
       ],
       "startBinding": {
         "elementId": "T7l-VsXc5hIW86KowC0Yc",
         "mode": "orbit",
         "fixedPoint": [
-          0.6946761623702883,
-          0.3053238376297133
+          1.0000000000000004,
+          0.5001
         ]
       },
       "endBinding": {
-        "elementId": "NibPxbEhSzAlYbIdtq_6w",
-        "mode": "inside",
+        "elementId": "5pjeYiA0DypUql8FxvU52",
+        "mode": "orbit",
         "fixedPoint": [
-          0.044198895027625126,
-          0.4606060606060618
+          0.5001,
+          1
         ]
       },
       "startArrowhead": null,
@@ -3080,7 +2982,7 @@
       "version": 16,
       "versionNonce": 1889985345,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1766726838740,
       "link": null,
       "locked": false,
@@ -3097,9 +2999,9 @@
     {
       "id": "D0A-vlvMzd_B53oA0p6t5",
       "type": "text",
-      "x": 1883.25015889442,
-      "y": 2128.6284157756736,
-      "width": 111.53333282470703,
+      "x": 1599.6968587842846,
+      "y": 1703.9069490871016,
+      "width": 135.5500030517578,
       "height": 25,
       "angle": 0,
       "strokeColor": "#1e1e1e",
@@ -3114,20 +3016,20 @@
       "index": "b2L",
       "roundness": null,
       "seed": 1946931823,
-      "version": 59,
-      "versionNonce": 550160879,
+      "version": 141,
+      "versionNonce": 405285321,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1766726851537,
+      "boundElements": [],
+      "updated": 1774313412149,
       "link": null,
       "locked": false,
-      "text": "UniqueHash",
+      "text": "<UniqueHash>",
       "fontSize": 20,
       "fontFamily": 6,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "UniqueHash",
+      "originalText": "<UniqueHash>",
       "autoResize": true,
       "lineHeight": 1.25
     },
@@ -3154,7 +3056,7 @@
       "version": 3,
       "versionNonce": 109294735,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1766726853628,
       "link": null,
       "locked": false,
@@ -3171,8 +3073,8 @@
     {
       "id": "b8tzhqg2tRh-bm6ZeLVeV",
       "type": "text",
-      "x": 1906.014375569293,
-      "y": 2180.901802214271,
+      "x": 1870.7223339246839,
+      "y": 2177.2509013544836,
       "width": 66.73332977294922,
       "height": 25,
       "angle": 0,
@@ -3188,11 +3090,11 @@
       "index": "b2N",
       "roundness": null,
       "seed": 1794972879,
-      "version": 8,
-      "versionNonce": 1400073135,
-      "isDeleted": false,
-      "boundElements": null,
-      "updated": 1766726857453,
+      "version": 33,
+      "versionNonce": 1304780201,
+      "isDeleted": true,
+      "boundElements": [],
+      "updated": 1774312953990,
       "link": null,
       "locked": false,
       "text": "No TTL",
@@ -3208,8 +3110,8 @@
     {
       "id": "FS4fOP-jfQrTCCeZZjoDP",
       "type": "ellipse",
-      "x": 900.038467153661,
-      "y": 1363.177307449811,
+      "x": 800.2471769861455,
+      "y": 1504.3454740282477,
       "width": 142.47786921621605,
       "height": 133.13505812007065,
       "angle": 0,
@@ -3227,8 +3129,8 @@
         "type": 2
       },
       "seed": 876907183,
-      "version": 60,
-      "versionNonce": 1141527041,
+      "version": 147,
+      "versionNonce": 515175271,
       "isDeleted": false,
       "boundElements": [
         {
@@ -3236,20 +3138,24 @@
           "id": "xS-aK7K_Q7bAkluNwO_Zk"
         },
         {
-          "id": "C9Kth6MADAYNV_0E-wf4m",
+          "id": "cr9HWtOmcocSKnZw44tBy",
+          "type": "arrow"
+        },
+        {
+          "id": "XvbK0Ac1orYIIHrdwjmDU",
           "type": "arrow"
         }
       ],
-      "updated": 1766727736479,
+      "updated": 1774313858932,
       "link": null,
       "locked": false
     },
     {
       "id": "xS-aK7K_Q7bAkluNwO_Zk",
       "type": "text",
-      "x": 942.8372004591082,
-      "y": 1404.6744853046628,
-      "width": 57.13333511352539,
+      "x": 826.2542442607089,
+      "y": 1545.8426518830995,
+      "width": 90.71666717529297,
       "height": 50,
       "angle": 0,
       "strokeColor": "#1e1e1e",
@@ -3264,20 +3170,20 @@
       "index": "b2P",
       "roundness": null,
       "seed": 1795808225,
-      "version": 12,
-      "versionNonce": 246297185,
+      "version": 112,
+      "versionNonce": 701686377,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1766727726132,
+      "boundElements": [],
+      "updated": 1774313850303,
       "link": null,
       "locked": false,
-      "text": "CRON\nJOB",
+      "text": "Job\nScheduler",
       "fontSize": 20,
       "fontFamily": 6,
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": "FS4fOP-jfQrTCCeZZjoDP",
-      "originalText": "CRON JOB",
+      "originalText": "Job Scheduler",
       "autoResize": true,
       "lineHeight": 1.25
     },
@@ -3285,9 +3191,9 @@
       "id": "C9Kth6MADAYNV_0E-wf4m",
       "type": "arrow",
       "x": 901.5956023363519,
-      "y": 1416.1199036613011,
-      "width": 108.44124141339137,
-      "height": 84.93300320631306,
+      "y": 1414.9029367080389,
+      "width": 112.66723420410256,
+      "height": 88.99261673829415,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -3303,11 +3209,11 @@
         "type": 2
       },
       "seed": 1410540129,
-      "version": 55,
-      "versionNonce": 846495649,
-      "isDeleted": false,
-      "boundElements": null,
-      "updated": 1766727738115,
+      "version": 58,
+      "versionNonce": 1640015207,
+      "isDeleted": true,
+      "boundElements": [],
+      "updated": 1774313845877,
       "link": null,
       "locked": false,
       "points": [
@@ -3316,8 +3222,8 @@
           0
         ],
         [
-          -108.44124141339137,
-          84.93300320631306
+          -112.66723420410256,
+          88.99261673829415
         ]
       ],
       "startBinding": {
@@ -3334,6 +3240,103 @@
         "fixedPoint": [
           0.6615519454577626,
           0.6615519454577626
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "TmBjtIuQwhWFgUkBaN8Ay",
+      "type": "text",
+      "x": 2312.06715450535,
+      "y": 1670.5369548907984,
+      "width": 8,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2R",
+      "roundness": null,
+      "seed": 1354301609,
+      "version": 3,
+      "versionNonce": 1715948711,
+      "isDeleted": true,
+      "boundElements": null,
+      "updated": 1774312201570,
+      "link": null,
+      "locked": false,
+      "text": "",
+      "fontSize": 20,
+      "fontFamily": 5,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "XvbK0Ac1orYIIHrdwjmDU",
+      "type": "arrow",
+      "x": 873.2665621427295,
+      "y": 1643.461249915386,
+      "width": 15.499124658157257,
+      "height": 52.48315325668523,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b2S",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 2026678791,
+      "version": 101,
+      "versionNonce": 69950087,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1774313861606,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          15.499124658157257,
+          52.48315325668523
+        ]
+      ],
+      "startBinding": {
+        "elementId": "FS4fOP-jfQrTCCeZZjoDP",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5001,
+          1
+        ]
+      },
+      "endBinding": {
+        "elementId": "p0sn_sTAlKSTzmm_Q2KnH",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5001,
+          0
         ]
       },
       "startArrowhead": null,

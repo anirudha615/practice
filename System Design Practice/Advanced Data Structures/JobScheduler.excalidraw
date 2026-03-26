@@ -396,7 +396,7 @@
       "version": 12148,
       "versionNonce": 1768409532,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false,
@@ -435,20 +435,7 @@
       "version": 217,
       "versionNonce": 1193224068,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "rqKsQpsM5nooNAA9WwJZk"
-        },
-        {
-          "id": "y18Yc5kHy4VKEV15jIESI",
-          "type": "arrow"
-        },
-        {
-          "id": "nL71hSkn9couhQAAicKcJ",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1767731754770,
       "link": null,
       "locked": false
@@ -476,7 +463,7 @@
       "version": 117,
       "versionNonce": 460063420,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767731754770,
       "link": null,
       "locked": false,
@@ -513,7 +500,7 @@
       "version": 7,
       "versionNonce": 436961724,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767729666956,
       "link": null,
       "locked": false,
@@ -552,12 +539,7 @@
       "version": 168,
       "versionNonce": 1838950972,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "gpkZFUxCsYzNfs8CRK_Ve"
-        }
-      ],
+      "boundElements": [],
       "updated": 1767729676319,
       "link": null,
       "locked": false
@@ -624,16 +606,7 @@
       "version": 199,
       "versionNonce": 592942852,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "og_CbDWiRKt5M1W5AJoeP"
-        },
-        {
-          "id": "nL71hSkn9couhQAAicKcJ",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1767731754770,
       "link": null,
       "locked": false
@@ -661,7 +634,7 @@
       "version": 111,
       "versionNonce": 282348348,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767731754770,
       "link": null,
       "locked": false,
@@ -700,32 +673,7 @@
       "version": 538,
       "versionNonce": 421511172,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "Z1Lz7feYV5aTMu_ZjWNIn"
-        },
-        {
-          "id": "t4w5HXhrcY-MnWCVGdJDt",
-          "type": "arrow"
-        },
-        {
-          "id": "Q3rmI53nm1Vj64WtDPAgx",
-          "type": "arrow"
-        },
-        {
-          "id": "HjyTq2qFSz_MBE6rX826d",
-          "type": "arrow"
-        },
-        {
-          "id": "9D_PP47TBgAx6KqJduWrQ",
-          "type": "arrow"
-        },
-        {
-          "id": "cULVkOSLelV7pHd80xFIf",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false
@@ -792,16 +740,7 @@
       "version": 287,
       "versionNonce": 179380100,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "uBxpju1FLe_c-OwzZEuZ7"
-        },
-        {
-          "id": "t4w5HXhrcY-MnWCVGdJDt",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false
@@ -829,7 +768,7 @@
       "version": 208,
       "versionNonce": 202738364,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false,
@@ -868,16 +807,7 @@
       "version": 375,
       "versionNonce": 300584708,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "30PffFA2ILCwReaBX10b4"
-        },
-        {
-          "id": "Q3rmI53nm1Vj64WtDPAgx",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false
@@ -944,7 +874,7 @@
       "version": 220,
       "versionNonce": 290172860,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767731763990,
       "link": null,
       "locked": false,
@@ -1004,7 +934,7 @@
       "version": 255,
       "versionNonce": 1316124988,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767731766297,
       "link": null,
       "locked": false,
@@ -1064,7 +994,7 @@
       "version": 228,
       "versionNonce": 1215508156,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767731761375,
       "link": null,
       "locked": false,
@@ -1117,7 +1047,7 @@
       "version": 159,
       "versionNonce": 1305876100,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767731754770,
       "link": null,
       "locked": false,
@@ -1177,7 +1107,7 @@
       "version": 176,
       "versionNonce": 1598688900,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false,
@@ -1237,7 +1167,7 @@
       "version": 93,
       "versionNonce": 487001020,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false,
@@ -1297,20 +1227,7 @@
       "version": 768,
       "versionNonce": 1670225412,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "NOt8ju99Ng7vNgiN9g7Q8"
-        },
-        {
-          "id": "HjyTq2qFSz_MBE6rX826d",
-          "type": "arrow"
-        },
-        {
-          "id": "vq3d2Anc-u0NYMknS28sJ",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false
@@ -1377,28 +1294,7 @@
       "version": 852,
       "versionNonce": 1202929028,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "enp8fqnLiZWVpsh4qpdXH"
-        },
-        {
-          "id": "vq3d2Anc-u0NYMknS28sJ",
-          "type": "arrow"
-        },
-        {
-          "id": "k7QdFXmQx8ByhJ3g-EcvP",
-          "type": "arrow"
-        },
-        {
-          "id": "vgUZDtqFss_N7-WZoPGZ4",
-          "type": "arrow"
-        },
-        {
-          "id": "Rb7YN4HGXpcqdbo_-IW2J",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false
@@ -1465,20 +1361,7 @@
       "version": 912,
       "versionNonce": 1694035204,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "Fiq-jYjrr_3PH1JJIPAhC"
-        },
-        {
-          "id": "k7QdFXmQx8ByhJ3g-EcvP",
-          "type": "arrow"
-        },
-        {
-          "id": "SfbBip3KLNsP4hiRpCOBu",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false
@@ -1545,16 +1428,7 @@
       "version": 985,
       "versionNonce": 1021095044,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "bD7nnPZOZFe48WavdX-Us"
-        },
-        {
-          "id": "SfbBip3KLNsP4hiRpCOBu",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false
@@ -1621,7 +1495,7 @@
       "version": 153,
       "versionNonce": 1897692164,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false,
@@ -1681,7 +1555,7 @@
       "version": 144,
       "versionNonce": 435959356,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false,
@@ -1740,7 +1614,7 @@
       "version": 45,
       "versionNonce": 1001806724,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false,
@@ -1799,7 +1673,7 @@
       "version": 52,
       "versionNonce": 1175588540,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false,
@@ -1858,20 +1732,7 @@
       "version": 690,
       "versionNonce": 428847748,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "qCDyktNPvgU4n1Lw-PaLA"
-        },
-        {
-          "id": "ywRgMtoqA-RH_OHytaK7D",
-          "type": "arrow"
-        },
-        {
-          "id": "LKCx_1wS2d4sT3wGui-Y3",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1767735964171,
       "link": null,
       "locked": false
@@ -1938,7 +1799,7 @@
       "version": 134,
       "versionNonce": 2118335420,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767735971979,
       "link": null,
       "locked": false,
@@ -1990,7 +1851,7 @@
       "version": 115,
       "versionNonce": 1195269820,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767735976589,
       "link": null,
       "locked": false,
@@ -2040,7 +1901,7 @@
       "version": 107,
       "versionNonce": 226411012,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767735964172,
       "link": null,
       "locked": false,
@@ -2079,20 +1940,7 @@
       "version": 75,
       "versionNonce": 1726499588,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "id": "9D_PP47TBgAx6KqJduWrQ",
-          "type": "arrow"
-        },
-        {
-          "id": "vgUZDtqFss_N7-WZoPGZ4",
-          "type": "arrow"
-        },
-        {
-          "type": "text",
-          "id": "iAZXWlQTz47WemGsNFK2D"
-        }
-      ],
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false
@@ -2120,7 +1968,7 @@
       "version": 9,
       "versionNonce": 316200764,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false,
@@ -2159,7 +2007,7 @@
       "version": 67,
       "versionNonce": 1160792708,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false,
@@ -2219,7 +2067,7 @@
       "version": 79,
       "versionNonce": 481464252,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false,
@@ -2278,20 +2126,7 @@
       "version": 627,
       "versionNonce": 692869636,
       "isDeleted": true,
-      "boundElements": [
-        {
-          "type": "text",
-          "id": "XO7CEmxZSA9HVtYRor4YS"
-        },
-        {
-          "id": "cULVkOSLelV7pHd80xFIf",
-          "type": "arrow"
-        },
-        {
-          "id": "Rb7YN4HGXpcqdbo_-IW2J",
-          "type": "arrow"
-        }
-      ],
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false
@@ -2358,7 +2193,7 @@
       "version": 73,
       "versionNonce": 1580890500,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false,
@@ -2417,7 +2252,7 @@
       "version": 56,
       "versionNonce": 333893820,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767761219955,
       "link": null,
       "locked": false,
@@ -2456,8 +2291,8 @@
       "type": "text",
       "x": 683.354721388425,
       "y": -2082.8537726165573,
-      "width": 1231.4666748046875,
-      "height": 3000,
+      "width": 1231.066650390625,
+      "height": 2900,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -2471,27 +2306,27 @@
       "index": "b3D",
       "roundness": null,
       "seed": 1774113212,
-      "version": 9135,
-      "versionNonce": 1945308420,
+      "version": 10084,
+      "versionNonce": 1029758743,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1767765023027,
+      "boundElements": [],
+      "updated": 1774390025336,
       "link": null,
       "locked": false,
-      "text": "Job Scheduler\n\nFunctional Requirements - \n    1. Users can schedule jobs to be executed immediately or at a future date.\n    2. Users can monitor the status of their jobs\n\nNon-Functional Requirements - \n    1. The system should be highly available.\n    2. The system should be fault-tolerant and not prone to data loss.\n    3. The system must guarantee at-least-once execution of all scheduled jobs, even in case of failures.\n    4. The job should be executed within 2secs of the scheduled time.\n    5. The users should be able to view the status of their job in real time (< 10ms)\n    6. TPS is 10K jobs scheduled per sec.\n\n\nAPI Contract - \n\n1. Schedule JOBS --> POST /schedule/ --> jobId and status code\n\n{\n    function* to be executed\n    executionTimestamp\n    requestedTimestamp\n}\n\n2. GET /job/<jobId>\n\n{\n     jobId\n     executionTimestamp\n     scheduledTimestamp\n     FunctionToBeExecuted\n     status: SCHEDULED|IN_PROGRESS|CANCELLATION_REQUESTED|CANCELLED|EXECUTED|INTERNAL_ERROR\n}\n\nHigh Level Design \n\n1. Users can schedule jobs to be executed immediately or at a future date.\n      a. Clients makes a POST request to the Scheduler microservice which persists the job in the JOB table\n          and mark the status as 'SCHEDULED'\n      b. Post that, it maintains an in-memory priority queue which is a minHeap and it sorts based on execution\n          Timestamp. If the timestamp is same, it respects the FIFO behavior.\n      c. There is a in-memory scheduler thread which performs the below responsibilities - \n              a. If the Priority Queue is empty, the thread will sleep indefinitely.\n              b. As soon as the job is added, the thread will wake up and check if the current time exceeded the top \n                  job's executionTimestamp. If it does not, the thread will sleep for (top jobs' executionTimestamp -\n                  currentTimestamp).\n               c. After taking a nap, it will wake up and see that the current timestamp >= top jobs' executionTimestamp\n               d. Post that it will add to the SQS.\n        d. Whatever jobs are added to the SQS needs to be executed immediately. Worker Lambda will consume the \n             message and update the DB as 'IN_PROGRESS'.\n        e. Once executed, it will update the DB as 'EXECUTED'\n        f. Now, when the client queries the Scheduler to see the status of the job, the microservice will query the DB\n           and retrieve the status as 'EXECUTED'.\n\n2. How will users view the status of all of their scheduled or executed jobs?\n       a. Clients can query the microservice using the jobId which will query the JOB table using the jobId (index)\n       b. If the clients wants to retrieve all of their jobs, the microservice can query the JOB table using the userId (index)\n\n3. How can we ensure the system executes jobs within 2s of their scheduled time?\n      a. Every Scheduler will have an in-memory priority queue (which is basically a minHeap) and sorts by executionTimestamp.\n      b. Additionally, every Scheduler has in-memory scheduler Thread which performs the below responsibilities - \n            a.  If the Priority Queue is empty, the thread will sleep indefinitely.\n            b. As soon as the job is added, the thread will wake up and check if the current time exceeded the top \n                  job's executionTimestamp. If it does not, the thread will sleep for (top jobs' executionTimestamp -\n                  currentTimestamp).\n            c. After taking a nap, it will wake up and see that the current timestamp >= top jobs' executionTimestamp\n            d. Post that it will add to the SQS.\n      c. Since the thread is only sleeping till the execution time of the top job, it might wake up earlier if the some urgent job\n          gets added to the minHeap which is not equal to existing current top job.\n      d. In those scenarios, it will recalculate and if require, the thread will lessen its sleeping time.\n      e. Now, the thread might take few milliseconds to extract the job from in-memory priority queue and add it to SQS.\n      f. Now, if the worker Lambda are busy, the job will be waiting in the SQS, which might delay our SLA of 2 seconds.\n      g. In such scenarios, we would require our worker Lambda to scale dynamically depending upon SQS queue depth.\n      h. The job to be executed within SLA of 2 seconds requires the below - \n              a. In-memory Scheduler thread to pop from the in-state priority queue and add to SQS.\n              b. Worker Lambda should be sitting idle to read it from the SQS immediately.\n\n4. What happens if the Scheduler service crashes or restarts right before a job's scheduled execution time?\n     a. If the Scheduler Service crashes, the new instance would read the DB and would extract all jobs with status as 'SCHEDULED'\n         and add them to the In-state Priority Queue \n     b. Extracting all the jobs with status as 'SCHEDULED' would require scanning. Hence, we can add an INDEX to the status column\n         to increase our query speed and populate the in-state Priority Queue.\n     c. However, this would lead to a problem where another Scheduler already scheduled that request in its own state. As a result,\n         both of these instances would add to SQS.\n     d. To deal with this, we need deduplication feature of SQS where we will use JobId as the deduplicationId to deal with scenarios\n          where scheduler have to query the database for jobs which are already being owned by other instances of scheduler.\n     e. IF both the instances tries to add to SQS, the SQS will reject as it uses JobId as deduplicationId.\n     f. Additionally, we will have replicas of Scheduler instances which are running hot due to enough load. These hot instances can be \n        identified using the load balancer monitoring feature. To prevent start-up time of new instances, we can spawn the replica instances\n        when existing instances have breached a certain threshold and would either - \n             a. Request the replica to read from the primary instance and populate its in-state priority queue\n             b. Or query the database to populate its own in-memory state. (Recommended)\n      g. Once the primary instance hit a critical threshold, the system will request the load balancer to route the request to replica instance\n          and decommission the primary instance, making the replica as primary.\n\n\n5. How can we scale job execution to support up to 10,000 concurrent jobs executing in parallel?\n      a. A Scheduler micro-service should be able to dynamically scale and Load Balancer should be able to route new scheduling jobs\n          to new instances so that they can populate their own in-memory priority queue.\n      b. Remember - We don't need shared priority queue as we have a shared database with status of every job. Even though an instance\n          dies, its replica should own the responsibility of already querying the database with scheduled jobs.\n      c. Moving to database, a single non-relational db can handle a TPS of 10K. But during surge events, if the DB starts bottlenecking, it \n          will have cascading effects on the Scheduler. Hence, lets shard the DB based on job_id.\n      d. Ordered SQS queue can support a TPS of 30K which should be fine, given the constraint is 10K jobs. If the jobs increases, we can \n          shard the SQS message group by job_id.\n      e. Lambda is stateless. Hence, it should be able to dynamically scale (similar to scheduler microservice).\n\n6. How should we handle retrying jobs that fail during execution?\n      a. SQS comes with a feature of retry count and retry mechanism. IT may happen that a job when executed might be hitting a service\n         which is not accepting any more requests.\n      b. Hence, lets add some exponential back-off with some jitter so that if the Lambda fails to execute, it will return the same to SQS\n          and it will increase the retry count of that jobMessage but will not make it visible.\n      c. Once the exponential backoff and jitter hits the right timestamp, SQS will make it visible again for lambda to execute.\n      d. Even after maxRetryCount, the job didn't succeeded, we will put into DLQ.\n      e. We can flush the DLQ to be tried again into SQS after a day. \n      f. Additionally, WorkerLambda can update the DB with the retryCount of the job.\n      g. Now, if the maxRetryCount is reached (Say 5), the worker Lambda can make a POST request to the notification microservice\n          to notify the user that the job has reached its max Retry Count.\n ",
+      "text": "Job Scheduler\n\nFunctional Requirements - \n    1. Users can schedule jobs to be executed immediately or at a future date.\n    2. Users can monitor the status of their jobs\n\nNon-Functional Requirements - \n    1. The system should be highly available.\n    2. The system should be fault-tolerant and not prone to data loss.\n    3. The system must guarantee at-least-once execution of all scheduled jobs, even in case of failures.\n    4. The job should be executed within 2secs of the scheduled time.\n    5. The users should be able to view the status of their job in real time (< 10ms)\n    6. TPS is 10K jobs scheduled per sec.\n\n\nAPI Contract - \n\n1. Schedule JOBS --> POST /schedule/ --> jobId and status code\n\n{\n    function* to be executed\n    executionTimestamp\n    requestedTimestamp\n}\n\n2. GET /job/<jobId>\n\n{\n     jobId\n     executionTimestamp\n     scheduledTimestamp\n     FunctionToBeExecuted\n     status: SCHEDULED|IN_PROGRESS|CANCELLATION_REQUESTED|CANCELLED|EXECUTED|INTERNAL_ERROR\n}\n\nHigh Level Design \n\n1. Users can schedule jobs to be executed immediately or at a future date.\n      a. Clients makes a POST request to the Scheduler microservice which persists the job in the JOB table\n          and mark the status as 'SCHEDULED'\n      b. Post that, it maintains an in-memory priority queue which is a minHeap and it sorts based on execution\n          Timestamp. If the timestamp is same, it respects the FIFO behavior.\n      c. There is a in-memory scheduler thread which performs the below responsibilities - \n              a. If the Priority Queue is empty, the thread will sleep indefinitely.\n              b. As soon as the job is added, the thread will wake up and check if the current time exceeded the top \n                  job's executionTimestamp. If it does not, the thread will sleep for (top jobs' executionTimestamp -\n                  currentTimestamp).\n               c. After taking a nap, it will wake up and see that the current timestamp >= top jobs' executionTimestamp\n               d. Post that it will add to the SQS.\n        d. Whatever jobs are added to the SQS needs to be executed immediately. Worker Lambda will consume the \n             message and update the DB as 'IN_PROGRESS'.\n        e. Once executed, it will update the DB as 'EXECUTED'\n        f. Now, when the client queries the Scheduler to see the status of the job, the microservice will query the DB\n           and retrieve the status as 'EXECUTED'.\n\n2. How will users view the status of all of their scheduled or executed jobs?\n       a. Clients can query the microservice using the jobId which will query the JOB table using the jobId (index)\n       b. If the clients wants to retrieve all of their jobs, the microservice can query the JOB table using the userId (index)\n\n3. How can we ensure the system executes jobs within 2s of their scheduled time?\n      a. Every Scheduler will have an in-memory priority queue (which is basically a minHeap) and sorts by executionTimestamp.\n      b. Additionally, every Scheduler has in-memory scheduler Thread which performs the below responsibilities - \n            a.  If the Priority Queue is empty, the thread will sleep indefinitely.\n            b. As soon as the job is added, the thread will wake up and check if the current time exceeded the top \n                  job's executionTimestamp. If it does not, the thread will sleep for (top jobs' executionTimestamp -\n                  currentTimestamp).\n            c. After taking a nap, it will wake up and see that the current timestamp >= top jobs' executionTimestamp\n            d. Post that it will add to the SQS.\n      c. Since the thread is only sleeping till the execution time of the top job, it might wake up earlier if the some urgent job\n          gets added to the minHeap which is not equal to existing current top job.\n      d. In those scenarios, it will recalculate and if require, the thread will lessen its sleeping time.\n      e. Now, the thread might take few milliseconds to extract the job from in-memory priority queue and add it to SQS.\n      f. Now, if the worker Lambda are busy, the job will be waiting in the SQS, which might delay our SLA of 2 seconds.\n      g. In such scenarios, we would require our worker Lambda to scale dynamically depending upon SQS queue depth.\n      h. The job to be executed within SLA of 2 seconds requires the below - \n              a. In-memory Scheduler thread to pop from the in-state priority queue and add to SQS.\n              b. Worker Lambda should be sitting idle to read it from the SQS immediately.\n\n4. What happens if the Scheduler service crashes or restarts right before a job's scheduled execution time?\n     a. we will have CRON job to periodically scan the database and find out jobIDs whose status is 'SCHEDULED' and schedulerInstance\n         is not responsive. Maybe, CRON job can take a snapshot of Health Monitoring System and find out the instances which are inactive.\n     b. For those jobIDs, invoke an API call to active scheduler instance which will persist this information by updating the DB.\n     c. Additionally, we will have replicas of Scheduler instances which are running hot due to enough load. These hot instances can be \n        identified using the load balancer monitoring feature. To prevent start-up time of new instances, we can spawn the replica instances\n        when existing instances have breached a certain threshold and would either - \n             a. Request the replica to read from the primary instance and populate its in-state priority queue\n             b. Or query the database to populate its own in-memory state. (Recommended)\n     d. Once the primary instance hit a critical threshold, the system will request the load balancer to route the request to replica instance\n          and decommission the primary instance, making the replica as primary.\n\n\n5. How can we scale job execution to support up to 10,000 concurrent jobs executing in parallel?\n      a. A Scheduler micro-service should be able to dynamically scale and Load Balancer should be able to route new scheduling jobs\n          to new instances so that they can populate their own in-memory priority queue.\n      b. Remember - We don't need shared priority queue as we have a shared database with status of every job. Even though an instance\n          dies, its replica should own the responsibility of already querying the database with scheduled jobs.\n      c. Additionally, if the scheduler instances are not able to scale to hit TPS of 10K, we can have an ingestion queue to slow down \n          the invoke to Scheduler microservice.\n      c. Moving to database, a single non-relational db can handle a TPS of 10K. But during surge events, if the DB starts bottlenecking, it \n          will have cascading effects on the Scheduler. Hence, lets shard the DB based on job_id.\n      d. Ordered SQS queue can support a TPS of 30K which should be fine, given the constraint is 10K jobs. If the jobs increases, we can \n          shard the SQS message group by job_id.\n      e. Lambda is stateless. Hence, it should be able to dynamically scale (similar to scheduler microservice).\n\n6. How should we handle retrying jobs that fail during execution?\n      a. SQS comes with a feature of retry count and retry mechanism. IT may happen that a job when executed might be hitting a service\n         which is not accepting any more requests.\n      b. Hence, lets add some exponential back-off with some jitter so that if the Lambda fails to execute, it will return the same to SQS\n          and it will increase the retry count of that jobMessage but will not make it visible.\n      c. Once the exponential backoff and jitter hits the right timestamp, SQS will make it visible again for lambda to execute.\n      d. Even after maxRetryCount, the job didn't succeeded, we will put into DLQ.\n      e. We can flush the DLQ to be tried again into SQS after a day. \n      f. Additionally, WorkerLambda can update the DB with the retryCount of the job.\n      g. Now, if the maxRetryCount is reached (Say 5), the worker Lambda can make a POST request to the notification microservice\n          to notify the user that the job has reached its max Retry Count.\n ",
       "fontSize": 20,
       "fontFamily": 6,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "Job Scheduler\n\nFunctional Requirements - \n    1. Users can schedule jobs to be executed immediately or at a future date.\n    2. Users can monitor the status of their jobs\n\nNon-Functional Requirements - \n    1. The system should be highly available.\n    2. The system should be fault-tolerant and not prone to data loss.\n    3. The system must guarantee at-least-once execution of all scheduled jobs, even in case of failures.\n    4. The job should be executed within 2secs of the scheduled time.\n    5. The users should be able to view the status of their job in real time (< 10ms)\n    6. TPS is 10K jobs scheduled per sec.\n\n\nAPI Contract - \n\n1. Schedule JOBS --> POST /schedule/ --> jobId and status code\n\n{\n    function* to be executed\n    executionTimestamp\n    requestedTimestamp\n}\n\n2. GET /job/<jobId>\n\n{\n     jobId\n     executionTimestamp\n     scheduledTimestamp\n     FunctionToBeExecuted\n     status: SCHEDULED|IN_PROGRESS|CANCELLATION_REQUESTED|CANCELLED|EXECUTED|INTERNAL_ERROR\n}\n\nHigh Level Design \n\n1. Users can schedule jobs to be executed immediately or at a future date.\n      a. Clients makes a POST request to the Scheduler microservice which persists the job in the JOB table\n          and mark the status as 'SCHEDULED'\n      b. Post that, it maintains an in-memory priority queue which is a minHeap and it sorts based on execution\n          Timestamp. If the timestamp is same, it respects the FIFO behavior.\n      c. There is a in-memory scheduler thread which performs the below responsibilities - \n              a. If the Priority Queue is empty, the thread will sleep indefinitely.\n              b. As soon as the job is added, the thread will wake up and check if the current time exceeded the top \n                  job's executionTimestamp. If it does not, the thread will sleep for (top jobs' executionTimestamp -\n                  currentTimestamp).\n               c. After taking a nap, it will wake up and see that the current timestamp >= top jobs' executionTimestamp\n               d. Post that it will add to the SQS.\n        d. Whatever jobs are added to the SQS needs to be executed immediately. Worker Lambda will consume the \n             message and update the DB as 'IN_PROGRESS'.\n        e. Once executed, it will update the DB as 'EXECUTED'\n        f. Now, when the client queries the Scheduler to see the status of the job, the microservice will query the DB\n           and retrieve the status as 'EXECUTED'.\n\n2. How will users view the status of all of their scheduled or executed jobs?\n       a. Clients can query the microservice using the jobId which will query the JOB table using the jobId (index)\n       b. If the clients wants to retrieve all of their jobs, the microservice can query the JOB table using the userId (index)\n\n3. How can we ensure the system executes jobs within 2s of their scheduled time?\n      a. Every Scheduler will have an in-memory priority queue (which is basically a minHeap) and sorts by executionTimestamp.\n      b. Additionally, every Scheduler has in-memory scheduler Thread which performs the below responsibilities - \n            a.  If the Priority Queue is empty, the thread will sleep indefinitely.\n            b. As soon as the job is added, the thread will wake up and check if the current time exceeded the top \n                  job's executionTimestamp. If it does not, the thread will sleep for (top jobs' executionTimestamp -\n                  currentTimestamp).\n            c. After taking a nap, it will wake up and see that the current timestamp >= top jobs' executionTimestamp\n            d. Post that it will add to the SQS.\n      c. Since the thread is only sleeping till the execution time of the top job, it might wake up earlier if the some urgent job\n          gets added to the minHeap which is not equal to existing current top job.\n      d. In those scenarios, it will recalculate and if require, the thread will lessen its sleeping time.\n      e. Now, the thread might take few milliseconds to extract the job from in-memory priority queue and add it to SQS.\n      f. Now, if the worker Lambda are busy, the job will be waiting in the SQS, which might delay our SLA of 2 seconds.\n      g. In such scenarios, we would require our worker Lambda to scale dynamically depending upon SQS queue depth.\n      h. The job to be executed within SLA of 2 seconds requires the below - \n              a. In-memory Scheduler thread to pop from the in-state priority queue and add to SQS.\n              b. Worker Lambda should be sitting idle to read it from the SQS immediately.\n\n4. What happens if the Scheduler service crashes or restarts right before a job's scheduled execution time?\n     a. If the Scheduler Service crashes, the new instance would read the DB and would extract all jobs with status as 'SCHEDULED'\n         and add them to the In-state Priority Queue \n     b. Extracting all the jobs with status as 'SCHEDULED' would require scanning. Hence, we can add an INDEX to the status column\n         to increase our query speed and populate the in-state Priority Queue.\n     c. However, this would lead to a problem where another Scheduler already scheduled that request in its own state. As a result,\n         both of these instances would add to SQS.\n     d. To deal with this, we need deduplication feature of SQS where we will use JobId as the deduplicationId to deal with scenarios\n          where scheduler have to query the database for jobs which are already being owned by other instances of scheduler.\n     e. IF both the instances tries to add to SQS, the SQS will reject as it uses JobId as deduplicationId.\n     f. Additionally, we will have replicas of Scheduler instances which are running hot due to enough load. These hot instances can be \n        identified using the load balancer monitoring feature. To prevent start-up time of new instances, we can spawn the replica instances\n        when existing instances have breached a certain threshold and would either - \n             a. Request the replica to read from the primary instance and populate its in-state priority queue\n             b. Or query the database to populate its own in-memory state. (Recommended)\n      g. Once the primary instance hit a critical threshold, the system will request the load balancer to route the request to replica instance\n          and decommission the primary instance, making the replica as primary.\n\n\n5. How can we scale job execution to support up to 10,000 concurrent jobs executing in parallel?\n      a. A Scheduler micro-service should be able to dynamically scale and Load Balancer should be able to route new scheduling jobs\n          to new instances so that they can populate their own in-memory priority queue.\n      b. Remember - We don't need shared priority queue as we have a shared database with status of every job. Even though an instance\n          dies, its replica should own the responsibility of already querying the database with scheduled jobs.\n      c. Moving to database, a single non-relational db can handle a TPS of 10K. But during surge events, if the DB starts bottlenecking, it \n          will have cascading effects on the Scheduler. Hence, lets shard the DB based on job_id.\n      d. Ordered SQS queue can support a TPS of 30K which should be fine, given the constraint is 10K jobs. If the jobs increases, we can \n          shard the SQS message group by job_id.\n      e. Lambda is stateless. Hence, it should be able to dynamically scale (similar to scheduler microservice).\n\n6. How should we handle retrying jobs that fail during execution?\n      a. SQS comes with a feature of retry count and retry mechanism. IT may happen that a job when executed might be hitting a service\n         which is not accepting any more requests.\n      b. Hence, lets add some exponential back-off with some jitter so that if the Lambda fails to execute, it will return the same to SQS\n          and it will increase the retry count of that jobMessage but will not make it visible.\n      c. Once the exponential backoff and jitter hits the right timestamp, SQS will make it visible again for lambda to execute.\n      d. Even after maxRetryCount, the job didn't succeeded, we will put into DLQ.\n      e. We can flush the DLQ to be tried again into SQS after a day. \n      f. Additionally, WorkerLambda can update the DB with the retryCount of the job.\n      g. Now, if the maxRetryCount is reached (Say 5), the worker Lambda can make a POST request to the notification microservice\n          to notify the user that the job has reached its max Retry Count.\n ",
+      "originalText": "Job Scheduler\n\nFunctional Requirements - \n    1. Users can schedule jobs to be executed immediately or at a future date.\n    2. Users can monitor the status of their jobs\n\nNon-Functional Requirements - \n    1. The system should be highly available.\n    2. The system should be fault-tolerant and not prone to data loss.\n    3. The system must guarantee at-least-once execution of all scheduled jobs, even in case of failures.\n    4. The job should be executed within 2secs of the scheduled time.\n    5. The users should be able to view the status of their job in real time (< 10ms)\n    6. TPS is 10K jobs scheduled per sec.\n\n\nAPI Contract - \n\n1. Schedule JOBS --> POST /schedule/ --> jobId and status code\n\n{\n    function* to be executed\n    executionTimestamp\n    requestedTimestamp\n}\n\n2. GET /job/<jobId>\n\n{\n     jobId\n     executionTimestamp\n     scheduledTimestamp\n     FunctionToBeExecuted\n     status: SCHEDULED|IN_PROGRESS|CANCELLATION_REQUESTED|CANCELLED|EXECUTED|INTERNAL_ERROR\n}\n\nHigh Level Design \n\n1. Users can schedule jobs to be executed immediately or at a future date.\n      a. Clients makes a POST request to the Scheduler microservice which persists the job in the JOB table\n          and mark the status as 'SCHEDULED'\n      b. Post that, it maintains an in-memory priority queue which is a minHeap and it sorts based on execution\n          Timestamp. If the timestamp is same, it respects the FIFO behavior.\n      c. There is a in-memory scheduler thread which performs the below responsibilities - \n              a. If the Priority Queue is empty, the thread will sleep indefinitely.\n              b. As soon as the job is added, the thread will wake up and check if the current time exceeded the top \n                  job's executionTimestamp. If it does not, the thread will sleep for (top jobs' executionTimestamp -\n                  currentTimestamp).\n               c. After taking a nap, it will wake up and see that the current timestamp >= top jobs' executionTimestamp\n               d. Post that it will add to the SQS.\n        d. Whatever jobs are added to the SQS needs to be executed immediately. Worker Lambda will consume the \n             message and update the DB as 'IN_PROGRESS'.\n        e. Once executed, it will update the DB as 'EXECUTED'\n        f. Now, when the client queries the Scheduler to see the status of the job, the microservice will query the DB\n           and retrieve the status as 'EXECUTED'.\n\n2. How will users view the status of all of their scheduled or executed jobs?\n       a. Clients can query the microservice using the jobId which will query the JOB table using the jobId (index)\n       b. If the clients wants to retrieve all of their jobs, the microservice can query the JOB table using the userId (index)\n\n3. How can we ensure the system executes jobs within 2s of their scheduled time?\n      a. Every Scheduler will have an in-memory priority queue (which is basically a minHeap) and sorts by executionTimestamp.\n      b. Additionally, every Scheduler has in-memory scheduler Thread which performs the below responsibilities - \n            a.  If the Priority Queue is empty, the thread will sleep indefinitely.\n            b. As soon as the job is added, the thread will wake up and check if the current time exceeded the top \n                  job's executionTimestamp. If it does not, the thread will sleep for (top jobs' executionTimestamp -\n                  currentTimestamp).\n            c. After taking a nap, it will wake up and see that the current timestamp >= top jobs' executionTimestamp\n            d. Post that it will add to the SQS.\n      c. Since the thread is only sleeping till the execution time of the top job, it might wake up earlier if the some urgent job\n          gets added to the minHeap which is not equal to existing current top job.\n      d. In those scenarios, it will recalculate and if require, the thread will lessen its sleeping time.\n      e. Now, the thread might take few milliseconds to extract the job from in-memory priority queue and add it to SQS.\n      f. Now, if the worker Lambda are busy, the job will be waiting in the SQS, which might delay our SLA of 2 seconds.\n      g. In such scenarios, we would require our worker Lambda to scale dynamically depending upon SQS queue depth.\n      h. The job to be executed within SLA of 2 seconds requires the below - \n              a. In-memory Scheduler thread to pop from the in-state priority queue and add to SQS.\n              b. Worker Lambda should be sitting idle to read it from the SQS immediately.\n\n4. What happens if the Scheduler service crashes or restarts right before a job's scheduled execution time?\n     a. we will have CRON job to periodically scan the database and find out jobIDs whose status is 'SCHEDULED' and schedulerInstance\n         is not responsive. Maybe, CRON job can take a snapshot of Health Monitoring System and find out the instances which are inactive.\n     b. For those jobIDs, invoke an API call to active scheduler instance which will persist this information by updating the DB.\n     c. Additionally, we will have replicas of Scheduler instances which are running hot due to enough load. These hot instances can be \n        identified using the load balancer monitoring feature. To prevent start-up time of new instances, we can spawn the replica instances\n        when existing instances have breached a certain threshold and would either - \n             a. Request the replica to read from the primary instance and populate its in-state priority queue\n             b. Or query the database to populate its own in-memory state. (Recommended)\n     d. Once the primary instance hit a critical threshold, the system will request the load balancer to route the request to replica instance\n          and decommission the primary instance, making the replica as primary.\n\n\n5. How can we scale job execution to support up to 10,000 concurrent jobs executing in parallel?\n      a. A Scheduler micro-service should be able to dynamically scale and Load Balancer should be able to route new scheduling jobs\n          to new instances so that they can populate their own in-memory priority queue.\n      b. Remember - We don't need shared priority queue as we have a shared database with status of every job. Even though an instance\n          dies, its replica should own the responsibility of already querying the database with scheduled jobs.\n      c. Additionally, if the scheduler instances are not able to scale to hit TPS of 10K, we can have an ingestion queue to slow down \n          the invoke to Scheduler microservice.\n      c. Moving to database, a single non-relational db can handle a TPS of 10K. But during surge events, if the DB starts bottlenecking, it \n          will have cascading effects on the Scheduler. Hence, lets shard the DB based on job_id.\n      d. Ordered SQS queue can support a TPS of 30K which should be fine, given the constraint is 10K jobs. If the jobs increases, we can \n          shard the SQS message group by job_id.\n      e. Lambda is stateless. Hence, it should be able to dynamically scale (similar to scheduler microservice).\n\n6. How should we handle retrying jobs that fail during execution?\n      a. SQS comes with a feature of retry count and retry mechanism. IT may happen that a job when executed might be hitting a service\n         which is not accepting any more requests.\n      b. Hence, lets add some exponential back-off with some jitter so that if the Lambda fails to execute, it will return the same to SQS\n          and it will increase the retry count of that jobMessage but will not make it visible.\n      c. Once the exponential backoff and jitter hits the right timestamp, SQS will make it visible again for lambda to execute.\n      d. Even after maxRetryCount, the job didn't succeeded, we will put into DLQ.\n      e. We can flush the DLQ to be tried again into SQS after a day. \n      f. Additionally, WorkerLambda can update the DB with the retryCount of the job.\n      g. Now, if the maxRetryCount is reached (Say 5), the worker Lambda can make a POST request to the notification microservice\n          to notify the user that the job has reached its max Retry Count.\n ",
       "autoResize": true,
       "lineHeight": 1.25
     },
     {
       "id": "dqINRJ-W7saWDj0-9cdfX",
       "type": "rectangle",
-      "x": 949.5,
+      "x": 745.5,
       "y": 1390.5,
       "width": 95.49999999999994,
       "height": 372.99999999999994,
@@ -2510,8 +2345,8 @@
         "type": 3
       },
       "seed": 1315676548,
-      "version": 158,
-      "versionNonce": 1129058236,
+      "version": 204,
+      "versionNonce": 1593211895,
       "isDeleted": false,
       "boundElements": [
         {
@@ -2519,22 +2354,22 @@
           "id": "MHS_f6jxCmrZRHD3ZB2l7"
         },
         {
-          "id": "tHicLxZLHAQgaOSWxbyd3",
+          "id": "SBRmhPIKelviECMrwohhN",
           "type": "arrow"
         },
         {
-          "id": "SBRmhPIKelviECMrwohhN",
+          "id": "wAM7hl7YWn0pkJ37MvvTD",
           "type": "arrow"
         }
       ],
-      "updated": 1767762870978,
+      "updated": 1774390056521,
       "link": null,
       "locked": false
     },
     {
       "id": "MHS_f6jxCmrZRHD3ZB2l7",
       "type": "text",
-      "x": 957.0499992370605,
+      "x": 753.0499992370605,
       "y": 1552,
       "width": 80.4000015258789,
       "height": 50,
@@ -2551,11 +2386,11 @@
       "index": "b3F",
       "roundness": null,
       "seed": 382050364,
-      "version": 117,
-      "versionNonce": 2067729468,
+      "version": 161,
+      "versionNonce": 1921980343,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1767762218745,
+      "boundElements": [],
+      "updated": 1774390033858,
       "link": null,
       "locked": false,
       "text": "API\nGateway",
@@ -2571,8 +2406,8 @@
     {
       "id": "-HzAmZUK00RBLWLY_Z2ov",
       "type": "ellipse",
-      "x": 748,
-      "y": 1429.5,
+      "x": 568,
+      "y": 1424.5,
       "width": 94.5,
       "height": 85,
       "angle": 0,
@@ -2590,8 +2425,8 @@
         "type": 2
       },
       "seed": 1808416188,
-      "version": 100,
-      "versionNonce": 392531004,
+      "version": 125,
+      "versionNonce": 927767703,
       "isDeleted": false,
       "boundElements": [
         {
@@ -2603,15 +2438,15 @@
           "type": "arrow"
         }
       ],
-      "updated": 1767762869227,
+      "updated": 1774390032058,
       "link": null,
       "locked": false
     },
     {
       "id": "GpIOvjfYhv6THSoTShhlu",
       "type": "text",
-      "x": 768.5725381765822,
-      "y": 1446.9479617995717,
+      "x": 588.5725381765822,
+      "y": 1441.9479617995717,
       "width": 53.53333282470703,
       "height": 50,
       "angle": 0,
@@ -2627,11 +2462,11 @@
       "index": "b3H",
       "roundness": null,
       "seed": 936794884,
-      "version": 11,
-      "versionNonce": 1599239428,
+      "version": 36,
+      "versionNonce": 1188753847,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1767762226504,
+      "boundElements": [],
+      "updated": 1774390032058,
       "link": null,
       "locked": false,
       "text": "Client\n1",
@@ -2666,8 +2501,8 @@
         "type": 3
       },
       "seed": 951321604,
-      "version": 109,
-      "versionNonce": 775889412,
+      "version": 113,
+      "versionNonce": 757141815,
       "isDeleted": false,
       "boundElements": [
         {
@@ -2679,28 +2514,28 @@
           "type": "arrow"
         },
         {
-          "id": "I8Jbzr7isG5U3ByvQBRZY",
-          "type": "arrow"
-        },
-        {
-          "id": "tHicLxZLHAQgaOSWxbyd3",
-          "type": "arrow"
-        },
-        {
           "id": "tPFtguIIjzLrj5HXTO0YE",
+          "type": "arrow"
+        },
+        {
+          "id": "BpI8QWSl2G_DhVzVbta5a",
+          "type": "arrow"
+        },
+        {
+          "id": "FX2QrVSk8OBE_y12xoQIv",
           "type": "arrow"
         }
       ],
-      "updated": 1767762689878,
+      "updated": 1774390052904,
       "link": null,
       "locked": false
     },
     {
       "id": "JTNLAx0TLaaRWvYibq4ST",
       "type": "text",
-      "x": 1144.650001525879,
+      "x": 1144.6416664123535,
       "y": 1438.25,
-      "width": 90.69999694824219,
+      "width": 90.71666717529297,
       "height": 25,
       "angle": 0,
       "strokeColor": "#1e1e1e",
@@ -2715,11 +2550,11 @@
       "index": "b3J",
       "roundness": null,
       "seed": 1997267132,
-      "version": 12,
-      "versionNonce": 1234452868,
+      "version": 13,
+      "versionNonce": 401496505,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1767762689878,
+      "boundElements": [],
+      "updated": 1774389519496,
       "link": null,
       "locked": false,
       "text": "Scheduler",
@@ -2735,7 +2570,7 @@
     {
       "id": "uzoFjUQc_Sy4iZ1Uv_PJQ",
       "type": "ellipse",
-      "x": 1378,
+      "x": 1379,
       "y": 1398,
       "width": 119.5,
       "height": 100,
@@ -2754,8 +2589,8 @@
         "type": 2
       },
       "seed": 2110171068,
-      "version": 95,
-      "versionNonce": 1274164668,
+      "version": 97,
+      "versionNonce": 1208207641,
       "isDeleted": false,
       "boundElements": [
         {
@@ -2769,16 +2604,20 @@
         {
           "id": "L4ukDcKaBUw2Wx2TLrTSD",
           "type": "arrow"
+        },
+        {
+          "id": "jR0e5hp7t0gNiYfYAm5kx",
+          "type": "arrow"
         }
       ],
-      "updated": 1767762924478,
+      "updated": 1774388980239,
       "link": null,
       "locked": false
     },
     {
       "id": "HTUqTdlBgZ7fVQxotqriL",
       "type": "text",
-      "x": 1423.2503698241037,
+      "x": 1424.2503698241037,
       "y": 1435.6446609406726,
       "width": 28.5,
       "height": 25,
@@ -2795,11 +2634,11 @@
       "index": "b3L",
       "roundness": null,
       "seed": 1126560004,
-      "version": 5,
-      "versionNonce": 314232452,
+      "version": 6,
+      "versionNonce": 1000324791,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1767762244125,
+      "boundElements": [],
+      "updated": 1774388946252,
       "link": null,
       "locked": false,
       "text": "DB",
@@ -2835,7 +2674,7 @@
       "version": 28,
       "versionNonce": 2088685444,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767762251757,
       "link": null,
       "locked": false,
@@ -2853,9 +2692,9 @@
       "id": "2thCdLZOUNHOqvIhUmJ7o",
       "type": "text",
       "x": 1676,
-      "y": 1384,
-      "width": 222.10000610351562,
-      "height": 200,
+      "y": 1383,
+      "width": 524.3333129882812,
+      "height": 275,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -2869,28 +2708,28 @@
       "index": "b3N",
       "roundness": null,
       "seed": 1375292932,
-      "version": 156,
-      "versionNonce": 813483268,
+      "version": 261,
+      "versionNonce": 1078817943,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1767764752003,
+      "boundElements": [],
+      "updated": 1774389538897,
       "link": null,
       "locked": false,
-      "text": "Job\n   jobId\n   userId\n   submittedTimestamp\n   executionTimestamp\n   FunctionToBeExecuted\n   status\n   retryCount",
+      "text": "Job\n   jobId\n   userId\n   FunctionToBeExecuted\n   status: SCHEDULED|QUEUED|IN-PROGRESS|NOTIFIED\n   retryCount\n   submittedTimestamp\n   executionTimestamp\n   lastModifiedTimestamp\n   schedulerInstance\n   ",
       "fontSize": 20,
       "fontFamily": 6,
       "textAlign": "left",
       "verticalAlign": "top",
       "containerId": null,
-      "originalText": "Job\n   jobId\n   userId\n   submittedTimestamp\n   executionTimestamp\n   FunctionToBeExecuted\n   status\n   retryCount",
+      "originalText": "Job\n   jobId\n   userId\n   FunctionToBeExecuted\n   status: SCHEDULED|QUEUED|IN-PROGRESS|NOTIFIED\n   retryCount\n   submittedTimestamp\n   executionTimestamp\n   lastModifiedTimestamp\n   schedulerInstance\n   ",
       "autoResize": true,
       "lineHeight": 1.25
     },
     {
       "id": "rCcjl_ellv24N4jIjKFOd",
       "type": "rectangle",
-      "x": 1233,
-      "y": 1303.25,
+      "x": 1105,
+      "y": 1323.25,
       "width": 166,
       "height": 60,
       "angle": 0,
@@ -2908,8 +2747,8 @@
         "type": 3
       },
       "seed": 271541564,
-      "version": 240,
-      "versionNonce": 1670131772,
+      "version": 353,
+      "versionNonce": 280305943,
       "isDeleted": false,
       "boundElements": [
         {
@@ -2917,19 +2756,19 @@
           "id": "kdmSy1a8oYuoyDHTr9T5A"
         },
         {
-          "id": "I8Jbzr7isG5U3ByvQBRZY",
+          "id": "BpI8QWSl2G_DhVzVbta5a",
           "type": "arrow"
         }
       ],
-      "updated": 1767762385807,
+      "updated": 1774388893717,
       "link": null,
       "locked": false
     },
     {
       "id": "kdmSy1a8oYuoyDHTr9T5A",
       "type": "text",
-      "x": 1245.466667175293,
-      "y": 1308.25,
+      "x": 1117.466667175293,
+      "y": 1328.25,
       "width": 141.06666564941406,
       "height": 50,
       "angle": 0,
@@ -2945,11 +2784,11 @@
       "index": "b3P",
       "roundness": null,
       "seed": 201809340,
-      "version": 171,
-      "versionNonce": 1424978364,
+      "version": 282,
+      "versionNonce": 1901610393,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1767762375933,
+      "updated": 1774388886054,
       "link": null,
       "locked": false,
       "text": "In-state Priority\nQueue",
@@ -2966,9 +2805,9 @@
       "id": "zq6mxT7temCOrEk9taI1P",
       "type": "arrow",
       "x": 1272,
-      "y": 1459,
-      "width": 110.5,
-      "height": 7,
+      "y": 1449,
+      "width": 111.5,
+      "height": 3,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -2984,11 +2823,11 @@
         "type": 2
       },
       "seed": 1077737348,
-      "version": 115,
-      "versionNonce": 202993924,
+      "version": 147,
+      "versionNonce": 885313495,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1767762689878,
+      "boundElements": [],
+      "updated": 1774388946253,
       "link": null,
       "locked": false,
       "points": [
@@ -2997,8 +2836,8 @@
           0
         ],
         [
-          110.5,
-          -7
+          111.5,
+          3
         ]
       ],
       "startBinding": {
@@ -3006,7 +2845,7 @@
         "mode": "inside",
         "fixedPoint": [
           0.9939759036144579,
-          0.6410256410256411
+          0.4700854700854701
         ]
       },
       "endBinding": {
@@ -3027,8 +2866,8 @@
       "type": "arrow",
       "x": 1202.5,
       "y": 1424,
-      "width": 70,
-      "height": 63.5,
+      "width": 58,
+      "height": 43.5,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -3044,11 +2883,11 @@
         "type": 2
       },
       "seed": 557856060,
-      "version": 55,
-      "versionNonce": 894218372,
-      "isDeleted": false,
-      "boundElements": null,
-      "updated": 1767762689878,
+      "version": 167,
+      "versionNonce": 1212505047,
+      "isDeleted": true,
+      "boundElements": [],
+      "updated": 1774388888609,
       "link": null,
       "locked": false,
       "points": [
@@ -3057,8 +2896,8 @@
           0
         ],
         [
-          70,
-          -63.5
+          -58,
+          -43.5
         ]
       ],
       "startBinding": {
@@ -3085,9 +2924,9 @@
     {
       "id": "tHicLxZLHAQgaOSWxbyd3",
       "type": "arrow",
-      "x": 1044.5,
+      "x": 840.5,
       "y": 1452.5,
-      "width": 64,
+      "width": 268,
       "height": 0.5,
       "angle": 0,
       "strokeColor": "#1e1e1e",
@@ -3104,11 +2943,11 @@
         "type": 2
       },
       "seed": 1959578044,
-      "version": 71,
-      "versionNonce": 1693188100,
-      "isDeleted": false,
-      "boundElements": null,
-      "updated": 1767762689878,
+      "version": 116,
+      "versionNonce": 1321516729,
+      "isDeleted": true,
+      "boundElements": [],
+      "updated": 1774390035288,
       "link": null,
       "locked": false,
       "points": [
@@ -3117,7 +2956,7 @@
           0
         ],
         [
-          64,
+          268,
           -0.5
         ]
       ],
@@ -3167,7 +3006,7 @@
       "version": 216,
       "versionNonce": 1535953212,
       "isDeleted": true,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767762672408,
       "link": null,
       "locked": false,
@@ -3216,8 +3055,8 @@
         "type": 3
       },
       "seed": 1016736700,
-      "version": 281,
-      "versionNonce": 1223490180,
+      "version": 283,
+      "versionNonce": 186679513,
       "isDeleted": false,
       "boundElements": [
         {
@@ -3229,11 +3068,11 @@
           "type": "arrow"
         },
         {
-          "id": "y-i-KDPo6kv8BgeXXWSu6",
+          "id": "wKF8y-aaVpu5nCVI0pR6b",
           "type": "arrow"
         }
       ],
-      "updated": 1767762706516,
+      "updated": 1774388793846,
       "link": null,
       "locked": false
     },
@@ -3260,7 +3099,7 @@
       "version": 5,
       "versionNonce": 2007017148,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767762677583,
       "link": null,
       "locked": false,
@@ -3299,7 +3138,7 @@
       "version": 62,
       "versionNonce": 318070660,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767762689878,
       "link": null,
       "locked": false,
@@ -3337,8 +3176,8 @@
     {
       "id": "zbVSdAYmrIqUPOWAtLtkb",
       "type": "rectangle",
-      "x": 1324.5,
-      "y": 1534.75,
+      "x": 1359.5,
+      "y": 1564.75,
       "width": 166,
       "height": 58.5,
       "angle": 0,
@@ -3356,8 +3195,8 @@
         "type": 3
       },
       "seed": 1194974724,
-      "version": 223,
-      "versionNonce": 735767300,
+      "version": 360,
+      "versionNonce": 1356346071,
       "isDeleted": false,
       "boundElements": [
         {
@@ -3365,31 +3204,31 @@
           "id": "AQqjlf2WoqSvNszTMWIBl"
         },
         {
-          "id": "y-i-KDPo6kv8BgeXXWSu6",
-          "type": "arrow"
-        },
-        {
           "id": "L4ukDcKaBUw2Wx2TLrTSD",
-          "type": "arrow"
-        },
-        {
-          "id": "1J5spyUbMYc9iffeFXLM_",
           "type": "arrow"
         },
         {
           "id": "e2vWyBEXSGXov19EF9LGO",
           "type": "arrow"
+        },
+        {
+          "id": "wKF8y-aaVpu5nCVI0pR6b",
+          "type": "arrow"
+        },
+        {
+          "id": "Bwn9Kv909pL-d3sGKhkG7",
+          "type": "arrow"
         }
       ],
-      "updated": 1767764986732,
+      "updated": 1774388796646,
       "link": null,
       "locked": false
     },
     {
       "id": "AQqjlf2WoqSvNszTMWIBl",
       "type": "text",
-      "x": 1334.75,
-      "y": 1551.5,
+      "x": 1369.75,
+      "y": 1581.5,
       "width": 145.5,
       "height": 25,
       "angle": 0,
@@ -3405,11 +3244,11 @@
       "index": "b3Y",
       "roundness": null,
       "seed": 1809284484,
-      "version": 135,
-      "versionNonce": 943802756,
+      "version": 268,
+      "versionNonce": 1221228921,
       "isDeleted": false,
       "boundElements": [],
-      "updated": 1767762698536,
+      "updated": 1774388756183,
       "link": null,
       "locked": false,
       "text": "Worker Lambda",
@@ -3425,10 +3264,10 @@
     {
       "id": "y-i-KDPo6kv8BgeXXWSu6",
       "type": "arrow",
-      "x": 1327.5,
-      "y": 1563,
-      "width": 59.5,
-      "height": 1.5,
+      "x": 1362.5,
+      "y": 1593,
+      "width": 94.5,
+      "height": 28.5,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -3444,11 +3283,11 @@
         "type": 2
       },
       "seed": 307738756,
-      "version": 60,
-      "versionNonce": 1350236932,
-      "isDeleted": false,
-      "boundElements": null,
-      "updated": 1767762706516,
+      "version": 194,
+      "versionNonce": 897685975,
+      "isDeleted": true,
+      "boundElements": [],
+      "updated": 1774388767837,
       "link": null,
       "locked": false,
       "points": [
@@ -3457,8 +3296,8 @@
           0
         ],
         [
-          -59.5,
-          1.5
+          -94.5,
+          -28.5
         ]
       ],
       "startBinding": {
@@ -3479,15 +3318,16 @@
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
-      "elbowed": false
+      "elbowed": false,
+      "moveMidPointsWithElement": false
     },
     {
       "id": "SBRmhPIKelviECMrwohhN",
       "type": "arrow",
-      "x": 840.5,
-      "y": 1470,
-      "width": 112,
-      "height": 1,
+      "x": 660.5,
+      "y": 1465,
+      "width": 88,
+      "height": 4,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -3503,11 +3343,11 @@
         "type": 2
       },
       "seed": 613802684,
-      "version": 145,
-      "versionNonce": 1450693692,
+      "version": 215,
+      "versionNonce": 689427959,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1767762873664,
+      "boundElements": [],
+      "updated": 1774390033858,
       "link": null,
       "locked": false,
       "points": [
@@ -3516,8 +3356,8 @@
           0
         ],
         [
-          112,
-          -1
+          88,
+          4
         ]
       ],
       "startBinding": {
@@ -3538,15 +3378,16 @@
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
-      "elbowed": false
+      "elbowed": false,
+      "moveMidPointsWithElement": false
     },
     {
       "id": "L4ukDcKaBUw2Wx2TLrTSD",
       "type": "arrow",
-      "x": 1340.5,
-      "y": 1539.5,
-      "width": 95.5,
-      "height": 45.5,
+      "x": 1442.029408210005,
+      "y": 1564.7500000000002,
+      "width": 1.0294082100049309,
+      "height": 70.75000000000023,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -3562,11 +3403,11 @@
         "type": 2
       },
       "seed": 1233061948,
-      "version": 338,
-      "versionNonce": 187281980,
+      "version": 561,
+      "versionNonce": 627752183,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1767762930228,
+      "boundElements": [],
+      "updated": 1774388946253,
       "link": null,
       "locked": false,
       "points": [
@@ -3575,29 +3416,30 @@
           0
         ],
         [
-          95.5,
-          -45.5
+          -1.0294082100049309,
+          -70.75000000000023
         ]
       ],
       "startBinding": {
         "elementId": "zbVSdAYmrIqUPOWAtLtkb",
         "mode": "inside",
         "fixedPoint": [
-          0.0963855421686747,
-          0.0811965811965812
+          0.4971651096988249,
+          3.886729494756104e-15
         ]
       },
       "endBinding": {
         "elementId": "uzoFjUQc_Sy4iZ1Uv_PJQ",
         "mode": "inside",
         "fixedPoint": [
-          0.48535564853556484,
+          0.5188284518828452,
           0.96
         ]
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
-      "elbowed": false
+      "elbowed": false,
+      "moveMidPointsWithElement": false
     },
     {
       "id": "zzqLeno5YCxQJ7Itf5OZ2",
@@ -3621,8 +3463,8 @@
         "type": 3
       },
       "seed": 701857796,
-      "version": 335,
-      "versionNonce": 746904764,
+      "version": 337,
+      "versionNonce": 1933497847,
       "isDeleted": false,
       "boundElements": [
         {
@@ -3630,11 +3472,11 @@
           "id": "Na88dH3OvMs5cXSysl-Vb"
         },
         {
-          "id": "1J5spyUbMYc9iffeFXLM_",
+          "id": "Bwn9Kv909pL-d3sGKhkG7",
           "type": "arrow"
         }
       ],
-      "updated": 1767764844889,
+      "updated": 1774388797735,
       "link": null,
       "locked": false
     },
@@ -3678,10 +3520,10 @@
     {
       "id": "1J5spyUbMYc9iffeFXLM_",
       "type": "arrow",
-      "x": 1333.5383125774442,
-      "y": 1589.218904107288,
-      "width": 63.11274849777806,
-      "height": 42.30634789411488,
+      "x": 1368.5383125774442,
+      "y": 1619.218904107288,
+      "width": 98.11274849777806,
+      "height": 12.306347894114879,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -3697,11 +3539,11 @@
         "type": 2
       },
       "seed": 1973143868,
-      "version": 55,
-      "versionNonce": 439403580,
-      "isDeleted": false,
-      "boundElements": null,
-      "updated": 1767764844889,
+      "version": 189,
+      "versionNonce": 1567896887,
+      "isDeleted": true,
+      "boundElements": [],
+      "updated": 1774388770619,
       "link": null,
       "locked": false,
       "points": [
@@ -3710,8 +3552,8 @@
           0
         ],
         [
-          -63.11274849777806,
-          42.30634789411488
+          -98.11274849777806,
+          12.306347894114879
         ]
       ],
       "startBinding": {
@@ -3732,7 +3574,8 @@
       },
       "startArrowhead": null,
       "endArrowhead": "arrow",
-      "elbowed": false
+      "elbowed": false,
+      "moveMidPointsWithElement": false
     },
     {
       "id": "Hn19d6eI6f5eXliAICADq",
@@ -3796,7 +3639,7 @@
       "version": 22,
       "versionNonce": 1858723204,
       "isDeleted": false,
-      "boundElements": null,
+      "boundElements": [],
       "updated": 1767764984203,
       "link": null,
       "locked": false,
@@ -3813,10 +3656,10 @@
     {
       "id": "e2vWyBEXSGXov19EF9LGO",
       "type": "arrow",
-      "x": 1379.3123939055029,
-      "y": 1591.993090854443,
-      "width": 74.9030421731868,
-      "height": 112.35456325978066,
+      "x": 1414.3123939055029,
+      "y": 1621.993090854443,
+      "width": 86.9030421731868,
+      "height": 111.35456325978066,
       "angle": 0,
       "strokeColor": "#1e1e1e",
       "backgroundColor": "transparent",
@@ -3832,11 +3675,11 @@
         "type": 2
       },
       "seed": 1187728516,
-      "version": 82,
-      "versionNonce": 1144157188,
+      "version": 378,
+      "versionNonce": 1898264089,
       "isDeleted": false,
-      "boundElements": null,
-      "updated": 1767764990071,
+      "boundElements": [],
+      "updated": 1774388778162,
       "link": null,
       "locked": false,
       "points": [
@@ -3845,8 +3688,8 @@
           0
         ],
         [
-          -74.9030421731868,
-          112.35456325978066
+          -86.9030421731868,
+          111.35456325978066
         ]
       ],
       "startBinding": {
@@ -3861,8 +3704,630 @@
         "elementId": "Hn19d6eI6f5eXliAICADq",
         "mode": "inside",
         "fixedPoint": [
-          0.9014492753623186,
-          0.02298850574712583
+          0.9975735420289852,
+          0.503609839080459
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "wKF8y-aaVpu5nCVI0pR6b",
+      "type": "arrow",
+      "x": 1360.5,
+      "y": 1588.1582906779663,
+      "width": 83.5,
+      "height": 19.969039626929543,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3i",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1165112249,
+      "version": 88,
+      "versionNonce": 1539898007,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1774388898884,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -83.5,
+          -19.969039626929543
+        ]
+      ],
+      "startBinding": {
+        "elementId": "zbVSdAYmrIqUPOWAtLtkb",
+        "mode": "inside",
+        "fixedPoint": [
+          0.006024096385542169,
+          0.400141720990877
+        ]
+      },
+      "endBinding": {
+        "elementId": "OE4NkhAH56yaWPqOAE6TI",
+        "mode": "orbit",
+        "fixedPoint": [
+          1,
+          0.5001
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "Bwn9Kv909pL-d3sGKhkG7",
+      "type": "arrow",
+      "x": 1361.8102033625455,
+      "y": 1589.0624943535722,
+      "width": 81.26349470891068,
+      "height": 55.04783247519322,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3j",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1988014967,
+      "version": 52,
+      "versionNonce": 694683863,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1774388797735,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -81.26349470891068,
+          55.04783247519322
+        ]
+      ],
+      "startBinding": {
+        "elementId": "zbVSdAYmrIqUPOWAtLtkb",
+        "mode": "inside",
+        "fixedPoint": [
+          0.013916887726177758,
+          0.4155981940781576
+        ]
+      },
+      "endBinding": {
+        "elementId": "zzqLeno5YCxQJ7Itf5OZ2",
+        "mode": "orbit",
+        "fixedPoint": [
+          1,
+          0.5001
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "BpI8QWSl2G_DhVzVbta5a",
+      "type": "arrow",
+      "x": 1189.9851989312856,
+      "y": 1415.5,
+      "width": 0.17499556874008704,
+      "height": 33.43750564642778,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 1,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3k",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1591972375,
+      "version": 57,
+      "versionNonce": 65798009,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1774389520256,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          -0.17499556874008704,
+          -33.43750564642778
+        ]
+      ],
+      "startBinding": {
+        "elementId": "aEjKCgJGxgj1dLuA1x1zH",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5001,
+          0
+        ]
+      },
+      "endBinding": {
+        "elementId": "rCcjl_ellv24N4jIjKFOd",
+        "mode": "inside",
+        "fixedPoint": [
+          0.5109048395334067,
+          0.9802082392262037
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "AkAg2nznJDZQBMZLcI44O",
+      "type": "ellipse",
+      "x": 1384.0602033625455,
+      "y": 1271.0624943535722,
+      "width": 119.5,
+      "height": 100,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3l",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 582921303,
+      "version": 118,
+      "versionNonce": 149849,
+      "isDeleted": true,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "Gb2EdvFlka2ZNeDz0tWj8"
+        }
+      ],
+      "updated": 1774388949893,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "Gb2EdvFlka2ZNeDz0tWj8",
+      "type": "text",
+      "x": 1429.3022399804725,
+      "y": 1308.7071552942448,
+      "width": 28.516666412353516,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3m",
+      "roundness": null,
+      "seed": 1626671479,
+      "version": 29,
+      "versionNonce": 790910135,
+      "isDeleted": true,
+      "boundElements": [],
+      "updated": 1774388949893,
+      "link": null,
+      "locked": false,
+      "text": "DB",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "AkAg2nznJDZQBMZLcI44O",
+      "originalText": "DB",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "d2sj48NA3qbW8GahsbATi",
+      "type": "rectangle",
+      "x": 1382.8102033625455,
+      "y": 1306.0624943535722,
+      "width": 116,
+      "height": 58,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3n",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 123392889,
+      "version": 91,
+      "versionNonce": 241849113,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "hue3XWU_vkWlNv019qPcP"
+        },
+        {
+          "id": "jR0e5hp7t0gNiYfYAm5kx",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1774388983084,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "hue3XWU_vkWlNv019qPcP",
+      "type": "text",
+      "x": 1395.7768705378385,
+      "y": 1322.5624943535722,
+      "width": 90.06666564941406,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3nV",
+      "roundness": null,
+      "seed": 132205143,
+      "version": 26,
+      "versionNonce": 599951353,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1774388983084,
+      "link": null,
+      "locked": false,
+      "text": "CRON job",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "d2sj48NA3qbW8GahsbATi",
+      "originalText": "CRON job",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "xWH3ALfcPwdcZoF8xx5p5",
+      "type": "text",
+      "x": 1404.8102033625455,
+      "y": 1316.5624943535722,
+      "width": 138.98333740234375,
+      "height": 25,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3o",
+      "roundness": null,
+      "seed": 340132567,
+      "version": 23,
+      "versionNonce": 162014231,
+      "isDeleted": true,
+      "boundElements": null,
+      "updated": 1774388971897,
+      "link": null,
+      "locked": false,
+      "text": "CRONdv;dkv;df",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "originalText": "CRONdv;dkv;df",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "jR0e5hp7t0gNiYfYAm5kx",
+      "type": "arrow",
+      "x": 1437.8102033625455,
+      "y": 1363.0624943535722,
+      "width": 0.7883022746266306,
+      "height": 28.93765429475934,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3p",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1983081753,
+      "version": 48,
+      "versionNonce": 1308696793,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1774388983084,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0.7883022746266306,
+          28.93765429475934
+        ]
+      ],
+      "startBinding": {
+        "elementId": "d2sj48NA3qbW8GahsbATi",
+        "mode": "inside",
+        "fixedPoint": [
+          0.47413793103448276,
+          0.9827586206896551
+        ]
+      },
+      "endBinding": {
+        "elementId": "uzoFjUQc_Sy4iZ1Uv_PJQ",
+        "mode": "orbit",
+        "fixedPoint": [
+          0.5001,
+          0
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false,
+      "moveMidPointsWithElement": false
+    },
+    {
+      "id": "z-hqsfzYYWdXML41Jp32j",
+      "type": "rectangle",
+      "x": 898.8102033625454,
+      "y": 1422.8124943535722,
+      "width": 166,
+      "height": 60,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3q",
+      "roundness": {
+        "type": 3
+      },
+      "seed": 666468823,
+      "version": 164,
+      "versionNonce": 1018393911,
+      "isDeleted": false,
+      "boundElements": [
+        {
+          "type": "text",
+          "id": "9kJoixL1kuuNT7qpu9Dmv"
+        },
+        {
+          "id": "FX2QrVSk8OBE_y12xoQIv",
+          "type": "arrow"
+        },
+        {
+          "id": "wAM7hl7YWn0pkJ37MvvTD",
+          "type": "arrow"
+        }
+      ],
+      "updated": 1774390057687,
+      "link": null,
+      "locked": false
+    },
+    {
+      "id": "9kJoixL1kuuNT7qpu9Dmv",
+      "type": "text",
+      "x": 907.8102033625454,
+      "y": 1427.8124943535722,
+      "width": 148,
+      "height": 50,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3r",
+      "roundness": null,
+      "seed": 2063150839,
+      "version": 87,
+      "versionNonce": 1745350553,
+      "isDeleted": false,
+      "boundElements": [],
+      "updated": 1774390047707,
+      "link": null,
+      "locked": false,
+      "text": "Ingestion Queue\n(SQS)",
+      "fontSize": 20,
+      "fontFamily": 6,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "z-hqsfzYYWdXML41Jp32j",
+      "originalText": "Ingestion Queue (SQS)",
+      "autoResize": true,
+      "lineHeight": 1.25
+    },
+    {
+      "id": "FX2QrVSk8OBE_y12xoQIv",
+      "type": "arrow",
+      "x": 1064.8102033625455,
+      "y": 1451.0624943535722,
+      "width": 43,
+      "height": 0,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3s",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 811846551,
+      "version": 37,
+      "versionNonce": 398502935,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1774390052904,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          43,
+          0
+        ]
+      ],
+      "startBinding": {
+        "elementId": "z-hqsfzYYWdXML41Jp32j",
+        "mode": "inside",
+        "fixedPoint": [
+          1.0000000000000007,
+          0.4708333333333333
+        ]
+      },
+      "endBinding": {
+        "elementId": "aEjKCgJGxgj1dLuA1x1zH",
+        "mode": "inside",
+        "fixedPoint": [
+          0.004880743147864505,
+          0.5053417838217473
+        ]
+      },
+      "startArrowhead": null,
+      "endArrowhead": "arrow",
+      "elbowed": false
+    },
+    {
+      "id": "wAM7hl7YWn0pkJ37MvvTD",
+      "type": "arrow",
+      "x": 840.8102033625454,
+      "y": 1460.0624943535722,
+      "width": 59,
+      "height": 0,
+      "angle": 0,
+      "strokeColor": "#1e1e1e",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "groupIds": [],
+      "frameId": null,
+      "index": "b3t",
+      "roundness": {
+        "type": 2
+      },
+      "seed": 1875536023,
+      "version": 29,
+      "versionNonce": 584028183,
+      "isDeleted": false,
+      "boundElements": null,
+      "updated": 1774390057686,
+      "link": null,
+      "locked": false,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          59,
+          0
+        ]
+      ],
+      "startBinding": {
+        "elementId": "dqINRJ-W7saWDj0-9cdfX",
+        "mode": "inside",
+        "fixedPoint": [
+          0.9980126006549261,
+          0.18649462293182903
+        ]
+      },
+      "endBinding": {
+        "elementId": "z-hqsfzYYWdXML41Jp32j",
+        "mode": "inside",
+        "fixedPoint": [
+          0.006024096385542169,
+          0.6208333333333333
         ]
       },
       "startArrowhead": null,
